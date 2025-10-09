@@ -1,0 +1,10 @@
+```sql
+CREATE TABLE users (
+  user_id   INT AUTO_INCREMENT PRIMARY KEY,
+  email     VARCHAR(255) UNIQUE NOT NULL,
+  password  VARCHAR(255)  NOT NULL,
+  username  VARCHAR(100)  NOT NULL,
+  faculty VARCHAR(255) NOT NULL,
+  role VARCHAR(18) NOT NULL DEFAULT 'user'
+)
+```

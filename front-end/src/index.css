@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.fc .fc-timegrid-slot {
+  height: 80px !important;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.fc .fc-timegrid-slot-lane {
+  border-bottom: none;
+}
+
+.fc .fc-timegrid-slot-minor {
+  border-top: none;
+}
