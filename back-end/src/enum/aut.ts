@@ -18,3 +18,13 @@ export enum registerStatus {
   alreadyHaveAcount,
   alreadyHaveUserName,
 }
+
+export enum deleteStatus {
+  deleted,
+  canNotDelete,
+}
+
+export enum updateStatus {
+  updated,
+  canNotUpdate,
+}

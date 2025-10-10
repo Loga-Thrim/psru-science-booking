@@ -1,0 +1,119 @@
+import React, { useState } from "react";
+import type { UpsertForm } from "../../types/types";
+import { Modal } from "../../components/ui/Modal";
+import { Input } from "../../components/ui/Input";
+import { SelectRole } from "../../components/ui/SelectRole";
+import { DEPARTMENTS } from "../../types/types";
+
+export function AddUserModal({
+  onClose,
+  onSubmit,
+}: {
+  onClose: () => void;
+  onSubmit: (data: UpsertForm) => Promise<void> | void;
+}) {
+  const [form, setForm] = useState<UpsertForm>({
+    email: "",
+    username: "",
+    department: "",
+    role: "user",
+    password: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await onSubmit(form);
+      onClose();
+    } catch (e: any) {
+      alert(e?.message ?? "สร้างผู้ใช้ไม่สำเร็จ");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Modal title="เพิ่มผู้ใช้ใหม่" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="อีเมล"
+          type="email"
+          value={form.email}
+          onChange={(v) => setForm((s) => ({ ...s, email: v }))}
+          required
+        />
+
+        <Input
+          label="ชื่อผู้ใช้"
+          value={form.username}
+          onChange={(v) => setForm((s) => ({ ...s, username: v }))}
+          required
+        />
+
+        {/* เลือกคณะ/สังกัด */}
+        <div className="space-y-1">
+          <label
+            htmlFor="department"
+            className="block text-sm font-medium text-gray-700"
+          >
+            สังกัด/ภาควิชา
+          </label>
+          <select
+            id="department"
+            name="department"
+            required
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-3 pr-3 py-2.5 text-gray-900
+                       shadow-sm outline-none transition-all duration-200
+                       focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100
+                       appearance-none"
+            value={form.department}
+            onChange={(e) =>
+              setForm((s) => ({ ...s, department: e.target.value }))
+            }
+          >
+            <option value="" disabled>
+              เลือกคณะ
+            </option>
+            {DEPARTMENTS.map((dep) => (
+              <option key={dep} value={dep}>
+                {dep}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <SelectRole
+          value={form.role}
+          onChange={(v) => setForm((s) => ({ ...s, role: v }))}
+        />
+
+        <Input
+          label="รหัสผ่าน"
+          type="password"
+          value={form.password ?? ""}
+          onChange={(v) => setForm((s) => ({ ...s, password: v }))}
+          required
+        />
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
+          >
+            ยกเลิก
+          </button>
+          <button
+            disabled={submitting}
+            type="submit"
+            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            {submitting ? "กำลังบันทึก..." : "บันทึก"}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}

@@ -29,3 +29,30 @@ export interface Booking {
   attendees: number;
   createdAt: Date;
 }
+
+export type UserRow = {
+  user_id: number;
+  email: string;
+  username: string;
+  department: string;
+  role: UserRole;
+};
+
+export type UpsertForm = {
+  email: string;
+  username: string;
+  department: string;
+  role: UserRole;
+  password?: string;
+};
+
+export const DEPARTMENTS = [
+  "คณะครุศาสตร์",
+  "คณะมนุษยศาสตร์และสังคมศาสตร์",
+  "คณะวิทยาศาสตร์และเทคโนโลยี",
+  "คณะวิทยาการจัดการ",
+  "คณะสังคมศาสตร์และการพัฒนาท้องถิ่น",
+  "คณะเทคโนโลยีการเกษตรและอาหาร",
+  "คณะเทคโนโลยีอุตสาหกรรม",
+  "คณะพยาบาลศาสตร์",
+]

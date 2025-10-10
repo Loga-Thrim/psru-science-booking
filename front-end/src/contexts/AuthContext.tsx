@@ -19,13 +19,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserLogin | null>(null);
 
-  const login = useCallback( async (id: number, username: string, email: string, faculty: string, role: UserRole) => {
+  const login = useCallback( async (id: number, username: string, email: string, department: string, role: UserRole) => {
       const user: UserLogin = {
         id: id,
         name: username,
         email: email,
         role: role,
-        department: faculty,
+        department: department,
       };
       setUser(user);
     },

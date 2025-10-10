@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { LogIn, UserPlus, Mail, Lock, User, GraduationCap } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { UserLogin } from "../types/types";
+import { DEPARTMENTS } from "../types/types";
+
+const api = import.meta.env.VITE_API;
 
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,7 +13,7 @@ function AuthPage() {
     password: "",
     fullName: "",
     confirmPassword: "",
-    faculty: "",
+    department: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ function AuthPage() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:3000/verify-token", {
+      const res = await fetch(`${api}/verify-token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -35,8 +37,14 @@ function AuthPage() {
       if (!res.ok) throw new Error("verify-token failed");
 
       const { payload } = await res.json();
-      login(payload.id, payload.username, payload.email, payload.faculty, payload.role);
-      navigate("/dashboard")
+      login(
+        payload.id,
+        payload.username,
+        payload.email,
+        payload.department,
+        payload.role
+      );
+      navigate("/dashboard");
     } catch (err) {
       console.log(err);
     }
@@ -66,7 +74,7 @@ function AuthPage() {
           email: formData.email,
           password: formData.password,
         });
-        const res = await fetch("http://localhost:3000/login", {
+        const res = await fetch(`${api}/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -81,8 +89,8 @@ function AuthPage() {
           const { message, token, rows } = await res.json();
           console.log(message);
           localStorage.setItem("token", token);
-          const [{ id, username, email, faculty, role }] = rows;
-          await login(id, username, email, faculty, role);
+          const [{ id, username, email, department, role }] = rows;
+          await login(id, username, email, department, role);
           navigate("/dashboard");
         } else {
           const { message } = await res.json();
@@ -95,7 +103,7 @@ function AuthPage() {
           return;
         }
         console.log("Register:", formData);
-        const res = await fetch("http://localhost:3000/register", {
+        const res = await fetch(`${api}/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -105,14 +113,12 @@ function AuthPage() {
             username: formData.fullName,
             email: formData.email,
             password: formData.password,
-            faculty: formData.faculty,
+            department: formData.department,
           }),
         });
         if (res.ok) {
           alert("สมัครสมาชิกสำเร็จ!");
-          setTimeout(() => {
-            navigate("/login");
-          }, 1000);
+          navigate("/login");
         } else {
           const { message } = await res.json();
           setError(message);
@@ -137,7 +143,7 @@ function AuthPage() {
       password: "",
       fullName: "",
       confirmPassword: "",
-      faculty: "",
+      department: "",
     });
   };
 
@@ -205,7 +211,7 @@ function AuthPage() {
                     {/* คณะ (แสดงเฉพาะสมัคร) */}
                     <div className="space-y-1.5">
                       <label
-                        htmlFor="faculty"
+                        htmlFor="department"
                         className="text-sm font-semibold text-gray-700"
                       >
                         คณะ
@@ -215,41 +221,23 @@ function AuthPage() {
                           <GraduationCap className="h-5 w-5 text-gray-400" />
                         </div>
                         <select
-                          id="faculty"
-                          name="faculty"
+                          id="department"
+                          name="department"
                           required
                           className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-10 py-3 text-gray-900
-                                     shadow-sm outline-none transition-all duration-200
-                                     focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100
-                                     appearance-none"
-                          value={formData.faculty}
+                                    shadow-sm outline-none transition-all duration-200 focus:bg-white focus:border-emerald-500
+                                    focus:ring-4 focus:ring-emerald-100 appearance-none"
+                          value={formData.department}
                           onChange={handleInputChange}
                         >
                           <option value="" disabled>
                             เลือกคณะ
                           </option>
-                          <option value="คณะครุศาสตร์">คณะครุศาสตร์</option>
-                          <option value="คณะมนุษยศาสตร์และสังคมศาสตร์">
-                            คณะมนุษยศาสตร์และสังคมศาสตร์
-                          </option>
-                          <option value="คณะวิทยาศาสตร์และเทคโนโลยี">
-                            คณะวิทยาศาสตร์และเทคโนโลยี
-                          </option>
-                          <option value="คณะวิทยาการจัดการ">
-                            คณะวิทยาการจัดการ
-                          </option>
-                          <option value="คณะสังคมศาสตร์และการพัฒนาท้องถิ่น">
-                            คณะสังคมศาสตร์และการพัฒนาท้องถิ่น
-                          </option>
-                          <option value="คณะเทคโนโลยีการเกษตรและอาหาร">
-                            คณะเทคโนโลยีการเกษตรและอาหาร
-                          </option>
-                          <option value="คณะเทคโนโลยีอุตสาหกรรม">
-                            คณะเทคโนโลยีอุตสาหกรรม
-                          </option>
-                          <option value="คณะพยาบาลศาสตร์">
-                            คณะพยาบาลศาสตร์
-                          </option>
+                          {DEPARTMENTS.map((dep) => (
+                            <option key={dep} value={dep}>
+                              {dep}
+                            </option>
+                          ))}
                         </select>
                         {/* ลูกศร dropdown (ตกแต่ง) */}
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">

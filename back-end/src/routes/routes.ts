@@ -1,6 +1,7 @@
 import registerRoute from "./registerRoute";
 import loginRoute from "./loginRoutes";
-import adminLoginRoute from "./adminLoginRoute";
 import verifyTokenRoute from "./verifyToken";
+import createUserRoute from "./manageUserRoutes";
+import manageUserRoutes from "./manageUserRoutes";
 
-export {registerRoute, loginRoute, adminLoginRoute, verifyTokenRoute}
+export {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute}

@@ -7,7 +7,6 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import AuthPage from './pages/AuthPage';
-import AdminLoginPage from './pages/AdminLoginPage';
 
 import DashboardPage from './pages/DashboardPage';
 import RoomBookingPage from './pages/RoomBookingPage';
@@ -23,8 +22,6 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<AuthPage />} />
-          <Route path="/admin-login" element={<AdminLoginPage />} />
-
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />

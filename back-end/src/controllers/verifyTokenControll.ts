@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken"
+import verifyTokenService from "../services/verifyTokenService";
 export default function verifyTokenControll(req: Request, res: Response){
-  const token = req.body.token;
-  const payload = jwt.verify(token,process.env.JWT_KEY as string);
-  console.log(payload);
+  const payload = verifyTokenService(req.body);
+  console.log(payload)
   res.json({payload}).status(200)
 }

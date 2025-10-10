@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Phone, Building, ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { Users, Phone, Building, ArrowLeft, Calendar, Clock, FileText } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { th } from 'date-fns/locale';
 import { isSameDay, format } from 'date-fns';
 import clsx from 'clsx';
+
 
 type RoomType = 'building' | 'laboratory' | 'classroom';
 type BookingType = 'teaching' | 'exam' | 'activity' | 'other';
@@ -22,6 +23,7 @@ interface BookingFormData {
   startPeriod: number;
   endPeriod: number;
   phoneNumber: string;
+  note:string;
 }
 
 const roomTypes = [
@@ -49,6 +51,7 @@ function NewBookingPage() {
     startPeriod: 1,
     endPeriod: 1,
     phoneNumber: '',
+    note:''
   });
 
   const isMultipleDays = useMemo(() => {
@@ -350,6 +353,26 @@ function NewBookingPage() {
             />
           </div>
         </div>
+
+        <div className="space-y-2">
+          <label htmlFor="note" className="block text-sm font-medium text-gray-700">
+            หมายเหตุ <span className="text-gray-400 font-normal">(ไม่บังคับ)</span>
+          </label>
+
+          <div className="relative">
+            <FileText className="absolute left-4 top-3 text-gray-400 h-5 w-5 pointer-events-none" />
+            <textarea
+              id="note"
+              value={formData.note}
+              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+              rows={3}
+              maxLength={1024}
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 resize-y"
+              placeholder="ระบุรายละเอียดเพิ่มเติมสำหรับการจอง"
+            />
+          </div>
+        </div>
+
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-4">

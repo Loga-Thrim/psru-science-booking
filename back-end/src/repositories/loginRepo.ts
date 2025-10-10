@@ -7,7 +7,7 @@ export default async function loginRepo(email: string, password: string): Promis
   try {
     const connect = await dbConnect();
     const [emailCheck] = await connect.execute<RowDataPacket[]>("SELECT * FROM users WHERE email = ?", [email]);
-    const [passCheck] = await connect.execute<RowDataPacket[]>("SELECT user_id, email, faculty, username, role FROM users WHERE password = ? AND email = ?", [password, email]);
+    const [passCheck] = await connect.execute<RowDataPacket[]>("SELECT user_id, email, department, username, role FROM users WHERE password = ? AND email = ?", [password, email]);
     let result: loginStatus;
     let rows: RowDataPacket[] = passCheck;
     if (emailCheck.length > 0) {
@@ -23,6 +23,7 @@ export default async function loginRepo(email: string, password: string): Promis
         rows = [];
     }
 
+    connect.end()
     return {result, rows:rows};
   } catch (error) {
     console.log(error)

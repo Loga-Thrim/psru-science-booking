@@ -2,7 +2,7 @@ import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import dbConnect from "../configs/dbConnect";
 import { registerStatus } from "../enum/aut";
 
-export default async function registerRepo(email: string, password: string, username: string, department: string):Promise<registerStatus>{
+export default async function createUserRepo(email: string, password: string, username: string, department: string, role: string):Promise<registerStatus>{
   try {
     const connect = await dbConnect();
     const [emailRows] = await connect.execute<RowDataPacket[]>("SELECT email FROM users WHERE email = ?;", [email]);
@@ -15,7 +15,7 @@ export default async function registerRepo(email: string, password: string, user
       connect.end()
       return registerStatus.alreadyHaveUserName;
     }else {
-      await connect.execute<ResultSetHeader>("INSERT INTO users (email, password, username, department) VALUES (?, ?, ?, ?)", [email, password, username, department]);
+      await connect.execute<ResultSetHeader>("INSERT INTO users (email, password, username, department, role) VALUES (?, ?, ?, ?, ?)", [email, password, username, department, role]);
       connect.end()
       return registerStatus.pass;
     }
