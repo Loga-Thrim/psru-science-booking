@@ -56,3 +56,19 @@ export const DEPARTMENTS = [
   "คณะเทคโนโลยีอุตสาหกรรม",
   "คณะพยาบาลศาสตร์",
 ]
+
+export interface Room {
+  room_id: string;
+  room_code: string;
+  capacity: number;
+  description?: string | null;
+  room_type: string;
+  equipment?: string | null;
+  caretaker?: string | null;
+}
+
+export const ROOM_TYPE = [
+  "ห้องอบรม",
+  "ห้องเรียน",
+  "ห้องสัมมนา",
+]

@@ -31,8 +31,8 @@ function AuthPage() {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization:`Bearer ${token}`
         },
-        body: JSON.stringify({ token }),
       });
       if (!res.ok) throw new Error("verify-token failed");
 

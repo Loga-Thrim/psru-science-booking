@@ -1,31 +1,37 @@
-import { registerStatus, loginStatus, updateStatus, deleteStatus } from "../enum/aut"
-import { RowDataPacket } from "mysql2"
+import {
+  registerStatus,
+  loginStatus,
+  updateStatus,
+  deleteStatus,
+  createRoomStatus
+} from "../enum/aut";
+import { RowDataPacket } from "mysql2";
 
 export type Role = "admin" | "approver" | "user";
 
 export interface registerRequest {
-  username: string,
-  email: string,
-  password: string,
-  department: string
+  username: string;
+  email: string;
+  password: string;
+  department: string;
 }
 
 export interface registerResponse {
-  result: registerStatus
+  result: registerStatus;
 }
 
 export interface loginRequest {
-  email: string,
-  password: string
+  email: string;
+  password: string;
 }
 
 export interface loginResponse {
-  result: loginStatus
-  rows: RowDataPacket[]
+  result: loginStatus;
+  rows: RowDataPacket[];
 }
 
 export interface verifyTokenRequest {
-  token: string
+  tokenHeader: string;
 }
 
 export interface verifyTokenResponse {
@@ -38,7 +44,6 @@ export interface verifyTokenResponse {
 }
 
 export interface createUserRequest {
-  token: string;
   email: string;
   username: string;
   department: string;
@@ -51,16 +56,14 @@ export interface createUserResponse {
 }
 
 export interface deleteUserRequest {
-  token: string;
   user_id: number;
 }
 
 export interface deleteUserResponse {
-  status: deleteStatus
+  status: deleteStatus;
 }
 
 export interface updateUserRequest {
-  token: string;
   user_id: number;
   email: string;
   username: string;
@@ -70,5 +73,44 @@ export interface updateUserRequest {
 }
 
 export interface updateUserResponse {
-  status: updateStatus
+  status: updateStatus;
+}
+
+export interface createRoomRequest {
+  room_code: string | "";
+  room_type: string | "";
+  capacity: number;
+  equipment: string | "";
+  caretaker: string | "";
+  description: string | "";
+}
+
+export interface createRoomResponse {
+  status: createRoomStatus;
+}
+
+export interface deleteRoomRequest {
+  room_id: string;
+}
+
+export interface deleteRoomResponse {
+  status: deleteStatus;
+}
+
+export interface room {
+  room_code: string;
+  room_type: string;
+  capacity: number;
+  equipment: string;
+  caretaker: string;
+  description: string;
+}
+
+export interface updateRoomRequest {
+  id: string,
+  room: room;
+}
+
+export interface updateRoomResponse {
+  status: updateStatus;
 }

@@ -28,3 +28,9 @@ export enum updateStatus {
   updated,
   canNotUpdate,
 }
+
+export enum createRoomStatus {
+  created,
+  canNotCreate,
+  errorRoomCode,
+}

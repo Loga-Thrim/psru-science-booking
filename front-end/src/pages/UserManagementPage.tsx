@@ -34,13 +34,13 @@ function UserManagementPage() {
     setErr(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${api}/get-users`, {
-        method: "POST",
+      const res = await fetch(`${api}/users`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${token}` ,
         },
-        body: JSON.stringify({ token }),
       });
       if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
       const data = await res.json();
@@ -59,13 +59,14 @@ function UserManagementPage() {
   // submit handlers (เดิม) — ถูกส่งต่อเข้าโมดอล
   const handleCreate = async (form: UpsertForm) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${api}/create-user`, {
+    const res = await fetch(`${api}/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
+        Authorization: `Bearer ${token}` ,
       },
-      body: JSON.stringify({ token, ...form }),
+      body: JSON.stringify({...form }),
     });
     if (!res.ok) {
       const {message} = await res.json();
@@ -79,7 +80,6 @@ function UserManagementPage() {
     const token = localStorage.getItem("token");
     // ส่ง password เฉพาะกรณีที่กรอก
     const body: any = {
-      token,
       user_id: payload.user_id,
       email: payload.email,
       username: payload.username,
@@ -88,11 +88,12 @@ function UserManagementPage() {
     };
     if (payload.password) body.password = payload.password;
 
-    const res = await fetch(`${api}/update-user`, {
+    const res = await fetch(`${api}/users`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
+        Authorization: `Bearer ${token}` ,
       },
       body: JSON.stringify(body),
     });
@@ -103,13 +104,14 @@ function UserManagementPage() {
 
   const handleDelete = async (user_id: number) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${api}/delete-user`, {
+    const res = await fetch(`${api}/users`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
+        Authorization: `Bearer ${token}` ,
       },
-      body: JSON.stringify({ token, user_id }),
+      body: JSON.stringify({ user_id }),
     });
     if (!res.ok) throw new Error("ลบผู้ใช้ไม่สำเร็จ");
     setIsDeleteOpen(false);
