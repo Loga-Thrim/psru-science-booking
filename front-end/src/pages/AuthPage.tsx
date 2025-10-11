@@ -21,36 +21,11 @@ function AuthPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const checkLogin = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${api}/verify-token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization:`Bearer ${token}`
-        },
-      });
-      if (!res.ok) throw new Error("verify-token failed");
-
-      const { payload } = await res.json();
-      login(
-        payload.id,
-        payload.username,
-        payload.email,
-        payload.department,
-        payload.role
-      );
-      navigate("/dashboard");
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  checkLogin();
+  const user = localStorage.getItem("user");
+  const token = localStorage.getItem("token");
+  if(user && token){
+    navigate("/dashboard");
+  }
 
   // รองรับทั้ง input และ select
   const handleInputChange = (

@@ -1,7 +1,7 @@
 export type UserRole = 'admin' | 'approver' | 'user';
 
 export interface UserLogin {
-  id: number;
+  user_id: string;
   email: string;
   role: UserRole;
   department: string;

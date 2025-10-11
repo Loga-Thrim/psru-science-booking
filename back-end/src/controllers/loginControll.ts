@@ -18,8 +18,8 @@ export default async function loginControll(req: Request, res: Response) {
         return res.status(500).json({ message: "Server error" });
 
       case loginStatus.pass:
-        const [{id, email, username, department, role}] = rows;
-        const token = jwt.sign({id, email, username, department, role}, String(process.env.JWT_KEY), { expiresIn: '3d' })
+        const [{user_id, email, username, department, role}] = rows;
+        const token = jwt.sign({user_id, email, username, department, role}, String(process.env.JWT_KEY), { expiresIn: '3d' })
         return res.status(200).json({ message: "OK", token: token, rows:rows});
 
       default:
