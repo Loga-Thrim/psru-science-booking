@@ -9,7 +9,7 @@ export default async function createUserService(body: createUserRequest): Promis
     const status = await createUserRepo(email,password, username, department, role);
     return { status };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     const status = registerStatus.notPass;
     return { status };
   }

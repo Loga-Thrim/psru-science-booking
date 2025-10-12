@@ -7,6 +7,6 @@ export default async function getUsersRepo() {
     connect.end()
     return rows;
   }catch (err) {
-    console.log(err);
+    console.error(err);
   }
 }

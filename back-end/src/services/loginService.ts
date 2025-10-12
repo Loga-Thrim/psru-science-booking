@@ -8,7 +8,7 @@ export default async function loginService(body:loginRequest):Promise<loginRespo
     const result = await loginRepo(email, password);
     return result;
   }catch (error){
-    console.log(error);
+    console.error(error);
     const result = loginStatus.notPass;
     return {result, rows:[]};
   }

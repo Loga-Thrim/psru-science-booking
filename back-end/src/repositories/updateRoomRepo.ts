@@ -17,7 +17,7 @@ export default async function updateRoomRepo(id: string, room: room) {
       return updateStatus.canNotUpdate;
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return updateStatus.canNotUpdate;
   }
 }

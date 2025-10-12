@@ -1,6 +1,6 @@
 import express,{Express} from "express";
 import cors from "cors";
-import {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute} from "./routes/routes"
+import {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute} from "./routes/routes"
 import "dotenv/config";
 
 const app:Express = express();
@@ -9,6 +9,7 @@ app
   .use(express.json())
   .use(express.urlencoded());
 
+
 try {
   registerRoute(app);
   loginRoute(app);
@@ -16,6 +17,7 @@ try {
   manageUserRoutes(app);
   createUserRoute(app);
   manageRoomRoute(app);
+  uploadImageRoute(app);
 }catch(err){
   console.error(err);
 }

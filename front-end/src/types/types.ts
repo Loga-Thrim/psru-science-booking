@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'approver' | 'user';
+export type UserRole = "admin" | "approver" | "user";
 
 export interface UserLogin {
   user_id: string;
@@ -8,16 +8,6 @@ export interface UserLogin {
   name: string;
 }
 
-export interface Room {
-  id: string;
-  name: string;
-  capacity: number;
-  floor: string;
-  building: string;
-  facilities: string[];
-  status: 'available' | 'maintenance';
-}
-
 export interface Booking {
   id: string;
   userId: string;
@@ -25,7 +15,7 @@ export interface Booking {
   startTime: Date;
   endTime: Date;
   purpose: string;
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  status: "pending" | "approved" | "rejected" | "cancelled";
   attendees: number;
   createdAt: Date;
 }
@@ -55,7 +45,7 @@ export const DEPARTMENTS = [
   "คณะเทคโนโลยีการเกษตรและอาหาร",
   "คณะเทคโนโลยีอุตสาหกรรม",
   "คณะพยาบาลศาสตร์",
-]
+];
 
 export interface Room {
   room_id: string;
@@ -67,8 +57,4 @@ export interface Room {
   caretaker?: string | null;
 }
 
-export const ROOM_TYPE = [
-  "ห้องอบรม",
-  "ห้องเรียน",
-  "ห้องสัมมนา",
-]
+export const ROOM_TYPE = ["ห้องอบรม", "ห้องเรียน", "ห้องสัมมนา"];

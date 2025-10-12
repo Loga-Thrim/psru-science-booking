@@ -26,7 +26,7 @@ export default async function loginRepo(email: string, password: string): Promis
     connect.end()
     return {result, rows:rows};
   } catch (error) {
-    console.log(error)
+    console.error(error);
     const result = loginStatus.notPass;
     return {result, rows: []};
   }

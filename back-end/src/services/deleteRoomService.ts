@@ -10,6 +10,7 @@ export default async function deleteRoomService({room_id}: deleteRoomRequest): P
 
   }catch (err){
     const status = deleteStatus.canNotDelete;
+    console.error(err);
     return {status};
   }
 

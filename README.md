@@ -22,3 +22,18 @@ CREATE TABLE rooms (
   caretaker VARCHAR(255)
 );
 ```
+
+```sql
+CREATE TABLE room_images (
+  image_id CHAR(8) PRIMARY KEY
+    DEFAULT (SUBSTRING(UPPER(MD5(UUID())), 1, 8)),
+  room_id CHAR(8) NOT NULL,
+  image_path VARCHAR(255) NOT NULL,
+  image_name VARCHAR(255) NOT NULL,
+  CONSTRAINT fk_room_images_room
+    FOREIGN KEY (room_id)
+    REFERENCES rooms(room_id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+)
+```

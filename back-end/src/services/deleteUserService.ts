@@ -9,7 +9,7 @@ export default async function deleteUserService(body:deleteUserRequest):Promise<
       return {status};
   } catch (err){
     const status = deleteStatus.canNotDelete;
-    console.log(err);
+    console.error(err);
     return {status};
   }
 }

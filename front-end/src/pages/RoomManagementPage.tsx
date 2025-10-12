@@ -30,8 +30,7 @@ export default function RoomManagementPage() {
         },
       });
       if (!res.ok) throw new Error("โหลดข้อมูลห้องไม่สำเร็จ");
-      const json = await res.json();
-      const rows = Array.isArray(json) ? json : json?.rows ?? json?.data ?? [];
+      const { rows } = await res.json();
       setRooms(rows as Room[]);
     } catch (e) {
       setError((e as Error).message);
@@ -44,7 +43,6 @@ export default function RoomManagementPage() {
     fetchRooms();
   }, [fetchRooms]);
 
-  // ✅ หลังสร้าง/แก้ไข/ลบ ให้โหลดรายการใหม่จากเซิร์ฟเวอร์เสมอ
   const handleCreated = async (_room: Room) => {
     await fetchRooms();
     setOpenAdd(false);

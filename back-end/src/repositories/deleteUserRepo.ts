@@ -14,7 +14,7 @@ export default async function deleteUsersRepo(id: number) {
       return deleteStatus.canNotDelete;
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return deleteStatus.canNotDelete;
   }
 }

@@ -4,5 +4,6 @@ import verifyTokenRoute from "./verifyToken";
 import createUserRoute from "./manageUserRoutes";
 import manageUserRoutes from "./manageUserRoutes";
 import manageRoomRoute from "./manageRoomRoute";
+import uploadImageRoute from "./uploadImageRoute";
 
-export {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute}
+export {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute}

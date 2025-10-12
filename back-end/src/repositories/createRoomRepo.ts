@@ -19,7 +19,7 @@ export default async function createRoomRepo( room_code:string, room_type:string
       return createRoomStatus.canNotCreate;
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return createRoomStatus.canNotCreate;
   }
 }

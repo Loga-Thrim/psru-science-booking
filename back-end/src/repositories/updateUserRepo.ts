@@ -5,7 +5,8 @@ export default async function updateUsersRepo(user_id: number, email: string, us
   try {
     const connect = await dbConnect();
     if (password != undefined) {
-      const [result] = await connect.execute<ResultSetHeader>("UPDATE users SET email = ?, username = ?, department = ?, password = ? WHERE user_id = ?", [email, username, department, password, user_id]);
+      const [result] = await connect.execute<ResultSetHeader>("UPDATE users SET email = ?, username = ?, department = ?, role = ?, password = ? WHERE user_id = ?",
+        [email, username, department, role, password, user_id]);
       if (result.affectedRows && result.affectedRows > 0) {
         connect.end();
         return updateStatus.updated;
@@ -14,7 +15,8 @@ export default async function updateUsersRepo(user_id: number, email: string, us
         return updateStatus.canNotUpdate;
       }
     } else {
-      const [result] = await connect.execute<ResultSetHeader>("UPDATE users SET email = ?, username = ?, department = ? WHERE user_id = ?", [email, username, department, user_id ]);
+      const [result] = await connect.execute<ResultSetHeader>("UPDATE users SET email = ?, username = ?, department = ?, role = ? WHERE user_id = ?",
+        [email, username, department, role, user_id ]);
       if (result.affectedRows && result.affectedRows > 0) {
         connect.end();
         return updateStatus.updated;
@@ -24,7 +26,7 @@ export default async function updateUsersRepo(user_id: number, email: string, us
       }
     }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return updateStatus.canNotUpdate;
   }
 }

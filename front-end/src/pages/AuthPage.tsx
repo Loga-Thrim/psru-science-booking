@@ -93,7 +93,7 @@ function AuthPage() {
         });
         if (res.ok) {
           alert("สมัครสมาชิกสำเร็จ!");
-          navigate("/login");
+          setIsLogin(!isLogin);
         } else {
           const { message } = await res.json();
           setError(message);
