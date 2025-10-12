@@ -1,4 +1,4 @@
-import { updateUserRequest, updateUserResponse } from "../dto/aut";
+import { updateUserRequest, updateUserResponse } from "../dto/userManagement";
 import { updateStatus } from "../enum/aut";
 import updateUsersRepo from "../repositories/updateUserRepo";
 export default async function updateUserServcie(body:updateUserRequest): Promise<updateUserResponse>{

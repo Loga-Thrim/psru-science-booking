@@ -1,6 +1,6 @@
 
 import { deleteStatus } from "../enum/aut"
-import { deleteRoomRequest, deleteRoomResponse } from "../dto/aut"
+import { deleteRoomRequest, deleteRoomResponse } from "../dto/roomManagement"
 import deleteRoomRepo from "../repositories/deleteRoomRepo";
 
 export default async function deleteRoomService({room_id}: deleteRoomRequest): Promise<deleteRoomResponse>{

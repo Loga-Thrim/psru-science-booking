@@ -31,6 +31,7 @@ export default function RoomManagementPage() {
       });
       if (!res.ok) throw new Error("โหลดข้อมูลห้องไม่สำเร็จ");
       const { rows } = await res.json();
+      console.log(rows);
       setRooms(rows as Room[]);
     } catch (e) {
       setError((e as Error).message);

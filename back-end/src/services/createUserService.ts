@@ -1,5 +1,4 @@
-import { createUserRequest, createUserResponse } from "../dto/aut";
-import verifyTokenService from "./verifyTokenService";
+import { createUserRequest, createUserResponse } from "../dto/userManagement";
 import createUserRepo from "../repositories/createUserRepo";
 import { registerStatus } from "../enum/aut";
 

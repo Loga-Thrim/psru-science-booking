@@ -37,7 +37,6 @@ function TwoLineClamp({
   className?: string;
 }) {
   if (!text) return <span className="text-gray-400">-</span>;
-  // ใช้ CSS line-clamp แบบไม่ต้องติดตั้งปลั๊กอิน
   return (
     <div
       className={`max-w-[520px] text-gray-700 ${className}`}
@@ -51,6 +50,34 @@ function TwoLineClamp({
     >
       {text}
     </div>
+  );
+}
+
+/** Badge แสดงสถานะห้อง */
+const STATUS_META: Record<
+  string,
+  { label: string; className: string }
+> = {
+  available: {
+    label: "ว่าง",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+  unavailable: {
+    label: "จองแล้ว",
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+};
+
+function StatusBadge({ status }: { status?: Room["status"] | null }) {
+  const key = String(status ?? "").toLowerCase().trim();
+  const meta = STATUS_META[key];
+  if (!meta) return <span className="text-gray-400">-</span>;
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${meta.className}`}
+    >
+      {meta.label}
+    </span>
   );
 }
 
@@ -82,6 +109,9 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
               ผู้ดูแล
             </th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              สถานะ
+            </th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
               การทำงาน
             </th>
           </tr>
@@ -100,7 +130,6 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
                 </div>
               </td>
 
-              {/* รายละเอียด (description) — แสดง 2 บรรทัด + tooltip */}
               <td className="px-6 py-3">
                 <TwoLineClamp text={(r as any).description} />
               </td>
@@ -127,6 +156,11 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
                 {r.caretaker ?? "-"}
               </td>
 
+              {/* สถานะ */}
+              <td className="px-6 py-3 whitespace-nowrap text-center">
+                <StatusBadge status={r.status as Room["status"]} />
+              </td>
+
               <td className="px-6 py-3 whitespace-nowrap">
                 <div className="flex items-center justify-end gap-2">
                   <button
@@ -148,7 +182,7 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
 
           {rooms.length === 0 && (
             <tr>
-              <td className="px-6 py-6 text-center text-gray-500" colSpan={8}>
+              <td className="px-6 py-6 text-center text-gray-500" colSpan={9}>
                 ไม่พบข้อมูลห้อง
               </td>
             </tr>

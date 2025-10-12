@@ -4,6 +4,7 @@ import getRoomsRepo from "../repositories/getRoomRepo";
 export default async function getRoomControll(_req: Request, res: Response) {
   try {
     const rows = await getRoomsRepo();
+    console.log(rows);
     return res.status(200).json({ rows });
   } catch (err) {
     console.error(err);

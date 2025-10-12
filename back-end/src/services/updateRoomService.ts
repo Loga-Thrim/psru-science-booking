@@ -1,5 +1,5 @@
 import { updateStatus } from "../enum/aut"
-import { updateRoomRequest, updateRoomResponse } from "../dto/aut"
+import { updateRoomRequest, updateRoomResponse } from "../dto/roomManagement"
 import updateRoomRepo from "../repositories/updateRoomRepo";
 
 export default async function updateRoomService({id, room}:updateRoomRequest):Promise<updateRoomResponse>{

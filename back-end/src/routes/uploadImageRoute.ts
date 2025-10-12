@@ -4,7 +4,6 @@ import checkAdmin from "../midleware/checkAdmin";
 import uploadImages from "../midleware/uploadImage";
 import uploadImageControll from "../controllers/uploadImageControll";
 
-
 export default function uploadImageRoute(app: Express) {
-  app.post("/upload-image", checkAdmin, uploadImages, uploadImageControll);
+  app.post("/upload-image/:room_id", checkAdmin, uploadImages, uploadImageControll);
 }

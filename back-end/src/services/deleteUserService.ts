@@ -1,5 +1,5 @@
 import deleteUsersRepo from "../repositories/deleteUserRepo";
-import { deleteUserRequest, deleteUserResponse } from "../dto/aut";
+import { deleteUserRequest, deleteUserResponse } from "../dto/userManagement";
 import { deleteStatus } from "../enum/aut";
 import verifyTokenService from "./verifyTokenService";
 export default async function deleteUserService(body:deleteUserRequest):Promise<deleteUserResponse> {

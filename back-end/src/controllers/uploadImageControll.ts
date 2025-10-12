@@ -1,7 +1,15 @@
 import { Request, Response } from "express";
+import uploadImageRepo from "../repositories/uploadImageRepo";
 
-export default function uploadImageControll(req: Request, res: Response) {
+export default async function uploadImageControll(req: Request, res: Response) {
+  try {
   const files = (req.files as Express.Multer.File[]) ?? [];
-  console.log(files);
-  return res.status(201).json({ count: files.length }); // ส่งครั้งเดียว แล้วจบ
+  const [{path}] = files;
+  const room_id = req.params.room_id;
+  await uploadImageRepo(room_id, path);
+  return res.status(200);
+  } catch (err) {
+    console.error(err);
+    res.status(500);
+  }
 }

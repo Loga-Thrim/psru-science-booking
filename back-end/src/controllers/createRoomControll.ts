@@ -4,11 +4,11 @@ import { createRoomStatus } from "../enum/aut";
 
 export default async function createRoomControll(req: Request, res: Response) {
   try {
-    const { status } = await createRoomService(req.body);
+    const { status, room_id } = await createRoomService(req.body);
 
     switch (status) {
       case createRoomStatus.created:
-        return res.status(201).json({ message: "เพิ่มข้อมูลห้องสำเร็จ" });
+        return res.status(201).json({ message: "เพิ่มข้อมูลห้องสำเร็จ", room_id: room_id });
 
       case createRoomStatus.errorRoomCode:
         return res.status(409).json({ message: "มีห้องที่ใช้รหัสนี้แล้ว" });

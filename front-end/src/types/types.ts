@@ -55,6 +55,8 @@ export interface Room {
   room_type: string;
   equipment?: string | null;
   caretaker?: string | null;
+  status: "avaliable" | "unavaliable";
 }
 
 export const ROOM_TYPE = ["ห้องอบรม", "ห้องเรียน", "ห้องสัมมนา"];
+export const ROOM_STATUS = ["available", "unavailable"]

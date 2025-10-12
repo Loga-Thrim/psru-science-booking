@@ -70,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const userStorage = localStorage.getItem("user");
         if (userStorage) {
-          console.log(userStorage);
           const user = JSON.parse(userStorage) as UserLogin;
           setUser(user);
         }
