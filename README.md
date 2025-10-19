@@ -19,7 +19,8 @@ CREATE TABLE rooms (
   description TEXT,
   room_type VARCHAR(100) NOT NULL,
   equipment TEXT,
-  caretaker VARCHAR(255)
+  caretaker VARCHAR(255),
+  status VARCHAR(255)
 );
 ```
 

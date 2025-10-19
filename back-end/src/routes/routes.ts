@@ -5,5 +5,6 @@ import createUserRoute from "./manageUserRoutes";
 import manageUserRoutes from "./manageUserRoutes";
 import manageRoomRoute from "./manageRoomRoute";
 import uploadImageRoute from "./uploadImageRoute";
+import bookingRoute from "./bookingRoute";
 
-export {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute}
+export {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute}

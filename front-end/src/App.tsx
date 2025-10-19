@@ -9,7 +9,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 
 import DashboardPage from './pages/DashboardPage';
-import RoomBookingCalenderPage from './pages/RoomBookingCalenderPage';
+// import RoomBookingCalenderPage from './pages/RoomBookingCalenderPage';
+import RoomBookingPage from './pages/RoomBookingPage';
 import NewBookingPage from './pages/NewBookingPage';
 import RoomManagementPage from './pages/RoomManagementPage';
 import UserManagementPage from './pages/UserManagementPage';
@@ -25,7 +26,7 @@ function App() {
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/book-room" element={< RoomBookingCalenderPage/>} />
+            <Route path="/book-room" element={< RoomBookingPage/>} />
             <Route path="/book-room/new" element={<NewBookingPage />} />
             <Route path="/rooms" element={<RoomManagementPage />} />
             <Route path="/users" element={<UserManagementPage />} />

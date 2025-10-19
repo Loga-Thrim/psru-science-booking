@@ -8,7 +8,7 @@ export default async function dbConnect(): Promise<Connection> {
       user: process.env.DB_USER,
       database: process.env.DB_NAME,
       password: process.env.DB_PASSWORD,
-      //port: process.env.DB_PORT
+      port: Number(process.env.DB_PORT),
     });
     return connection;
   } catch {
