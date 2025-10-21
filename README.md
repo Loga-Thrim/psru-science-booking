@@ -30,6 +30,7 @@ CREATE TABLE room_images (
     DEFAULT (SUBSTRING(UPPER(MD5(UUID())), 1, 8)),
   room_id CHAR(8) NOT NULL,
   image_path VARCHAR(255) NOT NULL,
+  image_url VARCHAR(255) NOT NULL,
   CONSTRAINT fk_room_images_room
     FOREIGN KEY (room_id)
     REFERENCES rooms(room_id)

@@ -1,6 +1,7 @@
 import express,{Express} from "express";
 import cors from "cors";
 import {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute} from "./routes/routes"
+import path from "path";
 import "dotenv/config";
 
 const app:Express = express();
@@ -9,6 +10,7 @@ app
   .use(express.json())
   .use(express.urlencoded());
 
+app.use("/uploads", express.static(path.join(__dirname, "/", "uploads")));
 
 try {
   registerRoute(app);

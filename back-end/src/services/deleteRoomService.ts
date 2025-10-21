@@ -7,7 +7,6 @@ export default async function deleteRoomService({room_id}: deleteRoomRequest): P
   try {
     const status = await deleteRoomRepo(room_id);
     return {status};
-
   }catch (err){
     const status = deleteStatus.canNotDelete;
     console.error(err);
