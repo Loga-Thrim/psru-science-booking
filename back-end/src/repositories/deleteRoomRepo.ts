@@ -8,7 +8,11 @@ export default async function deleteRoomRepo(id: string) {
     const [rows] = await connect.execute<RowDataPacket[]>("SELECT * FROM room_images WHERE room_id = ?", [id]);
     if(rows.length > 0){
       const [{image_path}] = rows;
-      await unlink(image_path);
+      try{
+        await unlink(image_path);
+      }catch(err){
+        console.error(err);
+      }
     }
 
     await connect.execute<ResultSetHeader>("DELETE FROM room_images WHERE room_id = ?", [id]);

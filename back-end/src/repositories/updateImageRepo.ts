@@ -4,7 +4,6 @@ import { unlink } from "fs/promises";
 export default async function updateImageRepo(room_id: string, path: string, url: string) {
   try {
     const connect = await dbConnect();
-    console.log(room_id, path, url);
     const [rows] = await connect.execute<RowDataPacket[]>("SELECT * FROM room_images WHERE room_id = ?", [room_id]);
     if(rows.length > 0){
       const [{image_path}] = rows;
