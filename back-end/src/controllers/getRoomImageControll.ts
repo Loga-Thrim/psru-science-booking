@@ -4,7 +4,6 @@ export default async function (req: Request, res: Response) {
   try {
     const id = req.params.id;
     const rows = await getRoomsImageRepo(id);
-    console.log(rows);
     if(rows == undefined){
       return res.status(200).json({ message: "ไม่พบรูปภาพ" });
     }

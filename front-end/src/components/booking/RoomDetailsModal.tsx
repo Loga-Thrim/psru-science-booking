@@ -155,9 +155,8 @@ export function RoomDetailsModal({ room, onClose }: Props) {
                   <button
                     key={im.image_id ?? im.image_url ?? idx}
                     onClick={() => setActiveIndex(idx)}
-                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border ${
-                      activeIndex === idx ? "ring-2 ring-emerald-500" : ""
-                    }`}
+                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border ${activeIndex === idx ? "ring-2 ring-emerald-500" : ""
+                      }`}
                     aria-label={`เลือกภาพที่ ${idx + 1}`}
                   >
                     <img
@@ -194,7 +193,9 @@ export function RoomDetailsModal({ room, onClose }: Props) {
                 </div>
                 <div className="sm:col-span-2">
                   <dt className="text-xs text-gray-500">คำอธิบาย</dt>
-                  <dd className="whitespace-pre-wrap">{room.description ?? "-"}</dd>
+                  <dd className="whitespace-pre-wrap break-words break-all max-h-40 overflow-auto rounded-md bg-gray-50 p-3">
+                    {room.description ?? "-"}
+                  </dd>
                 </div>
               </dl>
             </div>
