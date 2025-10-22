@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import getRoomsRepo from "../repositories/getRoomRepo";
 
-export default async function getRoomControll(_req: Request, res: Response) {
+export default async function getRoomsControll(_req: Request, res: Response) {
   try {
     const rows = await getRoomsRepo();
     return res.status(200).json({ rows });

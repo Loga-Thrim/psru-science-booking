@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Input } from "../components/ui/Input";
-import { BookRoomModal } from "../components/booking/BookRoomModal";
 import { RoomDetailsModal } from "../components/booking/RoomDetailsModal";
 import { Room } from "../types/types";
+import { useNavigate } from "react-router-dom";
+
+const api = import.meta.env.VITE_API;
 
 export default function RoomBookingPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -10,7 +12,8 @@ export default function RoomBookingPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedRoomForDetails, setSelectedRoomForDetails] = useState<Room | null>(null);
-  const [selectedRoomForBook, setSelectedRoomForBook] = useState<Room | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const ac = new AbortController();
@@ -19,13 +22,14 @@ export default function RoomBookingPage() {
         setLoading(true);
         setError(null);
         const token = localStorage.getItem("token");
-        const res = await fetch("http://127.0.0.1:3000/book-rooms", {
+        const res = await fetch(`${api}/book-rooms`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
+          signal: ac.signal,
         });
         if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
         const data = (await res.json()) as Room[];
@@ -140,7 +144,6 @@ export default function RoomBookingPage() {
                       )}
                     </Td>
                     <Td className="text-gray-700">{r.caretaker || "-"}</Td>
-                    {/* รายละเอียด: บรรทัดเดียว + ตัดด้วย ellipsis เมื่อยาวเกินความกว้าง */}
                     <Td className="max-w-[320px]">
                       <span
                         className="block max-w-[320px] whitespace-nowrap overflow-hidden text-ellipsis text-gray-700"
@@ -158,10 +161,11 @@ export default function RoomBookingPage() {
                           รายละเอียด
                         </button>
                         <button
-                          onClick={() => setSelectedRoomForBook(r)}
+                          onClick={() => navigate(`/book-room/new?roomId=${r.room_id}`)}
                           disabled={!isAvailable}
-                          className={`rounded-lg px-3 py-1.5 text-sm font-semibold text-white
-                            ${isAvailable ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"}`}
+                          className={`rounded-lg px-3 py-1.5 text-sm font-semibold text-white ${
+                            isAvailable ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-300 cursor-not-allowed"
+                          }`}
                         >
                           จอง
                         </button>
@@ -177,10 +181,6 @@ export default function RoomBookingPage() {
 
       {selectedRoomForDetails && (
         <RoomDetailsModal room={selectedRoomForDetails} onClose={() => setSelectedRoomForDetails(null)} />
-      )}
-
-      {selectedRoomForBook && (
-        <BookRoomModal room={selectedRoomForBook} onClose={() => setSelectedRoomForBook(null)} />
       )}
     </div>
   );

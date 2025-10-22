@@ -7,7 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
 
-function RoomBookingCalenderPage() {
+function RoomBookingCalendarPage() {
   const navigate = useNavigate();
 
   const handleDateSelect = (selectInfo: any) => {
@@ -57,10 +57,19 @@ function RoomBookingCalenderPage() {
             minute: '2-digit',
             hour12: false
           }}
+
+          /* เพิ่มโค้ดนี้ เพื่อไม่ให้เลือกวันย้อนหลัง */
+          validRange={(nowDate) => ({
+            start: nowDate // เริ่มได้ตั้งแต่วันนี้เป็นต้นไป
+          })}
+          selectAllow={(selectInfo) => {
+            // ป้องกันเลือกช่วงเวลาก่อนวันนี้
+            return selectInfo.start >= new Date();
+          }}
         />
       </div>
     </div>
   );
 }
 
-export default RoomBookingCalenderPage;
+export default RoomBookingCalendarPage;

@@ -4,11 +4,21 @@ import {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUse
 import path from "path";
 import "dotenv/config";
 
+const WEB_ORIGIN = process.env.WEB_ORIGIN;
+
+const corsOptions: cors.CorsOptions = {
+  origin: WEB_ORIGIN,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false,
+};
+
 const app:Express = express();
 app
-  .use(cors())
+  .use(cors(corsOptions))
   .use(express.json())
   .use(express.urlencoded());
+
 
 app.use("/uploads", express.static(path.join(__dirname, "/", "uploads")));
 
