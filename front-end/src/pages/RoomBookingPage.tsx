@@ -55,7 +55,6 @@ export default function RoomBookingPage() {
         r.equipment,
         r.caretaker,
         r.capacity?.toString(),
-        r.status,
       ]
         .filter(Boolean)
         .join(" ")
@@ -83,7 +82,6 @@ export default function RoomBookingPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <Th className="w-[140px]">ID</Th>
                 <Th>รหัสห้อง</Th>
                 <Th>ประเภท</Th>
                 <Th className="text-center">ความจุ</Th>
@@ -120,9 +118,6 @@ export default function RoomBookingPage() {
                 const isAvailable = (r.status ?? "").toLowerCase() === "available";
                 return (
                   <tr key={r.room_id} className="hover:bg-gray-50/70">
-                    <Td>
-                      <span className="text-sm text-gray-600">{r.room_id}</span>
-                    </Td>
                     <Td>
                       <div className="font-semibold text-gray-900">{r.room_code}</div>
                     </Td>

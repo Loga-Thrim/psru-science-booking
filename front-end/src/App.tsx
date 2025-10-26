@@ -16,6 +16,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import BookingApprovalPage from './pages/BookingApprovalPage';
 import ReportsPage from './pages/ReportsPage';
 import BookRoomNewPage from './pages/BookRoomNewPage';
+import BookingPage from './pages/BookingPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/authen" element={<AuthPage />} />
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/book-room/new" element={<BookRoomNewPage />} />
+            <Route path="/booking" element={<BookingPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/book-room" element={< RoomBookingPage/>} />
