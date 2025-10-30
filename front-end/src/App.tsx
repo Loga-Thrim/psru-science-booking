@@ -1,15 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
 import { AuthProvider } from './contexts/AuthContext';
-
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-
 import AuthPage from './pages/AuthPage';
-
 import DashboardPage from './pages/DashboardPage';
-// import RoomBookingCalenderPage from './pages/RoomBookingCalenderPage';
 import RoomBookingPage from './pages/RoomBookingPage';
 import RoomManagementPage from './pages/RoomManagementPage';
 import UserManagementPage from './pages/UserManagementPage';
@@ -17,6 +12,7 @@ import BookingApprovalPage from './pages/BookingApprovalPage';
 import ReportsPage from './pages/ReportsPage';
 import BookRoomNewPage from './pages/BookRoomNewPage';
 import BookingPage from './pages/BookingPage';
+import NewBookingPage from './pages/NewBookingPage';
 
 function App() {
   return (
@@ -25,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/authen" element={<AuthPage />} />
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/book-room/new/form" element={<NewBookingPage />} />
             <Route path="/book-room/new" element={<BookRoomNewPage />} />
             <Route path="/booking" element={<BookingPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -7,6 +7,7 @@ export interface verifyTokenRequest {
 }
 
 export interface verifyTokenResponse {
+  user_id: string;
   email: string;
   username: string;
   department: string;
