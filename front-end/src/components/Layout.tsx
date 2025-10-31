@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Calendar, 
+  File,
   Users, 
   DoorOpen, 
   ClipboardList, 
@@ -21,6 +22,7 @@ function Layout() {
   const navigation = [
     { name: 'แดชบอร์ด', href: '/dashboard', icon: Calendar },
     { name: 'จองห้อง', href: '/book-room', icon: DoorOpen },
+    { name: 'สถานะการจอง', href: '/booking-status', icon: File },
     ...(user?.role === 'admin' ? [
       { name: 'จัดการห้อง', href: '/rooms', icon: DoorOpen },
       { name: 'จัดการผู้ใช้', href: '/users', icon: Users },

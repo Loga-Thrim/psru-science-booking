@@ -102,9 +102,9 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 whitespace-nowrap">
               ความจุ
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            {/* <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
               อุปกรณ์
-            </th>
+            </th> */}
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
               ผู้ดูแล
             </th>
@@ -148,9 +148,9 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
                 )}
               </td>
 
-              <td className="px-6 py-3">
+              {/* <td className="px-6 py-3">
                 <EquipmentChips value={r.equipment} />
-              </td>
+              </td> */}
 
               <td className="px-6 py-3 whitespace-nowrap text-gray-700 text-center">
                 {r.caretaker ?? "-"}

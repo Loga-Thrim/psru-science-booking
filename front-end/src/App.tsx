@@ -13,6 +13,7 @@ import ReportsPage from './pages/ReportsPage';
 import BookRoomNewPage from './pages/BookRoomNewPage';
 import BookingPage from './pages/BookingPage';
 import NewBookingPage from './pages/NewBookingPage';
+import BookingStatusPage from './pages/BookingStatusPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/users" element={<UserManagementPage />} />
             <Route path="/approvals" element={<BookingApprovalPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/booking-status" element={<BookingStatusPage/>} />
           </Route>
         </Routes>
       </Router>

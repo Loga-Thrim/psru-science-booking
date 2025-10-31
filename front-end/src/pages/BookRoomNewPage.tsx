@@ -10,7 +10,7 @@ export default function BookRoomNewPage() {
   const navigate = useNavigate();
 
   const handleDateClick = (arg: DateClickArg) => {
-    const date = arg.dateStr; // YYYY-MM-DD
+    const date = arg.dateStr;
     navigate(
       `/booking?date=${encodeURIComponent(date)}&roomId=${encodeURIComponent(room_id)}`
     );
