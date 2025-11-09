@@ -58,5 +58,20 @@ export interface Room {
   status: "avaliable" | "unavaliable";
 }
 
+export type reservationRow = {
+  booking_date: string,
+  end_time: string,
+  number_of_users: number,
+  phone: string,
+  rejection_reason: null,
+  reservation_id: string,
+  reservation_reason: string,
+  reservation_status: string,
+  reservation_type: string,
+  room_id: string,
+  start_time: string,
+  user_id: string;
+}
+
 export const ROOM_TYPE = ["ห้องอบรม", "ห้องเรียน", "ห้องสัมมนา"];
 export const ROOM_STATUS = ["available", "unavailable"]

@@ -9,12 +9,10 @@ export default async function unapproveListControll(req: Request, res: Response)
         switch (payload.role) {
             case "admin": {
                 const rows = await getUnapproveListRepo();
-                console.log(rows);
                 return res.status(200).json(rows);
             }
             case "approver": {
                 const rows = await getAdminApprovedListRepo();
-                console.log(rows);
                 return res.status(200).json(rows);
             }
             default:

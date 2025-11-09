@@ -19,7 +19,6 @@ app
   .use(express.json())
   .use(express.urlencoded());
 
-
 app.use("/uploads", express.static(path.join(__dirname, "/", "uploads")));
 
 try {

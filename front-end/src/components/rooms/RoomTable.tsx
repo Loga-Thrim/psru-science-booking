@@ -87,31 +87,31 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               ID
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               รหัสห้อง
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               รายละเอียด
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               ประเภท
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 whitespace-nowrap">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
               ความจุ
             </th>
-            {/* <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               อุปกรณ์
             </th> */}
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               ผู้ดูแล
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               สถานะ
             </th>
-            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               การทำงาน
             </th>
           </tr>
@@ -138,7 +138,7 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
                 {r.room_type ?? "-"}
               </td>
 
-              <td className="px-6 py-3 whitespace-nowrap text-center">
+              <td className="px-6 py-3 whitespace-nowrap text-left">
                 {typeof r.capacity === "number" ? (
                   <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-sm text-gray-700">
                     {r.capacity}
@@ -152,12 +152,12 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
                 <EquipmentChips value={r.equipment} />
               </td> */}
 
-              <td className="px-6 py-3 whitespace-nowrap text-gray-700 text-center">
+              <td className="px-6 py-3 whitespace-nowrap text-gray-700 text-left">
                 {r.caretaker ?? "-"}
               </td>
 
               {/* สถานะ */}
-              <td className="px-6 py-3 whitespace-nowrap text-center">
+              <td className="px-6 py-3 whitespace-nowrap text-left">
                 <StatusBadge status={r.status as Room["status"]} />
               </td>
 
@@ -182,7 +182,7 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
 
           {rooms.length === 0 && (
             <tr>
-              <td className="px-6 py-6 text-center text-gray-500" colSpan={9}>
+              <td className="px-6 py-6 text-left text-gray-500" colSpan={9}>
                 ไม่พบข้อมูลห้อง
               </td>
             </tr>

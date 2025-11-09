@@ -1,15 +1,7 @@
 import React, { useMemo } from "react";
 import type { UserRow } from "../../types/types";
 
-export function UserTable({
-  users,
-  onEdit,
-  onDelete,
-}: {
-  users: UserRow[];
-  onEdit: (user: UserRow) => void;
-  onDelete: (user: UserRow) => void;
-}) {
+export function UserTable({ users, onEdit, onDelete }: { users: UserRow[]; onEdit: (user: UserRow) => void; onDelete: (user: UserRow) => void;}) {
   const rows = useMemo(
     () =>
       users.map((u) => (
