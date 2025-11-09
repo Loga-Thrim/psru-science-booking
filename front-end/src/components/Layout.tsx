@@ -26,6 +26,7 @@ function Layout() {
     ...(user?.role === 'admin' ? [
       { name: 'จัดการห้อง', href: '/rooms', icon: DoorOpen },
       { name: 'จัดการผู้ใช้', href: '/users', icon: Users },
+      { name: 'อนุมัติการจอง', href: '/approvals', icon: ClipboardList },
     ] : []),
     ...(user?.role === 'approver' ? [
       { name: 'อนุมัติการจอง', href: '/approvals', icon: ClipboardList },

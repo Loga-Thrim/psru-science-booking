@@ -10,7 +10,10 @@ import { UserLogin, UserRole } from "../types/types";
 const api = import.meta.env.VITE_API as string;
 
 interface AuthContextType {
+  // Object
   user: UserLogin | null;
+
+  // Funciton
   login: (
     id: string,
     username: string,
