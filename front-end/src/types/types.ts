@@ -59,19 +59,25 @@ export interface Room {
 }
 
 export type reservationRow = {
+  reservation_id: string,
+  room_id: string,
+  user_id: string,
   booking_date: string,
+  start_time: string,
   end_time: string,
   number_of_users: number,
-  phone: string,
-  rejection_reason: null,
-  reservation_id: string,
-  reservation_reason: string,
-  reservation_status: string,
   reservation_type: string,
-  room_id: string,
-  start_time: string,
-  user_id: string;
+  reservation_status: string,
+  reservation_reason: string,
+  rejection_reason: null | string,
+  phone: string,
+  email: string,
+  password: string,
+  username: string,
+  department: string,
+  role: string
 }
 
 export const ROOM_TYPE = ["ห้องอบรม", "ห้องเรียน", "ห้องสัมมนา"];
-export const ROOM_STATUS = ["available", "unavailable"]
+export const ROOM_STATUS = ["available", "unavailable"];
+export const BOOKING_STATUA = ["pending", "adminApproved", "approverApproved"];

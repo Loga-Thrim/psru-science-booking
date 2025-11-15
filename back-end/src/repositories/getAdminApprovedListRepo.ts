@@ -4,7 +4,11 @@ import { RowDataPacket } from "mysql2";
 export default async function getAdminApprovedListRepo() {
   try {
     const connect = await dbConnect();
-    const [rows] = await connect.execute<RowDataPacket[]>("SELECT * FROM reservations WHERE reservation_status =  'adminApproved';");
+    const [rows] = await connect.execute<RowDataPacket[]>(`
+      SELECT * FROM reservations 
+      LEFT JOIN users ON reservations.user_id  = users.user_id 
+      WHERE reservations.reservation_status = 'adminApproved';
+      `);
     connect.end();
     return rows;
   } catch (err) {

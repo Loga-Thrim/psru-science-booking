@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 
 const api = import.meta.env.VITE_API;
 
-// ---------- Types ----------
 type User = {
   user_id: string;
   email: string;
@@ -20,7 +19,7 @@ type Reservation = {
   end_time: string;
   number_of_users: number;
   reservation_type: "teaching" | "meeting" | "other" | string;
-  reservation_status: "pending" | "approved" | "rejected" | "cancelled" | "canceled" | string;
+  reservation_status: "pending" | "adminApproved" | "approverApproved" | "rejected" | string;
   reservation_reason: string | null;
   rejection_reason: string | null;
   phone: string | null;
@@ -29,18 +28,17 @@ type Reservation = {
 type Room = {
   room_id: string;
   room_code: string;
-  capacity?: number;
+  capacity: number;
   description?: string;
-  room_type?: string;
+  room_type: string;
   equipment?: string;
-  caretaker?: string;
+  caretaker: string;
   status?: string;
 };
 
 type ApiBlock = { user?: User[]; reservation?: Reservation[]; rooms?: Room[] };
 type ApiShape = ApiBlock | ApiBlock[];
 
-// ---------- Helpers ----------
 const normalizeStatus = (s: string) => (s === "canceled" ? "cancelled" : s);
 
 function formatDate(iso: string) {
@@ -73,16 +71,16 @@ function Item({ label, value }: { label: string; value: string }) {
 function StatusBadge({ status }: { status: Reservation["reservation_status"] }) {
   const s = normalizeStatus(status);
   const map: Record<string, string> = {
-    approved: "bg-green-100 text-green-700 ring-green-600/20",
+    approverApproved : "bg-green-100 text-green-700 ring-green-600/20",
     pending: "bg-yellow-100 text-yellow-700 ring-yellow-600/20",
     rejected: "bg-red-100 text-red-700 ring-red-600/20",
-    cancelled: "bg-gray-100 text-gray-600 ring-gray-500/20",
+    adminApproved: "bg-gray-100 text-gray-600 ring-gray-500/20",
   };
   const labelMap: Record<string, string> = {
-    approved: "อนุมัติ",
+    approverApproved : "อนุมัติ",
     pending: "รอดำเนินการ",
     rejected: "ปฏิเสธ",
-    cancelled: "ยกเลิกแล้ว",
+    adminApproved : "แอดมินอนุมัติแล้ว",
   };
   const cls = map[s] ?? "bg-gray-100 text-gray-600 ring-gray-500/20";
   const label = labelMap[s] ?? s;
@@ -93,10 +91,7 @@ function StatusBadge({ status }: { status: Reservation["reservation_status"] }) 
   );
 }
 
-// =======================================================
-
 export default function BookingStatusPage() {
-  // ---------- State ----------
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -106,7 +101,6 @@ export default function BookingStatusPage() {
   const [confirmCancel, setConfirmCancel] = useState<Reservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  // ---------- Data Fetcher (รีเฟรชได้เรียกซ้ำอันนี้) ----------
   const fetchBookings = async () => {
     setLoading(true);
     setError(null);
@@ -135,7 +129,6 @@ export default function BookingStatusPage() {
 
       Array.isArray(data) ? data.forEach(pushFromBlock) : pushFromBlock(data);
 
-      // de-dup rooms
       const dedupRooms = Object.values(
         rm.reduce<Record<string, Room>>((acc, x) => {
           acc[x.room_id] = acc[x.room_id] ?? x;
@@ -156,7 +149,6 @@ export default function BookingStatusPage() {
 
   useEffect(() => {
     fetchBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fullName = useMemo(() => {
@@ -173,7 +165,6 @@ export default function BookingStatusPage() {
 
   const roomCodeOf = (id: string) => roomById.get(id)?.room_code ?? id;
 
-  // ---------- Delete ----------
   async function handleCancel(resv: Reservation) {
     if (normalizeStatus(resv.reservation_status) === "cancelled") return;
 
@@ -188,19 +179,15 @@ export default function BookingStatusPage() {
         },
       });
 
-      // รองรับทั้ง 204 (แนะนำ) และ 200 JSON
       if (!(resp.status === 204 || (resp.ok && resp.status === 200))) {
         const msg = `Cancel failed: ${resp.status} ${resp.statusText}`;
         throw new Error(msg);
       }
 
-      // ❶ อัปเดต UI เร็ว ๆ (remove แถว) เพื่อให้ “หายไปทันที”
       setReservations((prev) => prev.filter((x) => x.reservation_id !== resv.reservation_id));
 
-      // ❷ จากนั้น refetch เพื่อ sync กับเซิร์ฟเวอร์ (กันข้อมูลค้าง)
       await fetchBookings();
 
-      // ปิดทุกโมดอลที่เกี่ยวข้องหลังสำเร็จ
       setConfirmCancel(null);
       setDetail(null);
     } catch (e: any) {
@@ -211,7 +198,6 @@ export default function BookingStatusPage() {
     }
   }
 
-  // ---------- UI ----------
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -290,7 +276,6 @@ export default function BookingStatusPage() {
         )}
       </div>
 
-      {/* โมดอลรายละเอียด */}
       {detail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -376,7 +361,6 @@ export default function BookingStatusPage() {
         </div>
       )}
 
-      {/* โมดอลยืนยันการยกเลิก */}
       {confirmCancel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
