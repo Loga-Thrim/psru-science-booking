@@ -22,9 +22,8 @@ export default async function registerController(req: Request, res: Response) {
       default:
         return res.status(500).json({ message: "Unknown result." });
     }
-
   } catch (err) {
-    console.error("[registerController] error:", err);
+    console.error(err);
     return res.status(500).json({ message: "Server error." });
   }
 }

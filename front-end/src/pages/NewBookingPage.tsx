@@ -11,7 +11,7 @@ interface FormData {
   date: string;
   startTime: string;
   endTime: string;
-  numberOfUsers: number;
+  numberOfUsers: number | "";
   reservationType: ReservationType;
   reservationReason: string;
   phoneNumber: string;
@@ -38,7 +38,7 @@ export default function NewBookingPage() {
     date: date,
     startTime: start,
     endTime: end,
-    numberOfUsers: 1,
+    numberOfUsers: '',
     reservationType: '',
     reservationReason: '',
     phoneNumber: '',
@@ -88,7 +88,7 @@ export default function NewBookingPage() {
       const token = localStorage.getItem("token");
       const res = await fetch(`${api}/booking`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           Accept:"application/json",
           Authorization: `Bearer ${token}`,
@@ -203,8 +203,6 @@ export default function NewBookingPage() {
               <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 type="number"
-                min={1}
-                step={1}
                 value={Number.isFinite(form.numberOfUsers) ? form.numberOfUsers : 1}
                 onChange={(e) => {
                   const n = parseInt(e.target.value || '1', 10);

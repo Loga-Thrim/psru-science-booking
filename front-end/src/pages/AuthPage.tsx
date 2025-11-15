@@ -16,6 +16,7 @@ function AuthPage() {
     department: "",
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
@@ -23,32 +24,24 @@ function AuthPage() {
 
   const user = localStorage.getItem("user");
   const token = localStorage.getItem("token");
-  if(user && token){
-    navigate("/dashboard");
-  }
+  if (user && token) navigate("/dashboard");
 
-  // รองรับทั้ง input และ select
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
       if (isLogin) {
-        console.log("Login:", {
-          email: formData.email,
-          password: formData.password,
-        });
         const res = await fetch(`${api}/login`, {
           method: "POST",
           headers: {
@@ -61,8 +54,7 @@ function AuthPage() {
           }),
         });
         if (res.ok) {
-          const { message, token, rows } = await res.json();
-          console.log(message);
+          const { token, rows } = await res.json();
           localStorage.setItem("token", token);
           const [{ id, username, email, department, role }] = rows;
           await login(id, username, email, department, role);
@@ -77,7 +69,6 @@ function AuthPage() {
           setLoading(false);
           return;
         }
-        console.log("Register:", formData);
         const res = await fetch(`${api}/register`, {
           method: "POST",
           headers: {
@@ -92,19 +83,22 @@ function AuthPage() {
           }),
         });
         if (res.ok) {
-          alert("สมัครสมาชิกสำเร็จ!");
-          setIsLogin(!isLogin);
+          setSuccess("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบเพื่อใช้งาน");
+          setIsLogin(true);
+          setFormData({
+            email: "",
+            password: "",
+            fullName: "",
+            confirmPassword: "",
+            department: "",
+          });
         } else {
           const { message } = await res.json();
           setError(message);
         }
       }
     } catch (err) {
-      setError(
-        isLogin
-          ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
-          : "เกิดข้อผิดพลาดในการสมัครสมาชิก"
-      );
+      setError(isLogin ? "ไม่สามารถเข้าสู่ระบบได้ (โปรดตรวจสอบอีเมล/รหัสผ่าน)" : "เกิดข้อผิดพลาดในการสมัครสมาชิก (โปรดตรวจสอบข้อมูล)");
     } finally {
       setLoading(false);
     }
@@ -113,6 +107,7 @@ function AuthPage() {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError("");
+    setSuccess("");
     setFormData({
       email: "",
       password: "",
@@ -147,6 +142,11 @@ function AuthPage() {
 
           <div className="p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
+              {success && (
+                <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 animate-in fade-in slide-in-from-top-1 duration-300">
+                  {success}
+                </div>
+              )}
               {error && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-in fade-in slide-in-from-top-1 duration-300">
                   {error}
@@ -156,7 +156,6 @@ function AuthPage() {
               <div className="space-y-4">
                 {!isLogin && (
                   <>
-                    {/* ชื่อ-นามสกุล (แสดงเฉพาะสมัคร) */}
                     <div className="space-y-1.5">
                       <label
                         htmlFor="fullName"
@@ -174,8 +173,8 @@ function AuthPage() {
                           type="text"
                           required
                           className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
-                                     shadow-sm outline-none transition-all duration-200
-                                     focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                      shadow-sm outline-none transition-all duration-200
+                                      focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                           placeholder="กรอกชื่อ-นามสกุล"
                           value={formData.fullName}
                           onChange={handleInputChange}
@@ -183,7 +182,6 @@ function AuthPage() {
                       </div>
                     </div>
 
-                    {/* คณะ (แสดงเฉพาะสมัคร) */}
                     <div className="space-y-1.5">
                       <label
                         htmlFor="department"
@@ -214,7 +212,6 @@ function AuthPage() {
                             </option>
                           ))}
                         </select>
-                        {/* ลูกศร dropdown (ตกแต่ง) */}
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                           <svg
                             className="h-4 w-4 text-gray-400"
@@ -234,7 +231,6 @@ function AuthPage() {
                   </>
                 )}
 
-                {/* อีเมล */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="email"
@@ -252,8 +248,8 @@ function AuthPage() {
                       type="email"
                       required
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
-                                 shadow-sm outline-none transition-all duration-200
-                                 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                  shadow-sm outline-none transition-all duration-200
+                                  focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                       placeholder="example@email.com"
                       value={formData.email}
                       onChange={handleInputChange}
@@ -261,7 +257,6 @@ function AuthPage() {
                   </div>
                 </div>
 
-                {/* รหัสผ่าน */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="password"
@@ -279,8 +274,8 @@ function AuthPage() {
                       type="password"
                       required
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
-                                 shadow-sm outline-none transition-all duration-200
-                                 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                  shadow-sm outline-none transition-all duration-200
+                                  focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleInputChange}
@@ -288,7 +283,6 @@ function AuthPage() {
                   </div>
                 </div>
 
-                {/* ยืนยันรหัสผ่าน (เฉพาะสมัคร) */}
                 {!isLogin && (
                   <div className="space-y-1.5">
                     <label
@@ -307,8 +301,8 @@ function AuthPage() {
                         type="password"
                         required
                         className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
-                                   shadow-sm outline-none transition-all duration-200
-                                   focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                    shadow-sm outline-none transition-all duration-200
+                                    focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                         placeholder="••••••••"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
@@ -322,12 +316,12 @@ function AuthPage() {
                 type="submit"
                 disabled={loading}
                 className="group relative w-full inline-flex items-center justify-center gap-2.5 rounded-xl
-                           bg-gradient-to-r from-emerald-600 to-green-600 text-white
-                           px-6 py-3.5 text-sm font-bold shadow-lg shadow-emerald-600/30
-                           hover:shadow-xl hover:shadow-emerald-600/40 hover:from-emerald-500 hover:to-green-500
-                           focus:outline-none focus:ring-4 focus:ring-emerald-200
-                           active:scale-[0.98] transition-all duration-200
-                           disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                              bg-gradient-to-r from-emerald-600 to-green-600 text-white
+                              px-6 py-3.5 text-sm font-bold shadow-lg shadow-emerald-600/30
+                              hover:shadow-xl hover:shadow-emerald-600/40 hover:from-emerald-500 hover:to-green-500
+                              focus:outline-none focus:ring-4 focus:ring-emerald-200
+                              active:scale-[0.98] transition-all duration-200
+                              disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {isLogin ? (
                   <>

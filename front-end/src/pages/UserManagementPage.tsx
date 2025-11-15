@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { UserRole, UserRow, UpsertForm } from "../types/types";
 import { UserTable } from "../components/users/UserTable";
@@ -15,20 +15,16 @@ function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
-  // modal states
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // selected user (for edit/delete)
   const [selected, setSelected] = useState<UserRow | null>(null);
 
-  // guards
   if (!user) return <p className="text-gray-500">กำลังตรวจสอบสิทธิ์...</p>;
   if (user.role !== "admin")
     return <p className="text-red-500">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>;
 
-  // fetch users (เดิม)
   const loadUsers = async () => {
     setLoading(true);
     setErr(null);

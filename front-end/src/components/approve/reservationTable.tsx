@@ -18,13 +18,11 @@ function toThaiDateDDMMYYYY(input: string | number | Date) {
 
 function toHHmm(t: string | number | Date) {
   const d = new Date(t);
-  // รับได้ทั้ง "2025-11-12T13:00:00" หรือ "13:00"
   if (!isNaN(d.getTime())) {
     const hh = d.getHours().toString().padStart(2, "0");
     const mm = d.getMinutes().toString().padStart(2, "0");
     return `${hh}:${mm}`;
   }
-  // ถ้าเป็น string รูปแบบ "13:00" ก็คืนกลับเลย
   return String(t);
 }
 
@@ -33,16 +31,13 @@ export default function ReservationTable({ rows }: { rows: reservationRow[] }) {
   const [reservation, setReservation] = useState<reservationRow | null>(null);
   const [selectDetail, setSelectDetail] = useState<boolean>(false);
 
-  // state สำหรับ modal อนุมัติ / ปฏิเสธ
   const [approveTarget, setApproveTarget] = useState<reservationRow | null>(null);
   const [rejectTarget, setRejectTarget] = useState<reservationRow | null>(null);
 
-  // sync rows จาก parent เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
     setTableRows(rows);
   }, [rows]);
 
-  // ----- Detail -----
   const handleDetail = useCallback((row: reservationRow) => {
     setReservation(row);
     setSelectDetail(true);
@@ -54,7 +49,6 @@ export default function ReservationTable({ rows }: { rows: reservationRow[] }) {
     setReservation(null);
   }, []);
 
-  // ----- Approve -----
   const handleApprove = useCallback((row: reservationRow) => {
     console.log("open approve modal for", row);
     setApproveTarget(row);
@@ -83,11 +77,8 @@ export default function ReservationTable({ rows }: { rows: reservationRow[] }) {
       }
 
       console.log("approve success");
-
-      // ปิด modal
       setApproveTarget(null);
 
-      // ลบ row ที่อนุมัติแล้วออกจาก table (ถือว่าไม่ต้องแสดงใน list นี้แล้ว)
       setTableRows((prev) =>
         prev.filter((r) => (r as any).id !== (row as any).id)
       );
@@ -96,7 +87,6 @@ export default function ReservationTable({ rows }: { rows: reservationRow[] }) {
     }
   }, []);
 
-  // ----- Reject -----
   const handleReject = useCallback((row: reservationRow) => {
     console.log("open reject modal for", row);
     setRejectTarget(row);
@@ -106,11 +96,40 @@ export default function ReservationTable({ rows }: { rows: reservationRow[] }) {
     setRejectTarget(null);
   }, []);
 
-  const confirmReject = useCallback((row: reservationRow, reason: string) => {
-    console.log("confirm reject", row, "reason:", reason);
-    // TODO: เรียก API ปฏิเสธที่นี่ พร้อม reason ถ้าต้องการ
-    setRejectTarget(null);
-  }, []);
+  const confirmReject = useCallback(
+    async (row: reservationRow, reason: string) => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${api}/reject`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            reservationId: row.reservation_id,
+            rejectionReason: reason, // ✅ ใช้เหตุผลจาก Modal ไม่ใช่ user_id
+          }),
+        });
+
+        if (!res.ok) {
+          console.error("reject failed");
+          return;
+        }
+
+        console.log("reject success");
+        setRejectTarget(null);
+
+        setTableRows((prev) =>
+          prev.filter((r) => (r as any).id !== (row as any).id)
+        );
+      } catch (err) {
+        console.error("reject error", err);
+      }
+    },
+    []
+  );
 
   return (
     <>
@@ -185,12 +204,10 @@ export default function ReservationTable({ rows }: { rows: reservationRow[] }) {
         </tbody>
       </table>
 
-      {/* Detail Modal */}
       {selectDetail && reservation && (
         <ReservationDetailModal row={reservation} onClose={closeDetail} />
       )}
 
-      {/* Approve Modal */}
       {approveTarget && (
         <ReservationApproveModal
           row={approveTarget}
@@ -199,7 +216,6 @@ export default function ReservationTable({ rows }: { rows: reservationRow[] }) {
         />
       )}
 
-      {/* Reject Modal */}
       {rejectTarget && (
         <ReservationRejectModal
           row={rejectTarget}

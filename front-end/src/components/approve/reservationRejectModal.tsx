@@ -32,7 +32,6 @@ export default function ReservationRejectModal({ row, onClose, onConfirm }: Prop
   const dialogRef = useRef<HTMLDivElement>(null);
   const [reason, setReason] = useState("");
 
-  // ปิดด้วย Esc
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -71,7 +70,6 @@ export default function ReservationRejectModal({ row, onClose, onConfirm }: Prop
         tabIndex={-1}
         className="w-full max-w-lg rounded-2xl bg-white shadow-xl outline-none"
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold">ยืนยันการปฏิเสธการจอง</h2>
           <button
@@ -83,7 +81,6 @@ export default function ReservationRejectModal({ row, onClose, onConfirm }: Prop
           </button>
         </div>
 
-        {/* Body */}
         <div className="px-6 py-4 space-y-3">
           <p className="text-sm text-gray-700">
             คุณต้องการ<strong className="text-red-600">ปฏิเสธ</strong>การจองนี้ใช่หรือไม่?
@@ -120,13 +117,12 @@ export default function ReservationRejectModal({ row, onClose, onConfirm }: Prop
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
-              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
               placeholder="เช่น ห้องถูกใช้งานซ้ำซ้อน, ไม่ครบเงื่อนไขการจอง ฯลฯ"
             />
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t">
           <button
             onClick={onClose}

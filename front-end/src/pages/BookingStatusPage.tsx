@@ -19,7 +19,12 @@ type Reservation = {
   end_time: string;
   number_of_users: number;
   reservation_type: "teaching" | "meeting" | "other" | string;
-  reservation_status: "pending" | "adminApproved" | "approverApproved" | "rejected" | string;
+  reservation_status:
+    | "pending"
+    | "adminApproved"
+    | "approverApproved"
+    | "rejected"
+    | string;
   reservation_reason: string | null;
   rejection_reason: string | null;
   phone: string | null;
@@ -71,21 +76,23 @@ function Item({ label, value }: { label: string; value: string }) {
 function StatusBadge({ status }: { status: Reservation["reservation_status"] }) {
   const s = normalizeStatus(status);
   const map: Record<string, string> = {
-    approverApproved : "bg-green-100 text-green-700 ring-green-600/20",
+    approverApproved: "bg-green-100 text-green-700 ring-green-600/20",
     pending: "bg-yellow-100 text-yellow-700 ring-yellow-600/20",
     rejected: "bg-red-100 text-red-700 ring-red-600/20",
     adminApproved: "bg-gray-100 text-gray-600 ring-gray-500/20",
   };
   const labelMap: Record<string, string> = {
-    approverApproved : "อนุมัติ",
+    approverApproved: "อนุมัติ",
     pending: "รอดำเนินการ",
-    rejected: "ปฏิเสธ",
-    adminApproved : "แอดมินอนุมัติแล้ว",
+    rejected: "ไม่อนุมัติ",
+    adminApproved: "แอดมินอนุมัติแล้ว",
   };
   const cls = map[s] ?? "bg-gray-100 text-gray-600 ring-gray-500/20";
   const label = labelMap[s] ?? s;
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${cls}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${cls}`}
+    >
       {label}
     </span>
   );
@@ -113,7 +120,8 @@ export default function BookingStatusPage() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
-      if (!res.ok) throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+      if (!res.ok)
+        throw new Error(`Request failed: ${res.status} ${res.statusText}`);
       const data: ApiShape = await res.json();
 
       let u: User | null = null;
@@ -153,7 +161,10 @@ export default function BookingStatusPage() {
 
   const fullName = useMemo(() => {
     if (!user) return "";
-    const parts = [user.username, user.department ? `(${user.department})` : ""].filter(Boolean);
+    const parts = [
+      user.username,
+      user.department ? `(${user.department})` : "",
+    ].filter(Boolean);
     return parts.join(" ");
   }, [user]);
 
@@ -184,7 +195,9 @@ export default function BookingStatusPage() {
         throw new Error(msg);
       }
 
-      setReservations((prev) => prev.filter((x) => x.reservation_id !== resv.reservation_id));
+      setReservations((prev) =>
+        prev.filter((x) => x.reservation_id !== resv.reservation_id)
+      );
 
       await fetchBookings();
 
@@ -204,7 +217,8 @@ export default function BookingStatusPage() {
         <h1 className="text-2xl font-bold text-gray-900">สถานะการจอง</h1>
         {user && (
           <div className="text-sm text-gray-500">
-            ผู้ใช้งาน: <span className="font-medium text-gray-700">{fullName}</span>
+            ผู้ใช้งาน:{" "}
+            <span className="font-medium text-gray-700">{fullName}</span>
           </div>
         )}
       </div>
@@ -221,20 +235,36 @@ export default function BookingStatusPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">รหัสห้อง</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลา</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ประเภท</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">จำนวนคน</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    รหัสห้อง
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    วันที่
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    เวลา
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    ประเภท
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    จำนวนคน
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    สถานะ
+                  </th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
                 {reservations.map((r) => (
                   <tr key={r.reservation_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{roomCodeOf(r.room_id)}</td>
-                    <td className="px-4 py-3 text-gray-700">{formatDate(r.booking_date)}</td>
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {roomCodeOf(r.room_id)}
+                    </td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {formatDate(r.booking_date)}
+                    </td>
                     <td className="px-4 py-3 text-gray-700">
                       {formatTime(r.start_time)}–{formatTime(r.end_time)}
                     </td>
@@ -245,7 +275,9 @@ export default function BookingStatusPage() {
                         ? "ประชุม"
                         : "อื่นๆ"}
                     </td>
-                    <td className="px-4 py-3 text-gray-700">{r.number_of_users}</td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {r.number_of_users}
+                    </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={r.reservation_status} />
                     </td>
@@ -258,9 +290,13 @@ export default function BookingStatusPage() {
                       </button>
                       <button
                         onClick={() => setConfirmCancel(r)}
-                        disabled={normalizeStatus(r.reservation_status) === "cancelled" || isCancelling}
+                        disabled={
+                          normalizeStatus(r.reservation_status) ===
+                            "cancelled" || isCancelling
+                        }
                         className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium ${
-                          normalizeStatus(r.reservation_status) === "cancelled" || isCancelling
+                          normalizeStatus(r.reservation_status) ===
+                            "cancelled" || isCancelling
                             ? "bg-gray-100 text-gray-400 ring-1 ring-inset ring-gray-200 cursor-not-allowed"
                             : "bg-red-600 text-white hover:bg-red-700"
                         }`}
@@ -287,9 +323,14 @@ export default function BookingStatusPage() {
             <div className="rounded-t-2xl bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-500 px-6 py-5 text-white">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl md:text-2xl font-semibold">รายละเอียดการจอง</h2>
+                  <h2 className="text-xl md:text-2xl font-semibold">
+                    รายละเอียดการจอง
+                  </h2>
                   <p className="mt-1 text-white/90 text-sm">
-                    รหัสการจอง: <span className="font-medium">{detail.reservation_id}</span>
+                    รหัสการจอง:{" "}
+                    <span className="font-medium">
+                      {detail.reservation_id}
+                    </span>
                   </p>
                 </div>
                 <button
@@ -306,47 +347,78 @@ export default function BookingStatusPage() {
             <div className="px-6 pb-6 pt-5">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                  <h3 className="text-sm font-semibold text-gray-900">ข้อมูลการจอง</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    ข้อมูลการจอง
+                  </h3>
                   <div className="mt-3 space-y-2 text-sm">
-                    <Item label="รหัสห้อง" value={roomCodeOf(detail.room_id)} />
-                    <Item label="วันที่" value={formatDate(detail.booking_date)} />
-                    <Item label="เวลา" value={`${formatTime(detail.start_time)}–${formatTime(detail.end_time)}`} />
+                    <Item
+                      label="รหัสห้อง"
+                      value={roomCodeOf(detail.room_id)}
+                    />
+                    <Item
+                      label="วันที่"
+                      value={formatDate(detail.booking_date)}
+                    />
+                    <Item
+                      label="เวลา"
+                      value={`${formatTime(detail.start_time)}–${formatTime(
+                        detail.end_time
+                      )}`}
+                    />
                     <Item
                       label="ประเภท"
                       value={
-                        detail.reservation_type === "teaching"
-                          ? "สอน"
-                          : detail.reservation_type === "meeting"
-                          ? "ประชุม"
-                          : "อื่นๆ"
+                        detail.reservation_type === "teaching" ? "สอน"
+                        : detail.reservation_type === "meeting"? "ประชุม"
+                        : "อื่นๆ"
                       }
                     />
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                  <h3 className="text-sm font-semibold text-gray-900">ติดต่อ & สถานะ</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    ติดต่อ & สถานะ
+                  </h3>
                   <div className="mt-3 space-y-2 text-sm">
                     <Item label="ผู้จอง" value={fullName || "-"} />
                     <Item label="โทรศัพท์" value={detail.phone ?? "-"} />
                     <div className="flex items-start gap-2">
-                      <div className="w-36 shrink-0 text-gray-500">สถานะ</div>
+                      <div className="w-36 shrink-0 text-gray-500">
+                        สถานะ
+                      </div>
                       <div className="text-gray-900">
                         <StatusBadge status={detail.reservation_status} />
                       </div>
                     </div>
-                    <Item label="จำนวนผู้ใช้" value={String(detail.number_of_users)} />
-                    {detail.rejection_reason && <Item label="เหตุผลปฏิเสธ" value={detail.rejection_reason} />}
+                    <Item
+                      label="จำนวนผู้ใช้"
+                      value={String(detail.number_of_users)}
+                    />
                   </div>
                 </div>
               </div>
 
               <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-900">เหตุผลการจอง</h3>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  เหตุผลการจอง
+                </h3>
                 <p className="mt-2 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 text-sm text-gray-800 ring-1 ring-inset ring-gray-200">
                   {detail.reservation_reason ?? "-"}
                 </p>
               </div>
+
+              {normalizeStatus(detail.reservation_status) === "rejected" &&
+                detail.rejection_reason && (
+                  <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      เหตุผลการไม่อนุมัติ
+                    </h3>
+                    <p className="mt-2 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 text-sm text-gray-800 ring-1 ring-inset ring-gray-200">
+                      {detail.rejection_reason}
+                    </p>
+                  </div>
+                )}
 
               <div className="mt-6 flex justify-end">
                 <button
@@ -374,10 +446,16 @@ export default function BookingStatusPage() {
                 !
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">ยืนยันการยกเลิกการจอง?</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  ยืนยันการยกเลิกการจอง?
+                </h3>
                 <p className="mt-1 text-sm text-gray-600">
-                  การจองห้อง <span className="font-medium">{roomCodeOf(confirmCancel.room_id)}</span>{" "}
-                  วันที่ {formatDate(confirmCancel.booking_date)} เวลา {formatTime(confirmCancel.start_time)}–
+                  การจองห้อง{" "}
+                  <span className="font-medium">
+                    {roomCodeOf(confirmCancel.room_id)}
+                  </span>{" "}
+                  วันที่ {formatDate(confirmCancel.booking_date)} เวลา{" "}
+                  {formatTime(confirmCancel.start_time)}–
                   {formatTime(confirmCancel.end_time)}
                 </p>
               </div>
