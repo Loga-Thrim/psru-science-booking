@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal } from "../ui/Modal";
 import { Room } from "../../types/types";
+
 const api = import.meta.env.VITE_API;
 
-type Props = { room: Room; onClose: () => void };
+type Props = {
+  room: Room;
+  onClose: () => void;
+};
 
 type RoomImage = {
   image_id: string;
@@ -27,7 +31,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
   const [imgError, setImgError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Lightbox states
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
 
@@ -49,12 +52,14 @@ export function RoomDetailsModal({ room, onClose }: Props) {
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error("Invalid response body");
         const cleaned = data.filter(
-          (x: any) => typeof x?.image_url === "string" && x.image_url.length > 0
+          (x: any) =>
+            typeof x?.image_url === "string" && x.image_url.length > 0
         );
         setImages(cleaned);
         setActiveIndex(0);
       } catch (err: any) {
-        if (err?.name !== "AbortError") setImgError(err?.message ?? "ไม่สามารถโหลดรูปได้");
+        if (err?.name !== "AbortError")
+          setImgError(err?.message ?? "ไม่สามารถโหลดรูปได้");
       } finally {
         setImgLoading(false);
       }
@@ -64,16 +69,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
     return () => ac.abort();
   }, [room]);
 
-  // เปิด/ปิด Lightbox
-  const openLightbox = (index?: number) => {
-    if (!images.length) return;
-    if (typeof index === "number") setActiveIndex(index);
-    setZoom(1);
-    setLightboxOpen(true);
-  };
-  const closeLightbox = () => setLightboxOpen(false);
-
-  // คีย์ลัดใน Lightbox
   useEffect(() => {
     if (!lightboxOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -89,7 +84,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxOpen, images.length]);
 
-  // ล็อก scroll body ตอนเปิด Lightbox
   useEffect(() => {
     if (!lightboxOpen) return;
     const prev = document.body.style.overflow;
@@ -99,16 +93,25 @@ export function RoomDetailsModal({ room, onClose }: Props) {
     };
   }, [lightboxOpen]);
 
+  const openLightbox = (index?: number) => {
+    if (!images.length) return;
+    if (typeof index === "number") setActiveIndex(index);
+    setZoom(1);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => setLightboxOpen(false);
+
   const zoomIn = () => setZoom((z) => Math.min(5, +(z + 0.25).toFixed(2)));
   const zoomOut = () => setZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)));
   const zoomReset = () => setZoom(1);
 
+  const currentImage = images[activeIndex];
+
   return (
     <>
       <Modal title={`รายละเอียดห้อง ${room.room_code ?? ""}`} onClose={onClose}>
-        {/* เปลี่ยนเป็นแนวตั้งทั้งหมด */}
         <div className="flex flex-col gap-6 p-4">
-          {/* --- ส่วนรูปภาพ --- */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-700">รูปภาพ</h3>
@@ -123,7 +126,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
               </button>
             </div>
 
-            {/* ภาพหลัก */}
             <div className="relative aspect-video w-full overflow-hidden rounded-xl border">
               {imgLoading ? (
                 <div className="h-full w-full animate-pulse bg-gray-100" />
@@ -137,7 +139,7 @@ export function RoomDetailsModal({ room, onClose }: Props) {
                 </div>
               ) : (
                 <img
-                  src={images[activeIndex]?.image_url}
+                  src={currentImage?.image_url}
                   alt={`รูปห้อง ${room.room_code ?? room.room_id}`}
                   className="h-full w-full cursor-zoom-in object-cover"
                   onClick={() => openLightbox(activeIndex)}
@@ -148,15 +150,15 @@ export function RoomDetailsModal({ room, onClose }: Props) {
               )}
             </div>
 
-            {/* แถบตัวอย่างรูป */}
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto">
                 {images.map((im, idx) => (
                   <button
                     key={im.image_id ?? im.image_url ?? idx}
                     onClick={() => setActiveIndex(idx)}
-                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border ${activeIndex === idx ? "ring-2 ring-emerald-500" : ""
-                      }`}
+                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border ${
+                      activeIndex === idx ? "ring-2 ring-emerald-500" : ""
+                    }`}
                     aria-label={`เลือกภาพที่ ${idx + 1}`}
                   >
                     <img
@@ -170,7 +172,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
             )}
           </div>
 
-          {/* --- รายละเอียดห้อง --- */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-700">รายละเอียด</h3>
             <div className="rounded-xl border p-4">
@@ -193,7 +194,7 @@ export function RoomDetailsModal({ room, onClose }: Props) {
                 </div>
                 <div className="sm:col-span-2">
                   <dt className="text-xs text-gray-500">คำอธิบาย</dt>
-                  <dd className="whitespace-pre-wrap break-words break-all max-h-40 overflow-auto rounded-md bg-gray-50 p-3">
+                  <dd className="max-h-40 overflow-auto break-all whitespace-pre-wrap rounded-md bg-gray-50 p-3">
                     {room.description ?? "-"}
                   </dd>
                 </div>
@@ -201,7 +202,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
             </div>
           </div>
 
-          {/* --- อุปกรณ์ --- */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-700">อุปกรณ์</h3>
             <div className="rounded-xl border p-4">
@@ -222,7 +222,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
             </div>
           </div>
 
-          {/* --- ปุ่มปิด --- */}
           <div className="flex justify-end">
             <button
               onClick={onClose}
@@ -234,37 +233,36 @@ export function RoomDetailsModal({ room, onClose }: Props) {
         </div>
       </Modal>
 
-      {/* Lightbox Overlay */}
-      {lightboxOpen && images[activeIndex] && (
+      {lightboxOpen && currentImage && (
         <div
           className="fixed inset-0 z-[9999] bg-black/80"
           aria-modal
           role="dialog"
           onClick={closeLightbox}
         >
-          {/* ปุ่มปิด */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               closeLightbox();
             }}
             className="absolute right-4 top-4 rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white backdrop-blur hover:bg-white/20"
-            title="ปิด (Esc)"
+            title="ปิด"
           >
             ปิด
           </button>
 
-          {/* ปุ่ม Prev / Next */}
           {images.length > 1 && (
             <>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActiveIndex((i) => (i - 1 + images.length) % images.length);
+                  setActiveIndex(
+                    (i) => (i - 1 + images.length) % images.length
+                  );
                   setZoom(1);
                 }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-white backdrop-blur hover:bg-white/20"
-                title="ก่อนหน้า (←)"
+                title="ก่อนหน้า"
               >
                 ‹
               </button>
@@ -275,21 +273,20 @@ export function RoomDetailsModal({ room, onClose }: Props) {
                   setZoom(1);
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-3 py-2 text-white backdrop-blur hover:bg-white/20"
-                title="ถัดไป (→)"
+                title="ถัดไป"
               >
                 ›
               </button>
             </>
           )}
 
-          {/* พื้นที่ภาพ */}
           <div
             className="flex h-full w-full items-center justify-center overflow-auto p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="max-h-[90vh] max-w-[95vw]">
               <img
-                src={images[activeIndex].image_url}
+                src={currentImage.image_url}
                 alt={`รูปห้องขยาย ${room.room_code ?? room.room_id}`}
                 className="h-full w-full select-none object-contain"
                 style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}
@@ -298,7 +295,6 @@ export function RoomDetailsModal({ room, onClose }: Props) {
             </div>
           </div>
 
-          {/* แผงควบคุมซูม */}
           <div className="pointer-events-auto absolute bottom-4 left-0 right-0 flex justify-center">
             <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-white backdrop-blur">
               <button

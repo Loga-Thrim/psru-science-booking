@@ -2,20 +2,30 @@ import React, { useState } from "react";
 import { Modal } from "../ui/Modal";
 import { Room } from "../../types/types";
 
-export function BookRoomModal({
-  room,
-  onClose,
-}: {
-  room: Room;
-  onClose: () => void;
-}) {
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [purpose, setPurpose] = useState<string>("");
+type Props = { room: Room; onClose: () => void; };
 
-  // คำนวณวันปัจจุบันในรูปแบบ YYYY-MM-DD
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+export function BookRoomModal({ room, onClose }: Props) {
+  const [selectedDate, setSelectedDate] = useState("");
+  const [purpose, setPurpose] = useState("");
+
   const today = new Date().toISOString().split("T")[0];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     alert(`คุณเลือกวันที่ ${selectedDate} เพื่อจองห้อง ${room.room_code}`);
     onClose();
@@ -28,7 +38,7 @@ export function BookRoomModal({
           <input
             type="date"
             value={selectedDate}
-            min={today} // 🔒 ล็อคไม่ให้เลือกวันย้อนหลัง
+            min={today}
             onChange={(e) => setSelectedDate(e.target.value)}
             required
             className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
@@ -61,20 +71,5 @@ export function BookRoomModal({
         </div>
       </form>
     </Modal>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      {children}
-    </div>
   );
 }

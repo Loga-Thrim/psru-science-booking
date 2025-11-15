@@ -5,13 +5,7 @@ import { Input } from "../../components/ui/Input";
 import { SelectRole } from "../../components/ui/SelectRole";
 import { DEPARTMENTS } from "../../types/types";
 
-export function AddUserModal({
-  onClose,
-  onSubmit,
-}: {
-  onClose: () => void;
-  onSubmit: (data: UpsertForm) => Promise<void> | void;
-}) {
+export function AddUserModal({ onClose, onSubmit}: { onClose: () => void; onSubmit: (data: UpsertForm) => Promise<void> | void;}) {
   const [form, setForm] = useState<UpsertForm>({
     email: "",
     username: "",
@@ -52,7 +46,6 @@ export function AddUserModal({
           required
         />
 
-        {/* เลือกคณะ/สังกัด */}
         <div className="space-y-1">
           <label
             htmlFor="department"

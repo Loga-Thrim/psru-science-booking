@@ -1,18 +1,23 @@
-// AddRoomModal.tsx
 import React, { useState } from "react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
-import { Room } from "../../types/types";
-import { ROOM_TYPE as ROOM_TYPES } from "../../types/types";
-import { ROOM_STATUS } from "../../types/types";
-const api = import.meta.env.VITE_API;
+import { ROOM_TYPE as ROOM_TYPES, ROOM_STATUS } from "../../types/types";
 
 type Props = {
   onClose: () => void;
-  onCreated?: (room: Room) => void;
+  onSubmit: (data: {
+    room_code: string;
+    room_type: string;
+    room_status: string;
+    capacity: number;
+    equipment: string;
+    caretaker: string;
+    description: string;
+    images: File[];
+  }) => Promise<void> | void;
 };
 
-export default function AddRoomModal({ onClose, onCreated }: Props) {
+export default function AddRoomModal({ onClose, onSubmit }: Props) {
   const [room_code, setRoomCode] = useState("");
   const [room_type, setRoomType] = useState("");
   const [capacity, setCapacity] = useState("0");
@@ -20,16 +25,13 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
   const [caretaker, setCaretaker] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<File[]>([]);
-  const [submitting, setSubmitting] = useState(false);
   const [room_status, setRoomStatus] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const token = localStorage.getItem("token");
-
-      // Room Data
-      const body = {
+      await onSubmit({
         room_code,
         room_type,
         room_status,
@@ -37,47 +39,8 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
         equipment,
         caretaker,
         description,
-      };
-
-      const res = await fetch(`${api}/rooms`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
+        images,
       });
-      if (!res.ok) {
-        const { message } = await res.json();
-        throw new Error(message);
-      } else {
-        const data: Room = await res.json();
-        onCreated?.(data);
-        const { room_id } = data;
-
-        // Uploads Images
-        const form = new FormData();
-        images.forEach((item: any) => {
-          if (item instanceof File) {
-            form.append("images", item);
-          } else if (item?.file instanceof File) {
-            form.append("images", item.file, item.file.name);
-          }
-        });
-
-        const resImg = await fetch(`${api}/upload-image/${room_id}`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: form,
-        });
-        if (!resImg.ok) {
-          const err = await resImg.text();
-          throw new Error(err || "upload failed");
-        }
-      }
-
       onClose();
     } catch (e) {
       alert((e as Error).message);
@@ -89,7 +52,6 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
   return (
     <Modal title="เพิ่มห้องใหม่" onClose={onClose}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* แถว 1 */}
         <Input label="รหัส/ชื่อห้อง" value={room_code} onChange={setRoomCode} />
 
         <div className="space-y-1">
@@ -112,7 +74,6 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
           </select>
         </div>
 
-        {/* แถว 2: ซ้าย = ความจุ, ขวา = สถานะห้อง */}
         <Input
           label="ความจุ (ที่นั่ง)"
           type="number"
@@ -120,7 +81,6 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
           onChange={setCapacity}
         />
 
-        {/* Moved: สถานะห้องมาแทนผู้ดูแล (ช่องขวา) */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700">
             สถานะห้อง
@@ -141,12 +101,10 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
           </select>
         </div>
 
-        {/* แถว 3: ผู้ดูแลเต็มแถว */}
         <div className="md:col-span-2">
           <Input label="ผู้ดูแล" value={caretaker} onChange={setCaretaker} />
         </div>
 
-        {/* อุปกรณ์ (เต็มแถว) */}
         <div className="md:col-span-2">
           <Input
             label="อุปกรณ์ (คั่นด้วยจุลภาค เช่น โปรเจคเตอร์, ระบบเสียง)"
@@ -156,7 +114,6 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
           />
         </div>
 
-        {/* รายละเอียด (เต็มแถว) */}
         <div className="md:col-span-2 space-y-1">
           <label className="block text-sm font-medium text-gray-700">
             รายละเอียด
@@ -169,9 +126,6 @@ export default function AddRoomModal({ onClose, onCreated }: Props) {
           />
         </div>
 
-        {/* รูปภาพ (เต็มแถว) … (ส่วนนี้เหมือนเดิม) */}
-
-        {/* รูปภาพ: เต็มแถว + เลือกได้หลายไฟล์ */}
         <div className="md:col-span-2 space-y-2">
           <label className="block text-sm font-medium text-gray-700">
             รูปภาพห้อง

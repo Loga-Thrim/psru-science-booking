@@ -53,7 +53,6 @@ function TwoLineClamp({
   );
 }
 
-/** Badge แสดงสถานะห้อง */
 const STATUS_META: Record<
   string,
   { label: string; className: string }
@@ -102,9 +101,6 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
               ความจุ
             </th>
-            {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              อุปกรณ์
-            </th> */}
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               ผู้ดูแล
             </th>
@@ -148,15 +144,10 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
                 )}
               </td>
 
-              {/* <td className="px-6 py-3">
-                <EquipmentChips value={r.equipment} />
-              </td> */}
-
               <td className="px-6 py-3 whitespace-nowrap text-gray-700 text-left">
                 {r.caretaker ?? "-"}
               </td>
 
-              {/* สถานะ */}
               <td className="px-6 py-3 whitespace-nowrap text-left">
                 <StatusBadge status={r.status as Room["status"]} />
               </td>

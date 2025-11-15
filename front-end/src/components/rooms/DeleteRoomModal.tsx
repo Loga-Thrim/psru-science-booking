@@ -1,30 +1,21 @@
 import React, { useState } from "react";
 import { Modal } from "../ui/Modal";
 import { Room } from "../../types/types";
-const api = import.meta.env.VITE_API;
 
 type Props = {
   room: Room | null;
   onClose: () => void;
-  onDeleted?: (room_id: string) => void;
+  onConfirm: (room_id: string) => Promise<void> | void;
 };
 
-export default function DeleteRoomModal({ room, onClose, onDeleted }: Props) {
+export default function DeleteRoomModal({ room, onClose, onConfirm }: Props) {
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
     if (!room) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem("token")
-      const res = await fetch(`${api}/rooms/${room.room_id}`, {
-        method: "DELETE",
-        headers:{
-          Authorization:`Bearer ${token}`
-        }
-      });
-      if (!res.ok) throw new Error("ลบห้องไม่สำเร็จ");
-      onDeleted?.(room.room_id);
+      await onConfirm(room.room_id);
       onClose();
     } catch (e) {
       alert((e as Error).message);
@@ -40,7 +31,11 @@ export default function DeleteRoomModal({ room, onClose, onDeleted }: Props) {
       </p>
 
       <div className="mt-6 flex justify-end gap-3">
-        <button className="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100" onClick={onClose} disabled={loading}>
+        <button
+          className="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100"
+          onClick={onClose}
+          disabled={loading}
+        >
           ยกเลิก
         </button>
         <button

@@ -9,7 +9,17 @@ const api = import.meta.env.VITE_API;
 type Props = {
   room: Room | null;
   onClose: () => void;
-  onUpdated?: (room: Room) => void;
+  onSubmit: (data: {
+    room_id: string;
+    room_code: string;
+    room_type: string;
+    room_status: string;
+    capacity: number;
+    equipment: string;
+    caretaker: string;
+    description: string;
+    images: File[];
+  }) => Promise<void> | void;
 };
 
 type RoomImage = {
@@ -19,7 +29,7 @@ type RoomImage = {
   image_url: string;
 };
 
-export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
+export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
   const [room_code, setRoomCode] = useState("");
   const [room_type, setRoomType] = useState("");
   const [capacity, setCapacity] = useState("0");
@@ -94,7 +104,6 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
 
-    // replace selection (ถ้าต้องการให้สะสมไฟล์ ให้เปลี่ยนเป็นการ concat)
     newFiles.forEach((_, i) => {
       if (previews[i]) URL.revokeObjectURL(previews[i]);
     });
@@ -104,31 +113,12 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
     setPreviews(nextPreviews);
   };
 
-  const uploadImagesIfNeeded = async (room_id: string) => {
-    if (!newFiles.length) return;
-
-    const token = localStorage.getItem("token");
-    const form = new FormData();
-    newFiles.forEach((f) => form.append("images", f, f.name));
-
-    console.log(`${api}/rooms-image/${room_id}`)
-    const resImg = await fetch(`${api}/rooms-image/${room_id}`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-      body: form,
-    });
-    if (!resImg.ok) {
-      const err = await resImg.text().catch(() => "");
-      throw new Error(err || "upload failed");
-    }
-  };
-
   const handleSubmit = async () => {
     if (!room) return;
     setSubmitting(true);
     try {
-      const token = localStorage.getItem("token");
-      const body = {
+      await onSubmit({
+        room_id: room.room_id,
         room_code,
         room_type,
         room_status,
@@ -136,34 +126,19 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
         equipment,
         caretaker,
         description,
-      };
-
-      const res = await fetch(`${api}/rooms/${encodeURIComponent(room.room_id)}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
+        images: newFiles,
       });
-      if (!res.ok) throw new Error("อัปเดตห้องไม่สำเร็จ");
-      const updated: Room = await res.json();
-
-      await uploadImagesIfNeeded(encodeURIComponent(room.room_id));
-
-      onUpdated?.(updated);
+      previews.forEach((u) => URL.revokeObjectURL(u));
       onClose();
     } catch (e) {
       alert((e as Error).message);
     } finally {
       setSubmitting(false);
-      previews.forEach((u) => URL.revokeObjectURL(u));
     }
   };
 
   return (
     <Modal title="แก้ไขข้อมูลห้อง" onClose={onClose}>
-      {/* ===== รูปภาพ ===== */}
       <div className="mb-4">
         <label className="mb-2 block text-sm font-medium text-gray-700">รูปภาพ</label>
         <div className="relative">
@@ -201,7 +176,6 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
             onChange={handleImageSelected}
           />
 
-          {/* preview chips / filenames */}
           {newFiles.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {newFiles.map((f, idx) => (
@@ -218,11 +192,9 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
         </div>
       </div>
 
-      {/* ===== ฟอร์มรายละเอียด ===== */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Input label="รหัส/ชื่อห้อง" value={room_code} onChange={setRoomCode} />
 
-        {/* ประเภทห้อง */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700">ประเภท</label>
           <select
@@ -241,10 +213,13 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
           </select>
         </div>
 
-        {/* ความจุ */}
-        <Input label="ความจุ (ที่นั่ง)" type="number" value={capacity} onChange={setCapacity} />
+        <Input
+          label="ความจุ (ที่นั่ง)"
+          type="number"
+          value={capacity}
+          onChange={setCapacity}
+        />
 
-        {/* สถานะห้อง */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700">สถานะห้อง</label>
           <select
@@ -263,12 +238,10 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
           </select>
         </div>
 
-        {/* ผู้ดูแล */}
         <div className="md:col-span-2">
           <Input label="ผู้ดูแล" value={caretaker} onChange={setCaretaker} />
         </div>
 
-        {/* อุปกรณ์ */}
         <div className="md:col-span-2">
           <Input
             label="อุปกรณ์ (คั่นด้วยจุลภาค เช่น โปรเจคเตอร์, ระบบเสียง)"
@@ -278,7 +251,6 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
           />
         </div>
 
-        {/* รายละเอียด */}
         <div className="md:col-span-2 space-y-1">
           <label className="block text-sm font-medium text-gray-700">รายละเอียด</label>
           <textarea
@@ -290,7 +262,6 @@ export default function EditRoomModal({ room, onClose, onUpdated }: Props) {
         </div>
       </div>
 
-      {/* actions */}
       <div className="mt-6 flex justify-end gap-3">
         <button
           className="rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"

@@ -4,7 +4,7 @@ import { reservationRow } from "../../types/types";
 type Props = {
   row: reservationRow;
   onClose: () => void;
-  onConfirm?: (row: reservationRow) => void;
+  onConfirm?: (row: reservationRow) => void | Promise<void>;
 };
 
 function toThaiDateDDMMYYYY(input: string | number | Date) {
@@ -27,11 +27,14 @@ function toHHmm(t: string | number | Date) {
   return String(t);
 }
 
-export default function ReservationApproveModal({ row, onClose, onConfirm }: Props) {
+export default function ReservationApproveModal({
+  row,
+  onClose,
+  onConfirm,
+}: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // ปิดด้วย Esc
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -40,7 +43,6 @@ export default function ReservationApproveModal({ row, onClose, onConfirm }: Pro
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  // โฟกัส dialog ตอนเปิด
   useEffect(() => {
     dialogRef.current?.focus();
   }, []);
@@ -49,9 +51,8 @@ export default function ReservationApproveModal({ row, onClose, onConfirm }: Pro
     if (e.target === overlayRef.current) onClose();
   };
 
-  const handleConfirm = () => {
-    // ให้ parent เป็นคนจัดการยิง API + ปิด modal เอง
-    onConfirm?.(row);
+  const handleConfirm = async () => {
+    await onConfirm?.(row);
   };
 
   return (
@@ -67,7 +68,6 @@ export default function ReservationApproveModal({ row, onClose, onConfirm }: Pro
         tabIndex={-1}
         className="w-full max-w-lg rounded-2xl bg-white shadow-xl outline-none"
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold">ยืนยันการอนุมัติการจอง</h2>
           <button
@@ -79,10 +79,9 @@ export default function ReservationApproveModal({ row, onClose, onConfirm }: Pro
           </button>
         </div>
 
-        {/* Body */}
         <div className="px-6 py-4 space-y-3">
           <p className="text-sm text-gray-700">
-            คุณต้องการ<strong>อนุมัติ</strong>การจองนี้ใช่หรือไม่?
+            คุณต้องการอนุมัติการจองนี้ใช่หรือไม่?
           </p>
 
           <div className="rounded-xl border border-gray-200 p-3 text-sm space-y-1">
@@ -113,7 +112,6 @@ export default function ReservationApproveModal({ row, onClose, onConfirm }: Pro
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t">
           <button
             onClick={onClose}

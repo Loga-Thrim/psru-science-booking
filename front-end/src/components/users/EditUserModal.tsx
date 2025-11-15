@@ -5,16 +5,10 @@ import { Input } from "../../components/ui/Input";
 import { SelectRole } from "../../components/ui/SelectRole";
 import { DEPARTMENTS } from "../../types/types";
 
-export function EditUserModal({
-  user,
-  onClose,
-  onSubmit,
-}: {
-  user: UserRow;
-  onClose: () => void;
-  onSubmit: (data: UpsertForm & { user_id: number }) => Promise<void> | void;
-}) {
-  // ตรวจว่า department ปัจจุบันอยู่ในลิสต์หรือไม่
+export function EditUserModal(
+    { user, onClose, onSubmit }:
+    { user: UserRow; onClose: () => void; onSubmit: (data: UpsertForm & { user_id: number }) => Promise<void> | void; }
+  ) {
   const isValidDepartment = useMemo(
     () => DEPARTMENTS.includes(user.department as (typeof DEPARTMENTS)[number]),
     [user.department]
@@ -23,7 +17,7 @@ export function EditUserModal({
   const [form, setForm] = useState<UpsertForm>({
     email: user.email,
     username: user.username,
-    department: isValidDepartment ? user.department : "", // ถ้าไม่อยู่ในลิสต์ จะบังคับให้เลือกใหม่
+    department: isValidDepartment ? user.department : "",
     role: user.role,
     password: "",
   });
@@ -60,7 +54,6 @@ export function EditUserModal({
           required
         />
 
-        {/* ใช้ DEPARTMENTS.map ให้ตรงกับ register/add */}
         <div className="space-y-1">
           <label
             htmlFor="department"

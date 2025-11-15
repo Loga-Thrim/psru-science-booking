@@ -4,7 +4,7 @@ import { reservationRow } from "../../types/types";
 type Props = {
   row: reservationRow;
   onClose: () => void;
-  onConfirm?: (row: reservationRow, reason: string) => void;
+  onConfirm?: (row: reservationRow, reason: string) => void | Promise<void>;
 };
 
 function toThaiDateDDMMYYYY(input: string | number | Date) {
@@ -27,7 +27,11 @@ function toHHmm(t: string | number | Date) {
   return String(t);
 }
 
-export default function ReservationRejectModal({ row, onClose, onConfirm }: Props) {
+export default function ReservationRejectModal({
+  row,
+  onClose,
+  onConfirm,
+}: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const [reason, setReason] = useState("");
@@ -48,13 +52,10 @@ export default function ReservationRejectModal({ row, onClose, onConfirm }: Prop
     if (e.target === overlayRef.current) onClose();
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const trimmed = reason.trim();
-    if (!trimmed) {
-      return;
-    }
-    onConfirm?.(row, trimmed);
-    onClose();
+    if (!trimmed) return;
+    await onConfirm?.(row, trimmed);
   };
 
   return (
@@ -83,7 +84,7 @@ export default function ReservationRejectModal({ row, onClose, onConfirm }: Prop
 
         <div className="px-6 py-4 space-y-3">
           <p className="text-sm text-gray-700">
-            คุณต้องการ<strong className="text-red-600">ปฏิเสธ</strong>การจองนี้ใช่หรือไม่?
+            คุณต้องการปฏิเสธการจองนี้ใช่หรือไม่?
           </p>
 
           <div className="rounded-xl border border-gray-200 p-3 text-sm space-y-1">

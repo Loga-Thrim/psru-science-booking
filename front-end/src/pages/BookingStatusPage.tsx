@@ -19,12 +19,7 @@ type Reservation = {
   end_time: string;
   number_of_users: number;
   reservation_type: "teaching" | "meeting" | "other" | string;
-  reservation_status:
-    | "pending"
-    | "adminApproved"
-    | "approverApproved"
-    | "rejected"
-    | string;
+  reservation_status: | "pending" | "adminApproved" | "approverApproved" | "rejected" | string;
   reservation_reason: string | null;
   rejection_reason: string | null;
   phone: string | null;
@@ -215,12 +210,6 @@ export default function BookingStatusPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">สถานะการจอง</h1>
-        {user && (
-          <div className="text-sm text-gray-500">
-            ผู้ใช้งาน:{" "}
-            <span className="font-medium text-gray-700">{fullName}</span>
-          </div>
-        )}
       </div>
 
       <div className="bg-white rounded-lg shadow">
@@ -272,8 +261,8 @@ export default function BookingStatusPage() {
                       {r.reservation_type === "teaching"
                         ? "สอน"
                         : r.reservation_type === "meeting"
-                        ? "ประชุม"
-                        : "อื่นๆ"}
+                          ? "ประชุม"
+                          : "อื่นๆ"}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
                       {r.number_of_users}
@@ -292,14 +281,13 @@ export default function BookingStatusPage() {
                         onClick={() => setConfirmCancel(r)}
                         disabled={
                           normalizeStatus(r.reservation_status) ===
-                            "cancelled" || isCancelling
+                          "cancelled" || isCancelling
                         }
-                        className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium ${
-                          normalizeStatus(r.reservation_status) ===
+                        className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium ${normalizeStatus(r.reservation_status) ===
                             "cancelled" || isCancelling
                             ? "bg-gray-100 text-gray-400 ring-1 ring-inset ring-gray-200 cursor-not-allowed"
                             : "bg-red-600 text-white hover:bg-red-700"
-                        }`}
+                          }`}
                       >
                         ยกเลิก
                       </button>
@@ -369,8 +357,8 @@ export default function BookingStatusPage() {
                       label="ประเภท"
                       value={
                         detail.reservation_type === "teaching" ? "สอน"
-                        : detail.reservation_type === "meeting"? "ประชุม"
-                        : "อื่นๆ"
+                          : detail.reservation_type === "meeting" ? "ประชุม"
+                            : "อื่นๆ"
                       }
                     />
                   </div>

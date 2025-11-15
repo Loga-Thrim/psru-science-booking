@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { UserRole, UserRow, UpsertForm } from "../types/types";
+import { UserRow, UpsertForm } from "../types/types";
 import { UserTable } from "../components/users/UserTable";
 import { AddUserModal } from "../components/users/AddUserModal";
 import { EditUserModal } from "../components/users/EditUserModal";
@@ -10,20 +10,19 @@ const api = import.meta.env.VITE_API as string;
 
 function UserManagementPage() {
   const { user } = useAuth();
+  if (!user) return <p className="text-gray-500">กำลังตรวจสอบสิทธิ์...</p>;
+  if (user.role !== "admin") return <p className="text-red-500">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>;
 
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
+  // Modal
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const [selected, setSelected] = useState<UserRow | null>(null);
-
-  if (!user) return <p className="text-gray-500">กำลังตรวจสอบสิทธิ์...</p>;
-  if (user.role !== "admin")
-    return <p className="text-red-500">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>;
 
   const loadUsers = async () => {
     setLoading(true);
@@ -52,7 +51,6 @@ function UserManagementPage() {
     loadUsers();
   }, []);
 
-  // submit handlers (เดิม) — ถูกส่งต่อเข้าโมดอล
   const handleCreate = async (form: UpsertForm) => {
     const token = localStorage.getItem("token");
     const res = await fetch(`${api}/users`, {
@@ -74,7 +72,6 @@ function UserManagementPage() {
 
   const handleUpdate = async (payload: UpsertForm & { user_id: number }) => {
     const token = localStorage.getItem("token");
-    // ส่ง password เฉพาะกรณีที่กรอก
     const body: any = {
       user_id: payload.user_id,
       email: payload.email,

@@ -57,6 +57,7 @@ export interface Room {
   caretaker?: string | null;
   status: "avaliable" | "unavaliable";
 }
+export type ReservationType = "teaching" | "exam" | "activity" | "other" | "";
 
 export type reservationRow = {
   reservation_id: string,

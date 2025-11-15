@@ -43,7 +43,6 @@ CREATE TABLE reservations (
   room_id CHAR(8),
   FOREIGN KEY (room_id) REFERENCES rooms(room_id),
   user_id CHAR(8),
-  FOREIGN KEY (user_id) REFERENCES users(user_id),
   booking_date        DATE NOT NULL,
   start_time          TIME NOT NULL,
   end_time            TIME NOT NULL,

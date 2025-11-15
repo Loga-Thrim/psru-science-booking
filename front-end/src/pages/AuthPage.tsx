@@ -7,7 +7,9 @@ import { DEPARTMENTS } from "../types/types";
 const api = import.meta.env.VITE_API;
 
 function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -15,20 +17,16 @@ function AuthPage() {
     confirmPassword: "",
     department: "",
   });
+  const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const { login } = useAuth();
-  const navigate = useNavigate();
 
   const user = localStorage.getItem("user");
   const token = localStorage.getItem("token");
   if (user && token) navigate("/dashboard");
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
     setSuccess("");
