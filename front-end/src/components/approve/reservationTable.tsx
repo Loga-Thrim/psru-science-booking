@@ -1,4 +1,3 @@
-import React from "react";
 import { reservationRow } from "../../types/types";
 
 type Props = {
@@ -38,71 +37,69 @@ export default function ReservationTable({
     <table className="min-w-full border-separate border-spacing-0">
       <thead className="bg-gray-50 text-gray-700 border-b sticky top-0 z-10">
         <tr>
-          <th className="text-center px-4 py-2 border-b">ห้อง</th>
-          <th className="text-center px-4 py-2 border-b">วันที่</th>
-          <th className="text-center px-4 py-2 border-b">เริ่มต้น</th>
-          <th className="text-center px-4 py-2 border-b">สิ้นสุด</th>
-          <th className="text-center px-4 py-2 border-b">ชื่อผู้จอง</th>
-          <th className="text-center px-4 py-2 border-b">เบอร์มือถือ</th>
-          <th className="text-center px-4 py-2 border-b">จำนวนผู้เข้าใช้งาน</th>
-          <th className="text-center px-4 py-2 border-b">รายละเอียด</th>
-          <th className="text-center px-4 py-2 border-b">อนุมัติ</th>
-          <th className="text-center px-4 py-2 border-b">ปฏิเสธ</th>
+          <th className="text-left px-4 py-3 border-b font-semibold">ห้อง</th>
+          <th className="text-center px-4 py-3 border-b font-semibold">วันที่/เวลา</th>
+          <th className="text-left px-4 py-3 border-b font-semibold">ผู้จอง</th>
+          <th className="text-center px-4 py-3 border-b font-semibold">เบอร์โทร</th>
+          <th className="text-center px-4 py-3 border-b font-semibold">จำนวนคน</th>
+          <th className="text-center px-4 py-3 border-b font-semibold">ดำเนินการ</th>
         </tr>
       </thead>
       <tbody>
         {rows.map((row, idx) => (
           <tr
             key={(row as any).id ?? row.reservation_id ?? idx}
-            className="even:bg-white odd:bg-gray-50"
+            className="hover:bg-amber-50/50 transition-colors"
           >
-            <td className="text-center border-b px-4 py-2 align-middle">
-              {row.room_id}
+            <td className="border-b px-4 py-3 align-middle">
+              <div className="font-semibold text-gray-900">{row.room_code || row.room_id}</div>
+              <div className="text-xs text-gray-500">
+                {row.building && <span>{row.building}</span>}
+                {row.floor && <span> • ชั้น {row.floor}</span>}
+              </div>
             </td>
-            <td className="text-center border-b px-4 py-2 align-middle">
-              {toThaiDateDDMMYYYY(row.booking_date)}
+            <td className="text-center border-b px-4 py-3 align-middle">
+              <div className="font-medium text-gray-900">{toThaiDateDDMMYYYY(row.booking_date)}</div>
+              <div className="text-sm text-amber-600 font-medium">
+                {toHHmm(row.start_time)} - {toHHmm(row.end_time)}
+              </div>
             </td>
-            <td className="text-center border-b px-4 py-2 align-middle">
-              {toHHmm(row.start_time)}
+            <td className="border-b px-4 py-3 align-middle">
+              <div className="font-medium text-gray-900">{row.username}</div>
+              <div className="text-xs text-gray-500">{row.department || row.email}</div>
             </td>
-            <td className="text-center border-b px-4 py-2 align-middle">
-              {toHHmm(row.end_time)}
+            <td className="text-center border-b px-4 py-3 align-middle text-sm text-gray-700">
+              {row.phone || "-"}
             </td>
-            <td className="text-center border-b px-4 py-2 align-middle">
-              {row.username}
+            <td className="text-center border-b px-4 py-3 align-middle">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-semibold text-sm">
+                {row.number_of_users}
+              </span>
             </td>
-            <td className="text-center border-b px-4 py-2 align-middle">
-              {row.phone}
-            </td>
-            <td className="text-center border-b px-4 py-2 align-middle">
-              {row.number_of_users}
-            </td>
-            <td className="px-2 py-2 text-center border-b">
-              <button
-                type="button"
-                onClick={() => onDetail(row)}
-                className="px-2 py-1 rounded-md border border-gray-300 hover:bg-gray-50"
-              >
-                ดูเพิ่มเติม
-              </button>
-            </td>
-            <td className="px-2 py-2 text-center border-b">
-              <button
-                type="button"
-                onClick={() => onApprove(row)}
-                className="px-2 py-1 rounded-md bg-green-600 text-white hover:bg-green-700"
-              >
-                อนุมัติ
-              </button>
-            </td>
-            <td className="px-2 py-2 text-center border-b">
-              <button
-                type="button"
-                onClick={() => onReject(row)}
-                className="px-2 py-1 rounded-md bg-red-600 text-white hover:bg-red-700"
-              >
-                ปฏิเสธ
-              </button>
+            <td className="px-3 py-3 text-center border-b">
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onDetail(row)}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  ดูเพิ่มเติม
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onApprove(row)}
+                  className="px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                >
+                  อนุมัติ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onReject(row)}
+                  className="px-3 py-1.5 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  ปฏิเสธ
+                </button>
+              </div>
             </td>
           </tr>
         ))}

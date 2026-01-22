@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Modal } from "../ui/Modal";
+import { useState } from "react";
 import { Room } from "../../types/types";
+import { Trash2, AlertTriangle, X } from "lucide-react";
 
 type Props = {
   room: Room | null;
@@ -25,27 +25,55 @@ export default function DeleteRoomModal({ room, onClose, onConfirm }: Props) {
   };
 
   return (
-    <Modal title="ยืนยันการลบห้อง" onClose={onClose}>
-      <p className="text-gray-700">
-        ต้องการลบห้อง <span className="font-semibold">{room?.room_code}</span> ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
-      </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      
+      <div className="relative z-10 w-full max-w-md rounded-3xl bg-white shadow-lg overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center">
+              <AlertTriangle className="w-7 h-7 text-red-600" />
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <h3 className="text-xl font-bold text-gray-900 mb-2">ยืนยันการลบห้อง</h3>
+          <p className="text-gray-600">
+            คุณต้องการลบห้อง <span className="font-semibold text-gray-900">{room?.room_code}</span> ใช่หรือไม่?
+          </p>
+          <p className="text-sm text-red-500 mt-2 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            การกระทำนี้ไม่สามารถย้อนกลับได้
+          </p>
+        </div>
 
-      <div className="mt-6 flex justify-end gap-3">
-        <button
-          className="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100"
-          onClick={onClose}
-          disabled={loading}
-        >
-          ยกเลิก
-        </button>
-        <button
-          className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
-          onClick={handleDelete}
-          disabled={loading}
-        >
-          ลบ
-        </button>
+        <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+          <button
+            className="px-5 py-2.5 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+            onClick={onClose}
+            disabled={loading}
+          >
+            ยกเลิก
+          </button>
+          <button
+            className="btn-danger flex items-center gap-2 py-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            onClick={handleDelete}
+            disabled={loading}
+          >
+            <Trash2 className="w-4 h-4" />
+            {loading ? 'กำลังลบ...' : 'ลบห้อง'}
+          </button>
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 }

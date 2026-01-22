@@ -1,6 +1,9 @@
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import dbConnect from "../configs/dbConnect";
 import { registerStatus } from "../enum/aut";
+import bcrypt from "bcrypt";
+
+const SALT_ROUNDS = 10;
 
 export default async function createUserRepo(email: string, password: string, username: string, department: string, role: string):Promise<registerStatus>{
   try {
@@ -15,7 +18,8 @@ export default async function createUserRepo(email: string, password: string, us
       connect.end()
       return registerStatus.alreadyHaveUserName;
     }else {
-      await connect.execute<ResultSetHeader>("INSERT INTO users (email, password, username, department, role) VALUES (?, ?, ?, ?, ?)", [email, password, username, department, role]);
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      await connect.execute<ResultSetHeader>("INSERT INTO users (email, password, username, department, role) VALUES (?, ?, ?, ?, ?)", [email, hashedPassword, username, department, role]);
       connect.end()
       return registerStatus.pass;
     }

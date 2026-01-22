@@ -9,6 +9,7 @@ export default async function dbConnect(): Promise<Connection> {
       database: process.env.DB_NAME,
       password: process.env.DB_PASSWORD,
       port: Number(process.env.DB_PORT),
+      charset: 'utf8mb4',
     });
     return connection;
   } catch {

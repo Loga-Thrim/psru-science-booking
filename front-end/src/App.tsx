@@ -5,7 +5,7 @@ import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
-import RoomBookingListPage from "./pages/RoomBookingListPage";
+import BookRoomPage from "./pages/BookRoomPage";
 import RoomManagementPage from "./pages/RoomManagementPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import BookingApprovalPage from "./pages/BookingApprovalPage";
@@ -30,7 +30,7 @@ function App() {
             <Route path="/book-room/new/form" element={<RoomBookingCreateFormPage />} />
             <Route path="/book-room/new" element={<RoomBookingDateCalendarPage />} />
             <Route path="/booking" element={<RoomBookingTimeCalendarPage />} />
-            <Route path="/book-room" element={<RoomBookingListPage />} />
+            <Route path="/book-room" element={<BookRoomPage />} />
 
             <Route path="/booking-status" element={<BookingStatusPage />} />
             <Route path="/approvals" element={<BookingApprovalPage />} />

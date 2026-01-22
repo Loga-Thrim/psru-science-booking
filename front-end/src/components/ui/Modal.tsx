@@ -1,33 +1,64 @@
 import React from "react";
+import { X } from "lucide-react";
+
+interface ModalProps {
+  children: React.ReactNode;
+  onClose: () => void;
+  title: string;
+  icon?: React.ReactNode;
+  size?: "sm" | "md" | "lg" | "xl";
+}
 
 export function Modal({
   children,
   onClose,
   title,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-  title: string;
-}) {
+  icon,
+  size = "lg",
+}: ModalProps) {
+  const sizeClasses = {
+    sm: "max-w-md",
+    md: "max-w-xl",
+    lg: "max-w-3xl",
+    xl: "max-w-5xl",
+  };
+
   return (
-    <div className="fixed inset-0 z-190 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative z-10 w-[min(90vw,56rem)] max-h-[85vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1 text-gray-500 hover:bg-gray-100"
-            aria-label="close"
-          >
-            ✕
-          </button>
+      
+      {/* Modal */}
+      <div className={`relative z-10 w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-black/5 transform transition-all`}>
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {icon && (
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                  {icon}
+                </div>
+              )}
+              <h2 className="text-xl font-bold text-black">{title}</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="rounded-xl p-2 text-black/60 hover:text-black hover:bg-black/10 transition-colors"
+              aria-label="close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-        {children}
+        
+        {/* Content */}
+        <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+          {children}
+        </div>
       </div>
     </div>
   );

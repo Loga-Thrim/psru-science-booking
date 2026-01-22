@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RoomTable } from "../components/rooms/RoomTable";
 import AddRoomModal from "../components/rooms/AddRoomModal";
 import EditRoomModal from "../components/rooms/EditRoomModal";
 import DeleteRoomModal from "../components/rooms/DeleteRoomModal";
 import { Room } from "../types/types";
+import { DoorOpen, Plus, Search, Filter } from "lucide-react";
 
 const api = import.meta.env.VITE_API as string;
 
@@ -16,6 +17,14 @@ type CreateRoomPayload = {
   caretaker: string;
   description: string;
   images: File[];
+  building: string;
+  floor: string;
+  contact_phone: string;
+  available_start_time: string;
+  available_end_time: string;
+  available_days: string[];
+  advance_booking_days: number;
+  restrictions: string;
 };
 
 type UpdateRoomPayload = {
@@ -28,6 +37,14 @@ type UpdateRoomPayload = {
   caretaker: string;
   description: string;
   images: File[];
+  building: string;
+  floor: string;
+  contact_phone: string;
+  available_start_time: string;
+  available_end_time: string;
+  available_days: string[];
+  advance_booking_days: number;
+  restrictions: string;
 };
 
 export default function RoomManagementPage() {
@@ -79,6 +96,14 @@ export default function RoomManagementPage() {
       equipment: payload.equipment,
       caretaker: payload.caretaker,
       description: payload.description,
+      building: payload.building,
+      floor: payload.floor,
+      contact_phone: payload.contact_phone,
+      available_start_time: payload.available_start_time,
+      available_end_time: payload.available_end_time,
+      available_days: payload.available_days.join(","),
+      advance_booking_days: payload.advance_booking_days,
+      restrictions: payload.restrictions,
     };
 
     const res = await fetch(`${api}/rooms`, {
@@ -140,6 +165,14 @@ export default function RoomManagementPage() {
       equipment: payload.equipment,
       caretaker: payload.caretaker,
       description: payload.description,
+      building: payload.building,
+      floor: payload.floor,
+      contact_phone: payload.contact_phone,
+      available_start_time: payload.available_start_time,
+      available_end_time: payload.available_end_time,
+      available_days: payload.available_days.join(","),
+      advance_booking_days: payload.advance_booking_days,
+      restrictions: payload.restrictions,
     };
 
     const res = await fetch(`${api}/rooms/${encodeURIComponent(payload.room_id)}`, {
@@ -200,26 +233,132 @@ export default function RoomManagementPage() {
     setSelected(null);
   };
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
+
+  const filteredRooms = rooms.filter(room => {
+    const matchesSearch = room.room_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         room.room_type?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterType === "all" || room.room_type === filterType;
+    return matchesSearch && matchesFilter;
+  });
+
+  const roomTypes = [...new Set(rooms.map(r => r.room_type).filter(Boolean))];
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">จัดการห้อง</h1>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <DoorOpen className="w-8 h-8 text-amber-600" />
+            จัดการห้องประชุม
+          </h1>
+          <p className="text-gray-500 mt-1">จัดการข้อมูลห้องประชุมทั้งหมดในระบบ</p>
+        </div>
         <button
-          className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+          className="btn-primary flex items-center gap-2"
           onClick={() => setOpenAdd(true)}
         >
-          + เพิ่มห้อง
+          <Plus className="w-5 h-5" />
+          เพิ่มห้องใหม่
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="luxury-card p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
+              <DoorOpen className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{rooms.length}</p>
+              <p className="text-sm text-gray-500">ห้องทั้งหมด</p>
+            </div>
+          </div>
+        </div>
+        <div className="luxury-card p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl gradient-success flex items-center justify-center">
+              <DoorOpen className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">
+                {rooms.filter(r => r.status === 'avaliable' || !r.status).length}
+              </p>
+              <p className="text-sm text-gray-500">พร้อมใช้งาน</p>
+            </div>
+          </div>
+        </div>
+        <div className="luxury-card p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl gradient-warning flex items-center justify-center">
+              <DoorOpen className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{roomTypes.length}</p>
+              <p className="text-sm text-gray-500">ประเภทห้อง</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="luxury-card p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="ค้นหาห้อง..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input-luxury pl-12"
+            />
+          </div>
+          <div className="relative">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="input-luxury pl-12 pr-8 w-full sm:w-48"
+            >
+              <option value="all">ทุกประเภท</option>
+              {roomTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="luxury-card overflow-hidden">
         {loading ? (
-          <div className="p-6 text-gray-500">กำลังโหลดข้อมูล...</div>
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full gradient-primary animate-pulse" />
+              <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
+            </div>
+          </div>
         ) : error ? (
-          <div className="p-6 text-red-600">เกิดข้อผิดพลาด: {error}</div>
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+              <DoorOpen className="w-8 h-8 text-red-500" />
+            </div>
+            <p className="text-red-600 font-medium">เกิดข้อผิดพลาด: {error}</p>
+          </div>
+        ) : filteredRooms.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <DoorOpen className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500">ไม่พบห้องที่ค้นหา</p>
+          </div>
         ) : (
           <RoomTable
-            rooms={rooms}
+            rooms={filteredRooms}
             onEdit={(room) => {
               setSelected(room);
               setOpenEdit(true);

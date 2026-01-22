@@ -6,7 +6,7 @@ export default async function bookingDeleteControll(req: Request, res: Response)
         const tokenHeader = req.headers["authorization"] as string;
         const payload = verifyTokenService({ tokenHeader });
         const userId = payload.user_id;
-        const reservationId = req.params.id;
+        const reservationId = req.params.id as string;
         await bookingDeleteRepo(userId, reservationId);
         return res.status(200).json({message: "OK"});
     } catch (err) {
