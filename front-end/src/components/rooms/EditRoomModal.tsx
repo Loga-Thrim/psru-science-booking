@@ -251,7 +251,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
       {/* Section: รูปภาพห้อง */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <Camera className="w-4 h-4 text-amber-600" />
+          <Camera className="w-4 h-4 text-slate-700" />
           รูปภาพห้อง
         </h3>
         <div className="relative">
@@ -279,10 +279,10 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
           {newFiles.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {newFiles.map((f, idx) => (
-                <div key={idx} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200">
-                  <span className="text-sm text-amber-700 max-w-[150px] truncate">{f.name}</span>
-                  <button type="button" onClick={() => removeNewFile(idx)} className="p-1 rounded-full hover:bg-amber-200 transition-colors">
-                    <X className="w-4 h-4 text-amber-600" />
+                <div key={idx} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <span className="text-sm text-slate-800 max-w-[150px] truncate">{f.name}</span>
+                  <button type="button" onClick={() => removeNewFile(idx)} className="p-1 rounded-full hover:bg-slate-200 transition-colors">
+                    <X className="w-4 h-4 text-slate-700" />
                   </button>
                 </div>
               ))}
@@ -294,7 +294,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
       {/* Section: ข้อมูลพื้นฐาน */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <DoorOpen className="w-4 h-4 text-amber-600" />
+          <DoorOpen className="w-4 h-4 text-slate-700" />
           ข้อมูลพื้นฐาน
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -308,12 +308,12 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
               onChange={(e) => setRoomCode(e.target.value)}
               placeholder="เช่น ห้อง 101"
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
             />
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">อาคาร</label>
-            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={building} onChange={(e) => setBuilding(e.target.value)}>
               <option value="">-- เลือกอาคาร --</option>
               {BUILDINGS.map((b) => (<option key={b} value={b}>{b}</option>))}
@@ -321,7 +321,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">ชั้น</label>
-            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={floor} onChange={(e) => setFloor(e.target.value)}>
               <option value="">-- เลือกชั้น --</option>
               {FLOORS.map((f) => (<option key={f} value={f}>ชั้น {f}</option>))}
@@ -329,7 +329,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">ประเภทห้อง</label>
-            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={room_type} onChange={(e) => setRoomType(e.target.value)}>
               <option value="" disabled>-- เลือกประเภทห้อง --</option>
               {ROOM_TYPES.map((rt) => (<option key={rt} value={rt}>{rt}</option>))}
@@ -338,7 +338,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
           <Input label="ความจุ (ที่นั่ง)" type="number" value={capacity} onChange={setCapacity} icon={<Users className="w-4 h-4" />} />
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">สถานะห้อง</label>
-            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={room_status} onChange={(e) => setRoomStatus(e.target.value)}>
               <option value="">-- เลือกสถานะ --</option>
               {ROOM_STATUS.map((st) => (<option key={st} value={st}>{st === 'available' ? 'พร้อมใช้งาน' : 'ไม่พร้อมใช้งาน'}</option>))}
@@ -350,13 +350,13 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
       {/* Section: ผู้ดูแลและการติดต่อ */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <User className="w-4 h-4 text-amber-600" />
+          <User className="w-4 h-4 text-slate-700" />
           ผู้ดูแลและการติดต่อ
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">ผู้ดูแลห้อง</label>
-            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={caretaker} onChange={(e) => setCaretaker(e.target.value)} disabled={loadingCaretakers}>
               <option value="">-- เลือกผู้ดูแล --</option>
               {caretakerOptions.map((c) => (<option key={c.user_id} value={c.username}>{c.username} ({c.department})</option>))}
@@ -369,14 +369,14 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
       {/* Section: อุปกรณ์ในห้อง */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <Building className="w-4 h-4 text-amber-600" />
+          <Building className="w-4 h-4 text-slate-700" />
           อุปกรณ์ในห้อง
         </h3>
         <div className="space-y-3">
           <div className="flex flex-wrap gap-2">
             {EQUIPMENT_OPTIONS.map((eq) => (
               <button key={eq} type="button" onClick={() => toggleEquipment(eq)}
-                className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${selectedEquipment.includes(eq) ? 'bg-amber-100 border-amber-400 text-amber-800' : 'bg-white border-gray-300 text-gray-600 hover:border-amber-300 hover:bg-amber-50'}`}>
+                className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${selectedEquipment.includes(eq) ? 'bg-slate-100 border-slate-500 text-slate-800' : 'bg-white border-gray-300 text-gray-600 hover:border-slate-400 hover:bg-slate-50'}`}>
                 {selectedEquipment.includes(eq) && <span className="mr-1">✓</span>}{eq}
               </button>
             ))}
@@ -384,17 +384,17 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
           <div className="flex gap-2">
             <input type="text" value={customEquipment} onChange={(e) => setCustomEquipment(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomEquipment())}
-              placeholder="เพิ่มอุปกรณ์อื่นๆ..." className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none" />
+              placeholder="เพิ่มอุปกรณ์อื่นๆ..." className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none" />
             <button type="button" onClick={addCustomEquipment} className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition-colors flex items-center gap-1">
               <Plus className="w-4 h-4" />เพิ่ม
             </button>
           </div>
           {selectedEquipment.length > 0 && (
-            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <p className="text-xs text-amber-700 mb-2">อุปกรณ์ที่เลือก ({selectedEquipment.length} รายการ):</p>
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <p className="text-xs text-slate-800 mb-2">อุปกรณ์ที่เลือก ({selectedEquipment.length} รายการ):</p>
               <div className="flex flex-wrap gap-1">
                 {selectedEquipment.map((eq) => (
-                  <span key={eq} className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded border border-amber-300 text-xs text-amber-800">
+                  <span key={eq} className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-400 text-xs text-slate-800">
                     {eq}<button type="button" onClick={() => toggleEquipment(eq)} className="hover:text-red-600"><X className="w-3 h-3" /></button>
                   </span>
                 ))}
@@ -407,24 +407,24 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
       {/* Section: เวลาและเงื่อนไขการจอง */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <Clock className="w-4 h-4 text-amber-600" />
+          <Clock className="w-4 h-4 text-slate-700" />
           เวลาและเงื่อนไขการจอง
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">เวลาเปิดให้จอง</label>
             <input type="time" value={availableStartTime} onChange={(e) => setAvailableStartTime(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none" />
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none" />
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">เวลาปิดให้จอง</label>
             <input type="time" value={availableEndTime} onChange={(e) => setAvailableEndTime(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none" />
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none" />
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">ต้องจองล่วงหน้า (วัน)</label>
             <input type="number" min="0" max="30" value={advanceBookingDays} onChange={(e) => setAdvanceBookingDays(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none" />
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none" />
           </div>
         </div>
         <div className="mt-4 space-y-2">
@@ -432,7 +432,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
           <div className="flex flex-wrap gap-2">
             {WEEKDAYS.map((day) => (
               <button key={day.value} type="button" onClick={() => toggleDay(day.value)}
-                className={`px-4 py-2 rounded-lg text-sm border transition-all ${availableDays.includes(day.value) ? 'bg-amber-100 border-amber-400 text-amber-800' : 'bg-white border-gray-300 text-gray-600 hover:border-amber-300'}`}>
+                className={`px-4 py-2 rounded-lg text-sm border transition-all ${availableDays.includes(day.value) ? 'bg-slate-100 border-slate-500 text-slate-800' : 'bg-white border-gray-300 text-gray-600 hover:border-slate-400'}`}>
                 {day.label}
               </button>
             ))}
@@ -443,18 +443,18 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
       {/* Section: รายละเอียดเพิ่มเติม */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <AlertCircle className="w-4 h-4 text-amber-600" />
+          <AlertCircle className="w-4 h-4 text-slate-700" />
           รายละเอียดเพิ่มเติม
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">รายละเอียดห้อง</label>
-            <textarea className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none"
+            <textarea className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none resize-none"
               rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับห้อง..." />
           </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">ข้อจำกัด/หมายเหตุการใช้งาน</label>
-            <textarea className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none"
+            <textarea className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none resize-none"
               rows={2} value={restrictions} onChange={(e) => setRestrictions(e.target.value)} placeholder="เช่น ห้ามนำอาหารเข้า, ต้องมีอาจารย์ที่ปรึกษากำกับ..." />
           </div>
         </div>

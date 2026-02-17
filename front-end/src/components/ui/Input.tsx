@@ -37,7 +37,7 @@ export function Input({
           placeholder={placeholder}
           required={required}
           disabled={disabled}
-          className={`w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm placeholder-gray-400 transition-all duration-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed ${icon ? 'pl-10' : ''}`}
+          className={`w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm placeholder-gray-400 transition-all duration-200 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed ${icon ? 'pl-10' : ''}`}
         />
       </div>
     </div>

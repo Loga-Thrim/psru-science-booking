@@ -1,14 +1,61 @@
 services:
- db:
-   image: mysql:latest
-   container_name: mysql
-   ports:
-     - "3306:3306"
-   environment:
-     MYSQL_ROOT_PASSWORD: root
-     MYSQL_DATABASE: psru_booking
-     MYSQL_ROOT_HOST: "%"
-   volumes:
-     - db:/var/lib/mysql
+  db:
+    image: mysql:latest
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: psru_booking
+      MYSQL_ROOT_HOST: "%"
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: psru-backend
+    environment:
+      SERVER_PORT: 3000
+      DB_HOST: db
+      DB_NAME: psru_booking
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_PORT: 3306
+      JWT_KEY: secret
+      WEB_ORIGIN: "*"
+    volumes:
+      - ./back-end/uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+      args:
+        VITE_API: /api
+    container_name: psru-frontend
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: psru-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+
 volumes:
   db: {}

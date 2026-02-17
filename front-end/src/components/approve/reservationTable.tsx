@@ -49,7 +49,7 @@ export default function ReservationTable({
         {rows.map((row, idx) => (
           <tr
             key={(row as any).id ?? row.reservation_id ?? idx}
-            className="hover:bg-amber-50/50 transition-colors"
+            className="hover:bg-slate-50/50 transition-colors"
           >
             <td className="border-b px-4 py-3 align-middle">
               <div className="font-semibold text-gray-900">{row.room_code || row.room_id}</div>
@@ -60,7 +60,7 @@ export default function ReservationTable({
             </td>
             <td className="text-center border-b px-4 py-3 align-middle">
               <div className="font-medium text-gray-900">{toThaiDateDDMMYYYY(row.booking_date)}</div>
-              <div className="text-sm text-amber-600 font-medium">
+              <div className="text-sm text-slate-700 font-medium">
                 {toHHmm(row.start_time)} - {toHHmm(row.end_time)}
               </div>
             </td>
@@ -72,7 +72,7 @@ export default function ReservationTable({
               {row.phone || "-"}
             </td>
             <td className="text-center border-b px-4 py-3 align-middle">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-semibold text-sm">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-800 font-semibold text-sm">
                 {row.number_of_users}
               </span>
             </td>

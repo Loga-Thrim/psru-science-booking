@@ -19,7 +19,7 @@ export function SelectRole({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as UserRole)}
-        className="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 transition-all duration-200 focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100 focus:outline-none"
+        className="w-full rounded-xl border-2 border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 transition-all duration-200 focus:border-slate-500 focus:bg-white focus:ring-4 focus:ring-slate-100 focus:outline-none"
       >
         <option value="user">ผู้ใช้ทั่วไป (User)</option>
         <option value="approver">ผู้อนุมัติ (Approver)</option>

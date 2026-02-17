@@ -116,10 +116,10 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-slate-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-emerald-100/50">
-          <div className="relative h-32 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-stone-200/60">
+          <div className="relative h-32 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
             <div className="absolute inset-0 bg-black/5"></div>
             <div className="relative h-full flex flex-col items-center justify-center text-white">
               <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 shadow-lg">
@@ -172,7 +172,7 @@ function AuthPage() {
                           required
                           className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
                                       shadow-sm outline-none transition-all duration-200
-                                      focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                      focus:bg-white focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                           placeholder="กรอกชื่อ-นามสกุล"
                           value={formData.fullName}
                           onChange={handleInputChange}
@@ -196,8 +196,8 @@ function AuthPage() {
                           name="department"
                           required
                           className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-10 py-3 text-gray-900
-                                    shadow-sm outline-none transition-all duration-200 focus:bg-white focus:border-emerald-500
-                                    focus:ring-4 focus:ring-emerald-100 appearance-none"
+                                    shadow-sm outline-none transition-all duration-200 focus:bg-white focus:border-slate-500
+                                    focus:ring-4 focus:ring-slate-100 appearance-none"
                           value={formData.department}
                           onChange={handleInputChange}
                         >
@@ -247,7 +247,7 @@ function AuthPage() {
                       required
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
                                   shadow-sm outline-none transition-all duration-200
-                                  focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                  focus:bg-white focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                       placeholder="example@email.com"
                       value={formData.email}
                       onChange={handleInputChange}
@@ -273,7 +273,7 @@ function AuthPage() {
                       required
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
                                   shadow-sm outline-none transition-all duration-200
-                                  focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                  focus:bg-white focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={handleInputChange}
@@ -300,7 +300,7 @@ function AuthPage() {
                         required
                         className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400
                                     shadow-sm outline-none transition-all duration-200
-                                    focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                                    focus:bg-white focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                         placeholder="••••••••"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
@@ -314,10 +314,10 @@ function AuthPage() {
                 type="submit"
                 disabled={loading}
                 className="group relative w-full inline-flex items-center justify-center gap-2.5 rounded-xl
-                              bg-gradient-to-r from-emerald-600 to-green-600 text-white
-                              px-6 py-3.5 text-sm font-bold shadow-lg shadow-emerald-600/30
-                              hover:shadow-xl hover:shadow-emerald-600/40 hover:from-emerald-500 hover:to-green-500
-                              focus:outline-none focus:ring-4 focus:ring-emerald-200
+                              bg-gradient-to-r from-slate-700 to-slate-800 text-white
+                              px-6 py-3.5 text-sm font-bold shadow-lg shadow-slate-600/20
+                              hover:shadow-xl hover:shadow-slate-600/30 hover:from-slate-600 hover:to-slate-700
+                              focus:outline-none focus:ring-4 focus:ring-slate-200
                               active:scale-[0.98] transition-all duration-200
                               disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
@@ -348,19 +348,19 @@ function AuthPage() {
               <button
                 type="button"
                 onClick={toggleMode}
-                className="text-sm text-gray-600 hover:text-emerald-600 font-medium transition-colors duration-200"
+                className="text-sm text-gray-600 hover:text-slate-700 font-medium transition-colors duration-200"
               >
                 {isLogin ? (
                   <>
                     ยังไม่มีบัญชี?{" "}
-                    <span className="text-emerald-600 font-semibold hover:underline">
+                    <span className="text-slate-700 font-semibold hover:underline">
                       สมัครสมาชิกที่นี่
                     </span>
                   </>
                 ) : (
                   <>
                     มีบัญชีอยู่แล้ว?{" "}
-                    <span className="text-emerald-600 font-semibold hover:underline">
+                    <span className="text-slate-700 font-semibold hover:underline">
                       เข้าสู่ระบบ
                     </span>
                   </>

@@ -186,8 +186,8 @@ function UserManagementPage() {
         </div>
         <div className="luxury-card p-5">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-              <UserCheck className="w-6 h-6 text-amber-600" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+              <UserCheck className="w-6 h-6 text-slate-700" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{approverCount}</p>

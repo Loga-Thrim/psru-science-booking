@@ -37,12 +37,12 @@ function Layout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-slate-50 to-white">
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 right-4 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-3 rounded-xl bg-white/80 backdrop-blur-lg shadow-sm border border-amber-200/50 hover:scale-105 transition-transform"
+          className="p-3 rounded-xl bg-white/80 backdrop-blur-lg shadow-sm border border-stone-200 hover:scale-105 transition-transform"
         >
           {isMobileMenuOpen ? <X size={24} className="text-gray-700" /> : <Menu size={24} className="text-gray-700" />}
         </button>
@@ -56,15 +56,15 @@ function Layout() {
           'translate-x-0': isMobileMenuOpen
         }
       )}>
-        <div className="h-full flex flex-col bg-gradient-to-b from-gray-900 via-gray-900 to-black border-r border-amber-500/20">
+        <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-r border-slate-700/30">
           {/* Logo Section */}
           <div className="px-6 py-8">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-sm">
-                <Sparkles className="w-6 h-6 text-black" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-sm">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold text-white">
                   PSRU Booking
                 </h1>
                 <p className="text-xs text-gray-400 font-medium">ระบบจองห้องประชุม</p>
@@ -85,25 +85,25 @@ function Layout() {
                   className={clsx(
                     'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
                     isActive
-                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-sm'
-                      : 'text-gray-300 hover:bg-white/5 hover:text-amber-400'
+                      ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
+                      : 'text-slate-400 hover:bg-white/5 hover:text-white'
                   )}
                 >
                   <Icon className={clsx(
                     "mr-3 h-5 w-5 transition-transform group-hover:scale-110",
-                    isActive ? "text-black" : "text-gray-500 group-hover:text-amber-400"
+                    isActive ? "text-white" : "text-slate-500 group-hover:text-white"
                   )} />
                   <span className="flex-1">{item.name}</span>
-                  {isActive && <ChevronRight className="w-4 h-4 text-black/70" />}
+                  {isActive && <ChevronRight className="w-4 h-4 text-white/70" />}
                 </Link>
               );
             })}
           </nav>
 
           {/* User Section */}
-          <div className="p-4 mx-4 mb-4 rounded-2xl bg-white/5 border border-amber-500/20">
+          <div className="p-4 mx-4 mb-4 rounded-2xl bg-white/5 border border-slate-700/30">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-black font-bold text-sm">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-bold text-sm">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">

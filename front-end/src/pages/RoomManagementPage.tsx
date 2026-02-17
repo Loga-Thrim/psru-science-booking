@@ -251,7 +251,7 @@ export default function RoomManagementPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <DoorOpen className="w-8 h-8 text-amber-600" />
+            <DoorOpen className="w-8 h-8 text-slate-700" />
             จัดการห้องประชุม
           </h1>
           <p className="text-gray-500 mt-1">จัดการข้อมูลห้องประชุมทั้งหมดในระบบ</p>

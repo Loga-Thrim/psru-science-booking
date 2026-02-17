@@ -2,7 +2,7 @@
 -- Run this script on an empty database
 
 -- Create users table
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   user_id CHAR(8) PRIMARY KEY DEFAULT (UPPER(SUBSTRING(REPLACE(UUID(), '-', ''), 1, 8))),
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE users (
 );
 
 -- Create rooms table
-CREATE TABLE rooms (
+CREATE TABLE IF NOT EXISTS rooms (
   room_id CHAR(8) PRIMARY KEY DEFAULT (UPPER(SUBSTRING(REPLACE(UUID(), '-', ''), 1, 8))),
   room_code VARCHAR(50) NOT NULL UNIQUE,
   capacity INT NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE rooms (
 );
 
 -- Create room_images table
-CREATE TABLE room_images (
+CREATE TABLE IF NOT EXISTS room_images (
   image_id CHAR(8) PRIMARY KEY DEFAULT (UPPER(SUBSTRING(REPLACE(UUID(), '-', ''), 1, 8))),
   room_id CHAR(8) NOT NULL,
   image_path VARCHAR(255) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE room_images (
 );
 
 -- Create reservations table
-CREATE TABLE reservations (
+CREATE TABLE IF NOT EXISTS reservations (
   reservation_id CHAR(8) PRIMARY KEY DEFAULT (UPPER(SUBSTRING(REPLACE(UUID(), '-', ''), 1, 8))),
   room_id CHAR(8),
   user_id CHAR(8),

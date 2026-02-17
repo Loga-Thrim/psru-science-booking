@@ -24,7 +24,7 @@ function EquipmentChips({ value }: { value?: string | null }) {
       {displayItems.map((it, idx) => (
         <span
           key={`${it}-${idx}`}
-          className="inline-flex items-center px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs"
+          className="inline-flex items-center px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-800 text-xs"
         >
           {it}
         </span>
@@ -49,7 +49,7 @@ const STATUS_META: Record<
   },
   unavailable: {
     label: "จองแล้ว",
-    className: "border-amber-200 bg-amber-50 text-amber-700",
+    className: "border-slate-200 bg-slate-50 text-slate-800",
   },
 };
 
@@ -70,7 +70,7 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gradient-to-r from-amber-50 to-yellow-50">
+        <thead className="bg-gradient-to-r from-stone-50 to-slate-50">
           <tr>
             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
               ห้อง
@@ -98,7 +98,7 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
 
         <tbody className="bg-white divide-y divide-gray-100">
           {rooms.map((r) => (
-            <tr key={r.room_id} className="hover:bg-amber-50/50 transition-colors">
+            <tr key={r.room_id} className="hover:bg-slate-50/50 transition-colors">
               <td className="px-4 py-3">
                 <div className="flex flex-col">
                   <span className="font-semibold text-gray-900">{r.room_code ?? "-"}</span>
@@ -142,7 +142,7 @@ export const RoomTable: React.FC<Props> = ({ rooms, onEdit, onDelete }) => {
                 <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => onEdit(r)}
-                    className="p-2 rounded-lg bg-gray-100 hover:bg-amber-100 text-gray-600 hover:text-amber-700 transition-colors"
+                    className="p-2 rounded-lg bg-gray-100 hover:bg-slate-100 text-gray-600 hover:text-slate-800 transition-colors"
                     title="แก้ไข"
                   >
                     <Edit2 className="w-4 h-4" />

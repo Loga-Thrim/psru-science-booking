@@ -41,7 +41,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
   const [capacity, setCapacity] = useState("0");
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [customEquipment, setCustomEquipment] = useState("");
-  const [caretaker, setCaretaker] = useState("");
+  const [selectedCaretakers, setSelectedCaretakers] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [room_status, setRoomStatus] = useState("");
@@ -70,11 +70,9 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
         });
         if (res.ok) {
           const data = await res.json();
-          // Filter to get admins and approvers as potential caretakers
-          const filtered = data.filter((u: CaretakerOption) => 
-            u.role === "admin" || u.role === "approver" || u.role === "caretaker"
-          );
-          setCaretakerOptions(filtered);
+          // API returns { message, rows } structure
+          const users = data.rows || data || [];
+          setCaretakerOptions(users);
         }
       } catch (err) {
         console.error("Failed to fetch caretakers:", err);
@@ -94,7 +92,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
         room_status,
         capacity: Number(capacity) || 0,
         equipment: selectedEquipment.join(", "),
-        caretaker,
+        caretaker: selectedCaretakers.join(", "),
         description,
         images,
         building,
@@ -141,6 +139,22 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
     );
   };
 
+  const toggleCaretaker = (username: string) => {
+    setSelectedCaretakers(prev =>
+      prev.includes(username)
+        ? prev.filter(c => c !== username)
+        : [...prev, username]
+    );
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'admin': return 'ผู้ดูแลระบบ';
+      case 'approver': return 'ผู้อนุมัติ';
+      default: return 'ผู้ใช้งาน';
+    }
+  };
+
   return (
     <Modal 
       title="เพิ่มห้องใหม่" 
@@ -151,7 +165,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
       {/* Section: ข้อมูลพื้นฐาน */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <DoorOpen className="w-4 h-4 text-amber-600" />
+          <DoorOpen className="w-4 h-4 text-slate-700" />
           ข้อมูลพื้นฐาน
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -165,7 +179,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               onChange={(e) => setRoomCode(e.target.value)}
               placeholder="เช่น ห้อง 101"
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
             />
           </div>
 
@@ -174,7 +188,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               อาคาร <span className="text-red-500">*</span>
             </label>
             <select
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={building}
               onChange={(e) => setBuilding(e.target.value)}
             >
@@ -190,7 +204,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               ชั้น <span className="text-red-500">*</span>
             </label>
             <select
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={floor}
               onChange={(e) => setFloor(e.target.value)}
             >
@@ -206,7 +220,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               ประเภทห้อง <span className="text-red-500">*</span>
             </label>
             <select
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={room_type}
               onChange={(e) => setRoomType(e.target.value)}
             >
@@ -231,7 +245,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               สถานะห้อง
             </label>
             <select
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={room_status}
               onChange={(e) => setRoomStatus(e.target.value)}
             >
@@ -249,29 +263,58 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
       {/* Section: ผู้ดูแลและการติดต่อ */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <User className="w-4 h-4 text-amber-600" />
+          <User className="w-4 h-4 text-slate-700" />
           ผู้ดูแลและการติดต่อ
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              ผู้ดูแลห้อง
+              ผู้ดูแลห้อง (เลือกได้หลายคน)
             </label>
-            <select
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
-              value={caretaker}
-              onChange={(e) => setCaretaker(e.target.value)}
-              disabled={loadingCaretakers}
-            >
-              <option value="">-- เลือกผู้ดูแล --</option>
-              {caretakerOptions.map((c) => (
-                <option key={c.user_id} value={c.username}>
-                  {c.username} ({c.department}) - {c.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้อนุมัติ'}
-                </option>
-              ))}
-            </select>
-            {loadingCaretakers && (
+            {loadingCaretakers ? (
               <p className="text-xs text-gray-500">กำลังโหลดรายชื่อผู้ดูแล...</p>
+            ) : caretakerOptions.length === 0 ? (
+              <p className="text-xs text-red-500">ไม่พบผู้ใช้ในระบบ</p>
+            ) : (
+              <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50 max-h-40 overflow-y-auto">
+                {caretakerOptions.map((c) => (
+                  <button
+                    key={c.user_id}
+                    type="button"
+                    onClick={() => toggleCaretaker(c.username)}
+                    className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
+                      selectedCaretakers.includes(c.username)
+                        ? 'bg-slate-100 border-slate-500 text-slate-800'
+                        : 'bg-white border-gray-300 text-gray-600 hover:border-slate-400 hover:bg-slate-50'
+                    }`}
+                  >
+                    {selectedCaretakers.includes(c.username) && <span className="mr-1">✓</span>}
+                    {c.username} ({getRoleLabel(c.role)})
+                  </button>
+                ))}
+              </div>
+            )}
+            {selectedCaretakers.length > 0 && (
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-xs text-slate-600 mb-2">ผู้ดูแลที่เลือก ({selectedCaretakers.length} คน):</p>
+                <div className="flex flex-wrap gap-1">
+                  {selectedCaretakers.map((name) => (
+                    <span
+                      key={name}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-400 text-xs text-slate-800"
+                    >
+                      {name}
+                      <button
+                        type="button"
+                        onClick={() => toggleCaretaker(name)}
+                        className="hover:text-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
@@ -288,7 +331,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
       {/* Section: อุปกรณ์ในห้อง */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <Building className="w-4 h-4 text-amber-600" />
+          <Building className="w-4 h-4 text-slate-700" />
           อุปกรณ์ในห้อง
         </h3>
         <div className="space-y-3">
@@ -300,8 +343,8 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
                 onClick={() => toggleEquipment(eq)}
                 className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
                   selectedEquipment.includes(eq)
-                    ? 'bg-amber-100 border-amber-400 text-amber-800'
-                    : 'bg-white border-gray-300 text-gray-600 hover:border-amber-300 hover:bg-amber-50'
+                    ? 'bg-slate-100 border-slate-500 text-slate-800'
+                    : 'bg-white border-gray-300 text-gray-600 hover:border-slate-400 hover:bg-slate-50'
                 }`}
               >
                 {selectedEquipment.includes(eq) && <span className="mr-1">✓</span>}
@@ -317,7 +360,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               onChange={(e) => setCustomEquipment(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomEquipment())}
               placeholder="เพิ่มอุปกรณ์อื่นๆ..."
-              className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
             />
             <button
               type="button"
@@ -330,13 +373,13 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
           </div>
 
           {selectedEquipment.length > 0 && (
-            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <p className="text-xs text-amber-700 mb-2">อุปกรณ์ที่เลือก ({selectedEquipment.length} รายการ):</p>
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <p className="text-xs text-slate-800 mb-2">อุปกรณ์ที่เลือก ({selectedEquipment.length} รายการ):</p>
               <div className="flex flex-wrap gap-1">
                 {selectedEquipment.map((eq) => (
                   <span
                     key={eq}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded border border-amber-300 text-xs text-amber-800"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-400 text-xs text-slate-800"
                   >
                     {eq}
                     <button
@@ -357,7 +400,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
       {/* Section: เวลาและเงื่อนไขการจอง */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <Clock className="w-4 h-4 text-amber-600" />
+          <Clock className="w-4 h-4 text-slate-700" />
           เวลาและเงื่อนไขการจอง
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -369,7 +412,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               type="time"
               value={availableStartTime}
               onChange={(e) => setAvailableStartTime(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
             />
           </div>
 
@@ -381,7 +424,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               type="time"
               value={availableEndTime}
               onChange={(e) => setAvailableEndTime(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
             />
           </div>
 
@@ -395,7 +438,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               max="30"
               value={advanceBookingDays}
               onChange={(e) => setAdvanceBookingDays(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
             />
           </div>
         </div>
@@ -413,8 +456,8 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
                 onClick={() => toggleDay(day.value)}
                 className={`px-4 py-2 rounded-lg text-sm border transition-all ${
                   availableDays.includes(day.value)
-                    ? 'bg-amber-100 border-amber-400 text-amber-800'
-                    : 'bg-white border-gray-300 text-gray-600 hover:border-amber-300'
+                    ? 'bg-slate-100 border-slate-500 text-slate-800'
+                    : 'bg-white border-gray-300 text-gray-600 hover:border-slate-400'
                 }`}
               >
                 {day.label}
@@ -427,7 +470,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
       {/* Section: รายละเอียดเพิ่มเติม */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <AlertCircle className="w-4 h-4 text-amber-600" />
+          <AlertCircle className="w-4 h-4 text-slate-700" />
           รายละเอียดเพิ่มเติม
         </h3>
         <div className="space-y-4">
@@ -436,7 +479,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               รายละเอียดห้อง
             </label>
             <textarea
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none resize-none"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -449,7 +492,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               ข้อจำกัด/หมายเหตุการใช้งาน
             </label>
             <textarea
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none resize-none"
               rows={2}
               value={restrictions}
               onChange={(e) => setRestrictions(e.target.value)}
@@ -462,7 +505,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
       {/* Section: รูปภาพห้อง */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2 pb-2 border-b border-gray-200">
-          <ImagePlus className="w-4 h-4 text-amber-600" />
+          <ImagePlus className="w-4 h-4 text-slate-700" />
           รูปภาพห้อง
         </h3>
         <div className="space-y-3">
@@ -480,7 +523,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
             />
             <label
               htmlFor="room-images"
-              className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-amber-400 transition-all duration-200"
+              className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-slate-500 transition-all duration-200"
             >
               <ImagePlus className="w-6 h-6 text-gray-400 mb-1" />
               <span className="text-sm text-gray-500">คลิกเพื่อเลือกรูปภาพ</span>
@@ -493,17 +536,17 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
               {images.map((f, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200"
                 >
-                  <span className="text-sm text-amber-700 max-w-[150px] truncate">
+                  <span className="text-sm text-slate-800 max-w-[150px] truncate">
                     {f.name}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeImage(i)}
-                    className="p-1 rounded-full hover:bg-amber-200 transition-colors"
+                    className="p-1 rounded-full hover:bg-slate-200 transition-colors"
                   >
-                    <X className="w-4 h-4 text-amber-600" />
+                    <X className="w-4 h-4 text-slate-700" />
                   </button>
                 </div>
               ))}

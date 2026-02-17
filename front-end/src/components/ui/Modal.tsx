@@ -35,7 +35,7 @@ export function Modal({
       {/* Modal */}
       <div className={`relative z-10 w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-black/5 transform transition-all`}>
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 px-6 py-5">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-700 px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {icon && (
@@ -43,11 +43,11 @@ export function Modal({
                   {icon}
                 </div>
               )}
-              <h2 className="text-xl font-bold text-black">{title}</h2>
+              <h2 className="text-xl font-bold text-white">{title}</h2>
             </div>
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-black/60 hover:text-black hover:bg-black/10 transition-colors"
+              className="rounded-xl p-2 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="close"
             >
               <X className="w-5 h-5" />

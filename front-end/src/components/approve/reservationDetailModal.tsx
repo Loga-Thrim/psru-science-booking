@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { reservationRow } from "../../types/types";
-import { FileText, X, Calendar, Clock, Users, User, Building, Phone, Mail, MessageSquare, AlertCircle } from "lucide-react";
+import { FileText, X, Calendar, Clock, Users, User, Building, Phone, Mail, MessageSquare, AlertCircle, Monitor, UserCheck, Info } from "lucide-react";
 
 type Props = {
   row: reservationRow;
@@ -30,7 +30,7 @@ function toHHmm(t: string | number | Date) {
 function Field({ label, value, icon }: { label: string; value?: string | null; icon?: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50/80">
-      {icon && <div className="text-amber-500 mt-0.5">{icon}</div>}
+      {icon && <div className="text-slate-600 mt-0.5">{icon}</div>}
       <div className="flex flex-col gap-0.5">
         <span className="text-xs font-medium text-gray-500">{label}</span>
         <span className="font-semibold text-gray-900">{value || "-"}</span>
@@ -61,7 +61,7 @@ export default function ReservationDetailModal({ row, onClose }: Props) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-      pending: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'รอดำเนินการ' },
+      pending: { bg: 'bg-slate-100', text: 'text-slate-800', label: 'รอดำเนินการ' },
       adminApproved: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'แอดมินอนุมัติ' },
       approverApproved: { bg: 'bg-green-100', text: 'text-green-700', label: 'อนุมัติแล้ว' },
       rejected: { bg: 'bg-red-100', text: 'text-red-700', label: 'ไม่อนุมัติ' },
@@ -88,17 +88,17 @@ export default function ReservationDetailModal({ row, onClose }: Props) {
         className="w-full max-w-2xl rounded-3xl bg-white shadow-lg outline-none overflow-hidden"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-400 px-6 py-5">
+        <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-700 px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-black" />
+                <FileText className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-black">รายละเอียดการจอง</h2>
+              <h2 className="text-xl font-bold text-white">รายละเอียดการจอง</h2>
             </div>
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-black/60 hover:text-black hover:bg-black/10 transition-colors"
+              className="rounded-xl p-2 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="ปิด"
             >
               <X className="w-5 h-5" />
@@ -125,7 +125,44 @@ export default function ReservationDetailModal({ row, onClose }: Props) {
               <Field label="อาคาร" value={row.building} icon={<Building className="w-4 h-4" />} />
               <Field label="ชั้น" value={row.floor} icon={<Building className="w-4 h-4" />} />
               <Field label="ประเภทห้อง" value={row.room_type} icon={<FileText className="w-4 h-4" />} />
+              <Field label="ความจุ" value={row.capacity ? `${row.capacity} คน` : undefined} icon={<Users className="w-4 h-4" />} />
+              <Field label="เบอร์ติดต่อห้อง" value={row.contact_phone} icon={<Phone className="w-4 h-4" />} />
             </div>
+            {row.equipment && (
+              <div className="mt-3">
+                <span className="text-xs font-medium text-gray-500 mb-2 block">อุปกรณ์ในห้อง</span>
+                <div className="flex flex-wrap gap-2">
+                  {row.equipment.split(",").map((eq, idx) => (
+                    <span key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs flex items-center gap-1">
+                      <Monitor className="w-3 h-3" />
+                      {eq.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {row.caretaker && (
+              <div className="mt-3">
+                <span className="text-xs font-medium text-gray-500 mb-2 block">ผู้ดูแลห้อง</span>
+                <div className="flex flex-wrap gap-2">
+                  {row.caretaker.split(",").map((ct, idx) => (
+                    <span key={idx} className="px-2.5 py-1 bg-stone-100 text-stone-700 rounded-lg text-xs flex items-center gap-1">
+                      <UserCheck className="w-3 h-3" />
+                      {ct.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {row.description && (
+              <div className="mt-3 p-3 rounded-xl bg-gray-50/80">
+                <span className="text-xs font-medium text-gray-500 mb-1 block flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  รายละเอียดห้อง
+                </span>
+                <p className="text-sm text-gray-700">{row.description}</p>
+              </div>
+            )}
           </div>
 
           {/* Booking Info */}

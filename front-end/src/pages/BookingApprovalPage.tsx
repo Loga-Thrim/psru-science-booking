@@ -54,16 +54,7 @@ function BookingApprovalPage() {
   const handleOpenApprove = (row: reservationRow) => setApproveRow(row);
   const handleOpenReject = (row: reservationRow) => setRejectRow(row);
 
-  const removeRow = (row: reservationRow) => {
-    setRows((prev) =>
-      prev.filter(
-        (r) =>
-          (r as any).id !== (row as any).id &&
-          r.reservation_id !== row.reservation_id
-      )
-    );
-  };
-
+  
   const handleConfirmApprove = async (row: reservationRow) => {
     try {
       const token = localStorage.getItem("token");
@@ -79,8 +70,8 @@ function BookingApprovalPage() {
       if (!res.ok) {
         throw new Error("approve failed");
       }
-      removeRow(row);
       setApproveRow(null);
+      await fetchReservations();
     } catch (e) {
       console.error(e);
       alert("อนุมัติไม่สำเร็จ");
@@ -105,8 +96,8 @@ function BookingApprovalPage() {
       if (!res.ok) {
         throw new Error("reject failed");
       }
-      removeRow(row);
       setRejectRow(null);
+      await fetchReservations();
     } catch (e) {
       console.error(e);
       alert("ปฏิเสธไม่สำเร็จ");
@@ -175,8 +166,8 @@ function BookingApprovalPage() {
         </div>
         <div className="luxury-card p-5">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-              <Clock className="w-6 h-6 text-amber-600" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-slate-700" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>

@@ -71,43 +71,43 @@ function DashboardPage() {
       title: 'ห้องทั้งหมด', 
       value: stats?.totalRooms || 0, 
       icon: DoorOpen, 
-      gradient: 'from-violet-500 to-purple-600',
-      shadow: 'shadow-violet-500/30'
+      gradient: 'from-slate-700 to-slate-800',
+      shadow: 'shadow-slate-500/20'
     },
     { 
       title: 'ผู้ใช้ทั้งหมด', 
       value: stats?.totalUsers || 0, 
       icon: Users, 
-      gradient: 'from-blue-500 to-cyan-500',
-      shadow: 'shadow-blue-500/30'
+      gradient: 'from-stone-600 to-stone-700',
+      shadow: 'shadow-stone-500/20'
     },
     { 
       title: 'การจองทั้งหมด', 
       value: stats?.totalBookings || 0, 
       icon: CalendarCheck, 
-      gradient: 'from-emerald-500 to-teal-500',
-      shadow: 'shadow-emerald-500/30'
+      gradient: 'from-emerald-700 to-emerald-800',
+      shadow: 'shadow-emerald-500/20'
     },
     { 
       title: 'รอการอนุมัติ', 
       value: stats?.pendingApprovals || 0, 
       icon: Clock, 
-      gradient: 'from-amber-500 to-orange-500',
-      shadow: 'shadow-amber-500/30'
+      gradient: 'from-stone-600 to-stone-700',
+      shadow: 'shadow-stone-500/20'
     },
     { 
       title: 'การจองวันนี้', 
       value: stats?.todayBookings || 0, 
       icon: Calendar, 
-      gradient: 'from-rose-500 to-pink-500',
-      shadow: 'shadow-rose-500/30'
+      gradient: 'from-slate-600 to-slate-700',
+      shadow: 'shadow-slate-500/20'
     },
     { 
       title: 'การจองสัปดาห์นี้', 
       value: stats?.weeklyBookings || 0, 
       icon: TrendingUp, 
-      gradient: 'from-indigo-500 to-blue-600',
-      shadow: 'shadow-indigo-500/30'
+      gradient: 'from-zinc-700 to-zinc-800',
+      shadow: 'shadow-zinc-500/20'
     },
   ];
 
@@ -160,7 +160,7 @@ function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             สวัสดี, {user?.name} 
-            <Sparkles className="inline-block w-8 h-8 ml-2 text-yellow-500" />
+            <Sparkles className="inline-block w-8 h-8 ml-2 text-slate-400" />
           </h1>
           <p className="text-gray-500 mt-1">ยินดีต้อนรับสู่ระบบจองห้องประชุม PSRU</p>
         </div>
@@ -205,11 +205,11 @@ function DashboardPage() {
                 const maxCount = Math.max(...stats.roomUtilization.map(r => r.count));
                 const percentage = maxCount > 0 ? (room.count / maxCount) * 100 : 0;
                 const colors = [
-                  'from-amber-500 to-yellow-500',
-                  'from-gray-700 to-gray-800',
-                  'from-yellow-400 to-amber-400',
-                  'from-stone-600 to-stone-700',
-                  'from-amber-400 to-yellow-400'
+                  'from-slate-600 to-slate-700',
+                  'from-stone-500 to-stone-600',
+                  'from-zinc-600 to-zinc-700',
+                  'from-neutral-500 to-neutral-600',
+                  'from-slate-500 to-slate-600'
                 ];
                 return (
                   <div key={room.room_code}>
@@ -241,10 +241,10 @@ function DashboardPage() {
                 const total = stats.bookingsByStatus.reduce((sum, s) => sum + s.count, 0);
                 const percentage = total > 0 ? (item.count / total) * 100 : 0;
                 const statusColors: Record<string, string> = {
-                  pending: 'from-amber-400 to-yellow-500',
-                  adminApproved: 'from-blue-400 to-indigo-500',
-                  approverApproved: 'from-emerald-400 to-green-500',
-                  rejected: 'from-red-400 to-rose-500'
+                  pending: 'from-stone-500 to-stone-600',
+                  adminApproved: 'from-slate-500 to-slate-600',
+                  approverApproved: 'from-emerald-600 to-emerald-700',
+                  rejected: 'from-red-600 to-red-700'
                 };
                 return (
                   <div key={item.status}>
@@ -275,7 +275,7 @@ function DashboardPage() {
             <h3 className="text-lg font-bold text-gray-900">การจองล่าสุด</h3>
             <Link 
               to="/booking-status" 
-              className="flex items-center gap-1 text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors"
+              className="flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
             >
               ดูทั้งหมด <ArrowRight className="w-4 h-4" />
             </Link>
@@ -332,7 +332,7 @@ function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link 
           to="/book-room"
-          className="luxury-card p-6 group hover:border-purple-200"
+          className="luxury-card p-6 group hover:border-slate-300"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -347,7 +347,7 @@ function DashboardPage() {
 
         <Link 
           to="/booking-status"
-          className="luxury-card p-6 group hover:border-blue-200"
+          className="luxury-card p-6 group hover:border-stone-300"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl gradient-info flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -362,7 +362,7 @@ function DashboardPage() {
 
         <Link 
           to="/reports"
-          className="luxury-card p-6 group hover:border-emerald-200"
+          className="luxury-card p-6 group hover:border-slate-300"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl gradient-success flex items-center justify-center group-hover:scale-110 transition-transform">

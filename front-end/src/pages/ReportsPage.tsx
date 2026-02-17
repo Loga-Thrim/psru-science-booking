@@ -189,10 +189,10 @@ function ReportsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">รอดำเนินการ</p>
-              <p className="text-3xl font-bold text-amber-600 mt-1">{pendingCount}</p>
+              <p className="text-3xl font-bold text-slate-700 mt-1">{pendingCount}</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-              <Clock className="w-6 h-6 text-amber-600" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-slate-700" />
             </div>
           </div>
         </div>
@@ -215,7 +215,7 @@ function ReportsPage() {
                   'from-violet-500 to-purple-500',
                   'from-blue-500 to-cyan-500',
                   'from-emerald-500 to-teal-500',
-                  'from-amber-500 to-orange-500',
+                  'from-slate-600 to-orange-500',
                   'from-pink-500 to-rose-500'
                 ];
                 return (
@@ -301,7 +301,7 @@ function ReportsPage() {
           {stats?.bookingsByStatus?.map((item) => {
             const percentage = totalBookings > 0 ? ((item.count / totalBookings) * 100).toFixed(1) : '0';
             const statusConfig: Record<string, { bg: string; text: string; icon: any }> = {
-              pending: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', icon: Clock },
+              pending: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-800', icon: Clock },
               adminApproved: { bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700', icon: CheckCircle },
               approverApproved: { bg: 'bg-green-50 border-green-200', text: 'text-green-700', icon: CheckCircle },
               rejected: { bg: 'bg-red-50 border-red-200', text: 'text-red-700', icon: XCircle }

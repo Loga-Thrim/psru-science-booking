@@ -42,6 +42,8 @@ type BookingForm = {
   reservationType: string;
   reservationReason: string;
   phoneNumber: string;
+  equipmentNeeds: string[];
+  selectedApprover: string;
 };
 
 const BOOKING_TYPES = [
@@ -49,6 +51,16 @@ const BOOKING_TYPES = [
   { value: "exam", label: "สอบ", icon: "📝" },
   { value: "activity", label: "กิจกรรม/อบรม/ประชุม", icon: "👥" },
   { value: "other", label: "อื่นๆ", icon: "📋" },
+];
+
+const EQUIPMENT_NEEDS = [
+  "โปรเจคเตอร์",
+  "ไมโครโฟน",
+  "คอมพิวเตอร์",
+  "กล้องวีดีโอ",
+  "ระบบเสียง",
+  "กระดานไวท์บอร์ด",
+  "อินเทอร์เน็ต/WiFi",
 ];
 
 const TIME_SLOTS = [
@@ -104,13 +116,13 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
     <div
       className={`bg-white rounded-xl border overflow-hidden transition-all duration-200 ${
         isAvailable
-          ? "border-gray-200 hover:border-amber-400 hover:shadow-lg cursor-pointer"
+          ? "border-gray-200 hover:border-slate-400 hover:shadow-lg cursor-pointer"
           : "border-gray-200 opacity-60"
       }`}
       onClick={isAvailable ? onSelect : undefined}
     >
       {/* Room Image Carousel */}
-      <div className="h-40 bg-gradient-to-br from-amber-100 to-amber-50 relative overflow-hidden group">
+      <div className="h-40 bg-gradient-to-br from-stone-100 to-slate-50 relative overflow-hidden group">
         {images.length > 0 ? (
           <img 
             src={images[currentImageIndex]} 
@@ -119,7 +131,7 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Building className="w-16 h-16 text-amber-300" />
+            <Building className="w-16 h-16 text-stone-300" />
           </div>
         )}
         
@@ -177,7 +189,7 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
         )}
         {isAvailable && (
           <div className="absolute top-3 right-3">
-            <span className="bg-emerald-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+            <span className="bg-emerald-600 text-white px-2 py-1 rounded-full text-xs font-medium">
               ว่าง
             </span>
           </div>
@@ -202,7 +214,7 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
             <span>{room.capacity} ที่นั่ง</span>
           </div>
           <div className="text-gray-400">|</div>
-          <span className="text-amber-600 font-medium">{room.room_type}</span>
+          <span className="text-slate-600 font-medium">{room.room_type}</span>
         </div>
 
         {/* Equipment Tags */}
@@ -226,11 +238,243 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
 
         {/* Book Button */}
         {isAvailable && (
-          <button className="w-full mt-2 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg font-medium hover:from-amber-600 hover:to-amber-700 transition-all flex items-center justify-center gap-2">
+          <button className="w-full mt-2 py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center gap-2">
             จองห้องนี้
             <ChevronRight className="w-4 h-4" />
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function RoomDetailModal({
+  room,
+  onClose,
+  onBook,
+}: {
+  room: Room;
+  onClose: () => void;
+  onBook: () => void;
+}) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = room.images || [];
+  const hasMultipleImages = images.length > 1;
+  const equipmentList = (room.equipment || "").split(",").map(e => e.trim()).filter(Boolean);
+  const caretakerList = (room.caretaker || "").split(",").map(c => c.trim()).filter(Boolean);
+  const availableDays = (room.available_days || "mon,tue,wed,thu,fri").split(",").map(d => d.trim());
+  const isAvailable = (room.status ?? "").toLowerCase() === "available";
+
+  const dayLabels: Record<string, string> = {
+    sun: "อาทิตย์", mon: "จันทร์", tue: "อังคาร", wed: "พุธ",
+    thu: "พฤหัสบดี", fri: "ศุกร์", sat: "เสาร์"
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">{room.room_code}</h2>
+            <p className="text-slate-300 text-sm">{room.building} • ชั้น {room.floor}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Image Gallery */}
+          <div className="mb-6">
+            <div className="h-64 bg-gradient-to-br from-stone-100 to-slate-50 rounded-xl relative overflow-hidden">
+              {images.length > 0 ? (
+                <img 
+                  src={images[currentImageIndex]} 
+                  alt={room.room_code}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Building className="w-20 h-20 text-stone-300" />
+                </div>
+              )}
+              {hasMultipleImages && (
+                <>
+                  <button
+                    onClick={() => setCurrentImageIndex(prev => (prev - 1 + images.length) % images.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentImageIndex(prev => (prev + 1) % images.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                    {images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentImageIndex ? "bg-white w-6" : "bg-white/50"}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              <div className="absolute top-3 right-3">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${isAvailable ? "bg-emerald-600 text-white" : "bg-red-500 text-white"}`}>
+                  {isAvailable ? "ว่าง" : "ไม่พร้อมใช้งาน"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Room Info Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Basic Info */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200">ข้อมูลทั่วไป</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Building className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="text-xs text-gray-500">ประเภทห้อง</p>
+                    <p className="font-medium text-gray-900">{room.room_type}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="text-xs text-gray-500">ความจุ</p>
+                    <p className="font-medium text-gray-900">{room.capacity} ที่นั่ง</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="text-xs text-gray-500">ที่ตั้ง</p>
+                    <p className="font-medium text-gray-900">{room.building || "-"}, ชั้น {room.floor || "-"}</p>
+                  </div>
+                </div>
+                {room.contact_phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-5 h-5 text-slate-500" />
+                    <div>
+                      <p className="text-xs text-gray-500">เบอร์ติดต่อ</p>
+                      <p className="font-medium text-gray-900">{room.contact_phone}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Time & Availability */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200">เวลาและวันที่เปิดให้บริการ</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="text-xs text-gray-500">เวลาเปิดบริการ</p>
+                    <p className="font-medium text-gray-900">
+                      {room.available_start_time || "08:00"} - {room.available_end_time || "17:00"} น.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="text-xs text-gray-500">วันที่เปิดให้จอง</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {availableDays.map(day => (
+                        <span key={day} className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs">
+                          {dayLabels[day] || day}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {room.advance_booking_days && (
+                  <div className="text-sm text-gray-600">
+                    <span className="text-gray-500">จองล่วงหน้าได้:</span>{" "}
+                    <span className="font-medium">{room.advance_booking_days} วัน</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Equipment */}
+          {equipmentList.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3">อุปกรณ์ในห้อง</h3>
+              <div className="flex flex-wrap gap-2">
+                {equipmentList.map((eq, idx) => (
+                  <span key={idx} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm">
+                    {eq}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Caretakers */}
+          {caretakerList.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3">ผู้ดูแลห้อง</h3>
+              <div className="flex flex-wrap gap-2">
+                {caretakerList.map((name, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 text-stone-700 rounded-lg text-sm">
+                    <Users className="w-4 h-4" />
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          {room.description && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3">รายละเอียดเพิ่มเติม</h3>
+              <p className="text-gray-600 text-sm">{room.description}</p>
+            </div>
+          )}
+
+          {/* Restrictions */}
+          {room.restrictions && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-800 pb-2 border-b border-gray-200 mb-3">ข้อจำกัดการใช้งาน</h3>
+              <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-amber-800 text-sm">{room.restrictions}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ปิด
+          </button>
+          {isAvailable && (
+            <button
+              onClick={onBook}
+              className="px-6 py-2.5 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-600 transition-colors flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              จองห้องนี้
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -256,12 +500,85 @@ function BookingModal({
     reservationType: "",
     reservationReason: "",
     phoneNumber: "",
+    equipmentNeeds: [],
+    selectedApprover: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() =>
     dayjs().startOf("month"),
   );
+  const [bookedSlots, setBookedSlots] = useState<Array<{ start_time: string; end_time: string; username?: string }>>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Fetch booked slots when date changes
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      if (!form.date) {
+        setBookedSlots([]);
+        return;
+      }
+      setLoadingSlots(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${api}/check-conflict`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            room_id: room.room_id,
+            booking_date: form.date,
+            start_time: "00:00",
+            end_time: "23:59",
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.conflictingBookings) {
+            setBookedSlots(data.conflictingBookings.map((b: any) => ({
+              start_time: b.start_time,
+              end_time: b.end_time,
+              username: b.username,
+            })));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch booked slots:", err);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+    fetchBookedSlots();
+  }, [form.date, room.room_id]);
+
+  // Check if a time slot conflicts with existing bookings
+  const isTimeSlotBooked = (time: string) => {
+    return bookedSlots.some((slot) => {
+      const slotStart = slot.start_time.substring(0, 5);
+      const slotEnd = slot.end_time.substring(0, 5);
+      return time >= slotStart && time < slotEnd;
+    });
+  };
+
+  // Check if selected time range conflicts
+  const hasTimeConflict = () => {
+    if (!form.startTime || !form.endTime) return false;
+    return bookedSlots.some((slot) => {
+      const slotStart = slot.start_time.substring(0, 5);
+      const slotEnd = slot.end_time.substring(0, 5);
+      return (
+        (form.startTime < slotEnd && form.endTime > slotStart)
+      );
+    });
+  };
+
+  // Get caretakers from room data
+  const roomCaretakers = (room.caretaker || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
 
   // Get calendar data for current month view
   const getCalendarDays = () => {
@@ -355,6 +672,8 @@ function BookingModal({
           reservation_type: form.reservationType,
           reservation_reason: form.reservationReason,
           phone_number: form.phoneNumber,
+          equipment_needs: form.equipmentNeeds.join(", "),
+          caretaker_name: form.selectedApprover,
         }),
       });
 
@@ -370,7 +689,7 @@ function BookingModal({
     }
   };
 
-  const canProceedToForm = form.date && form.startTime && form.endTime;
+  const canProceedToForm = form.date && form.startTime && form.endTime && !hasTimeConflict();
   const canSubmit =
     canProceedToForm && form.reservationType && form.phoneNumber;
 
@@ -378,12 +697,12 @@ function BookingModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white">
               จองห้อง {room.room_code}
             </h2>
-            <p className="text-amber-100 text-sm">
+            <p className="text-slate-300 text-sm">
               {room.building} • ชั้น {room.floor}
             </p>
           </div>
@@ -399,8 +718,8 @@ function BookingModal({
         <div className="flex-1 overflow-y-auto p-6">
           {step === "success" ? (
             <div className="text-center py-8">
-              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-10 h-10 text-emerald-600" />
+              <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-10 h-10 text-emerald-700" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
                 จองสำเร็จ!
@@ -453,7 +772,7 @@ function BookingModal({
                     onClose();
                     navigate("/booking-status");
                   }}
-                  className="px-6 py-2.5 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600"
+                  className="px-6 py-2.5 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-600"
                 >
                   ดูสถานะการจอง
                 </button>
@@ -466,7 +785,7 @@ function BookingModal({
                 <div
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
                     step === "select-datetime"
-                      ? "bg-amber-100 text-amber-700"
+                      ? "bg-slate-100 text-slate-700"
                       : "bg-gray-100 text-gray-500"
                   }`}
                 >
@@ -477,7 +796,7 @@ function BookingModal({
                 <div
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
                     step === "fill-form"
-                      ? "bg-amber-100 text-amber-700"
+                      ? "bg-slate-100 text-slate-700"
                       : "bg-gray-100 text-gray-500"
                   }`}
                 >
@@ -555,22 +874,22 @@ function BookingModal({
                               }
                               className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-all relative ${
                                 form.date === d.date
-                                  ? "bg-amber-500 text-white shadow-md"
+                                  ? "bg-slate-600 text-white shadow-md"
                                   : d.isAvailable
-                                    ? "bg-white hover:bg-amber-100 text-gray-700 hover:text-amber-700 border border-gray-200"
+                                    ? "bg-white hover:bg-slate-100 text-gray-700 hover:text-slate-700 border border-gray-200"
                                     : d.isPast
                                       ? "bg-gray-50 text-gray-300 cursor-not-allowed"
                                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
                               }`}
                             >
                               <span
-                                className={`font-semibold ${d.isToday && form.date !== d.date ? "text-amber-600" : ""}`}
+                                className={`font-semibold ${d.isToday && form.date !== d.date ? "text-slate-600" : ""}`}
                               >
                                 {d.display}
                               </span>
                               {d.isToday && (
                                 <span
-                                  className={`text-[9px] ${form.date === d.date ? "text-amber-100" : "text-amber-500"}`}
+                                  className={`text-[9px] ${form.date === d.date ? "text-slate-200" : "text-slate-500"}`}
                                 >
                                   วันนี้
                                 </span>
@@ -591,7 +910,7 @@ function BookingModal({
                           <span>ไม่เปิดให้จอง</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-amber-500"></div>
+                          <div className="w-3 h-3 rounded bg-slate-600"></div>
                           <span>เลือกแล้ว</span>
                         </div>
                       </div>
@@ -599,8 +918,8 @@ function BookingModal({
 
                     {/* Selected Date Display */}
                     {form.date && (
-                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-sm text-amber-700 font-medium flex items-center gap-2">
+                      <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <p className="text-sm text-slate-700 font-medium flex items-center gap-2">
                           <CheckCircle className="w-4 h-4" />
                           {dayjs(form.date).format("วันddddที่ D MMMM YYYY")}
                         </p>
@@ -614,6 +933,26 @@ function BookingModal({
                       <Clock className="w-4 h-4 inline mr-1" />
                       เลือกช่วงเวลา
                     </label>
+
+                    {/* Booked Slots Warning */}
+                    {loadingSlots && (
+                      <div className="mb-3 p-3 bg-gray-100 rounded-lg text-sm text-gray-600">
+                        กำลังโหลดข้อมูลการจอง...
+                      </div>
+                    )}
+                    {!loadingSlots && bookedSlots.length > 0 && (
+                      <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm font-medium text-amber-800 mb-2">⚠️ ช่วงเวลาที่ถูกจองแล้ว:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {bookedSlots.map((slot, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+                              {slot.start_time.substring(0, 5)} - {slot.end_time.substring(0, 5)}
+                              {slot.username && <span className="text-red-500 ml-1">({slot.username})</span>}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Time Range Card */}
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
@@ -632,11 +971,18 @@ function BookingModal({
                                   endTime: "",
                                 }))
                               }
-                              className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-amber-400 focus:ring-0 cursor-pointer hover:border-amber-300 transition-colors"
+                              className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-slate-400 focus:ring-0 cursor-pointer hover:border-slate-300 transition-colors"
                             >
                               <option value="">--:--</option>
                               {TIME_SLOTS.slice(0, -1).map((t) => (
-                                <option key={t} value={t}>{t}</option>
+                                <option 
+                                  key={t} 
+                                  value={t}
+                                  disabled={isTimeSlotBooked(t)}
+                                  className={isTimeSlotBooked(t) ? "text-red-400 bg-red-50" : ""}
+                                >
+                                  {t} {isTimeSlotBooked(t) ? "(จองแล้ว)" : ""}
+                                </option>
                               ))}
                             </select>
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
@@ -647,7 +993,7 @@ function BookingModal({
 
                         {/* Arrow */}
                         <div className="flex flex-col items-center pt-5">
-                          <ArrowRight className="w-5 h-5 text-amber-500" />
+                          <ArrowRight className="w-5 h-5 text-slate-500" />
                         </div>
 
                         {/* End Time */}
@@ -660,12 +1006,26 @@ function BookingModal({
                                 setForm((f) => ({ ...f, endTime: e.target.value }))
                               }
                               disabled={!form.startTime}
-                              className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-amber-400 focus:ring-0 cursor-pointer hover:border-amber-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-200"
+                              className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-slate-400 focus:ring-0 cursor-pointer hover:border-slate-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-200"
                             >
                               <option value="">--:--</option>
-                              {TIME_SLOTS.filter((t) => t > form.startTime).map((t) => (
-                                <option key={t} value={t}>{t}</option>
-                              ))}
+                              {TIME_SLOTS.filter((t) => t > form.startTime).map((t) => {
+                                const wouldConflict = bookedSlots.some((slot) => {
+                                  const slotStart = slot.start_time.substring(0, 5);
+                                  const slotEnd = slot.end_time.substring(0, 5);
+                                  return form.startTime < slotEnd && t > slotStart;
+                                });
+                                return (
+                                  <option 
+                                    key={t} 
+                                    value={t}
+                                    disabled={wouldConflict}
+                                    className={wouldConflict ? "text-red-400 bg-red-50" : ""}
+                                  >
+                                    {t} {wouldConflict ? "(ทับซ้อน)" : ""}
+                                  </option>
+                                );
+                              })}
                             </select>
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                               <ChevronDown className="w-4 h-4" />
@@ -673,6 +1033,14 @@ function BookingModal({
                           </div>
                         </div>
                       </div>
+
+                      {/* Conflict Warning */}
+                      {hasTimeConflict() && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          ช่วงเวลาที่เลือกทับซ้อนกับการจองที่มีอยู่แล้ว
+                        </div>
+                      )}
 
                       {/* Quick Duration Chips */}
                       {form.startTime && !form.endTime && (
@@ -703,7 +1071,7 @@ function BookingModal({
                                   onClick={() => setForm((f) => ({ ...f, endTime: endTimeStr }))}
                                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                                     isValid
-                                      ? "bg-white border-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-400 shadow-sm"
+                                      ? "bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-400 shadow-sm"
                                       : "bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed"
                                   }`}
                                 >
@@ -718,7 +1086,7 @@ function BookingModal({
 
                     {/* Visual Summary */}
                     {form.startTime && form.endTime && (
-                      <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
+                      <div className="bg-gradient-to-r from-slate-50 to-stone-50 rounded-xl p-4 border border-slate-200">
                         {/* Timeline Bar */}
                         <div className="flex items-center gap-2 mb-3">
                           <span className="text-xs text-gray-500 w-10">
@@ -741,7 +1109,7 @@ function BookingModal({
                                 ((endMins - startMins) / totalMins) * 100;
                               return (
                                 <div
-                                  className="absolute h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                                  className="absolute h-full bg-gradient-to-r from-slate-500 to-slate-600 rounded-full"
                                   style={{
                                     left: `${leftPercent}%`,
                                     width: `${widthPercent}%`,
@@ -758,13 +1126,13 @@ function BookingModal({
                         {/* Summary Text */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5 text-amber-700">
+                            <div className="flex items-center gap-1.5 text-slate-700">
                               <Clock className="w-4 h-4" />
                               <span className="font-semibold">
                                 {form.startTime} - {form.endTime} น.
                               </span>
                             </div>
-                            <span className="px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs font-medium">
+                            <span className="px-2 py-0.5 bg-slate-200 text-slate-800 rounded-full text-xs font-medium">
                               {(() => {
                                 const start =
                                   parseInt(form.startTime.split(":")[0]) * 60 +
@@ -804,16 +1172,16 @@ function BookingModal({
               {step === "fill-form" && (
                 <div className="space-y-5">
                   {/* Summary */}
-                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4 text-amber-600" />
+                        <Calendar className="w-4 h-4 text-slate-600" />
                         <span className="font-medium">
                           {dayjs(form.date).format("D MMM YYYY")}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4 text-amber-600" />
+                        <Clock className="w-4 h-4 text-slate-600" />
                         <span className="font-medium">
                           {form.startTime} - {form.endTime}
                         </span>
@@ -839,8 +1207,8 @@ function BookingModal({
                           }
                           className={`p-3 rounded-lg border text-left transition-all ${
                             form.reservationType === type.value
-                              ? "border-amber-500 bg-amber-50 text-amber-700"
-                              : "border-gray-200 hover:border-amber-300"
+                              ? "border-slate-500 bg-slate-50 text-slate-700"
+                              : "border-gray-200 hover:border-slate-300"
                           }`}
                         >
                           <span className="mr-2">{type.icon}</span>
@@ -848,6 +1216,45 @@ function BookingModal({
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Caretaker Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Users className="w-4 h-4 inline mr-1" />
+                      เลือกผู้ดูแลห้อง
+                    </label>
+                    {roomCaretakers.length === 0 ? (
+                      <p className="text-xs text-gray-500">ห้องนี้ยังไม่มีผู้ดูแล</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {roomCaretakers.map((caretaker) => (
+                          <button
+                            key={caretaker}
+                            type="button"
+                            onClick={() =>
+                              setForm((f) => ({
+                                ...f,
+                                selectedApprover: caretaker,
+                              }))
+                            }
+                            className={`w-full p-3 rounded-lg border text-left transition-all ${
+                              form.selectedApprover === caretaker
+                                ? "border-slate-500 bg-slate-50 text-slate-700"
+                                : "border-gray-200 hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-slate-500" />
+                              <span className="font-medium">{caretaker}</span>
+                              {form.selectedApprover === caretaker && (
+                                <span className="ml-auto text-slate-600">✓</span>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Number of Users */}
@@ -867,7 +1274,7 @@ function BookingModal({
                           numberOfUsers: parseInt(e.target.value),
                         }))
                       }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       ความจุห้องสูงสุด {room.capacity} คน
@@ -891,15 +1298,49 @@ function BookingModal({
                         }))
                       }
                       placeholder="0812345678"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                     />
+                  </div>
+
+                  {/* Equipment Needs */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      อุปกรณ์ที่ต้องการใช้งาน
+                    </label>
+                    <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                      {EQUIPMENT_NEEDS.map((eq) => (
+                        <button
+                          key={eq}
+                          type="button"
+                          onClick={() =>
+                            setForm((f) => ({
+                              ...f,
+                              equipmentNeeds: f.equipmentNeeds.includes(eq)
+                                ? f.equipmentNeeds.filter((e) => e !== eq)
+                                : [...f.equipmentNeeds, eq],
+                            }))
+                          }
+                          className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
+                            form.equipmentNeeds.includes(eq)
+                              ? "bg-slate-100 border-slate-500 text-slate-800"
+                              : "bg-white border-gray-300 text-gray-600 hover:border-slate-400"
+                          }`}
+                        >
+                          {form.equipmentNeeds.includes(eq) && <span className="mr-1">✓</span>}
+                          {eq}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      เลือกอุปกรณ์ที่ต้องการใช้ (ถ้ามี)
+                    </p>
                   </div>
 
                   {/* Reason */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <FileText className="w-4 h-4 inline mr-1" />
-                      เหตุผลในการจอง
+                      เหตุผลในการจอง / รายละเอียดเพิ่มเติม
                     </label>
                     <textarea
                       rows={3}
@@ -910,8 +1351,8 @@ function BookingModal({
                           reservationReason: e.target.value,
                         }))
                       }
-                      placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
+                      placeholder="ระบุรายละเอียดเพิ่มเติม เช่น จุดประสงค์การใช้งาน, ข้อกำหนดพิเศษ (ถ้ามี)"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 resize-none"
                     />
                   </div>
 
@@ -950,7 +1391,7 @@ function BookingModal({
               <button
                 onClick={() => setStep("fill-form")}
                 disabled={!canProceedToForm}
-                className="px-6 py-2.5 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-6 py-2.5 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 ถัดไป
               </button>
@@ -958,7 +1399,7 @@ function BookingModal({
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit || submitting}
-                className="px-6 py-2.5 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-6 py-2.5 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {submitting ? "กำลังจอง..." : "ยืนยันการจอง"}
               </button>
@@ -978,6 +1419,7 @@ export default function BookRoomPage() {
   const [filterType, setFilterType] = useState("all");
   const [filterBuilding, setFilterBuilding] = useState("all");
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [modalView, setModalView] = useState<"detail" | "booking">("detail");
 
   const loadRooms = useCallback(async () => {
     try {
@@ -1033,7 +1475,7 @@ export default function BookRoomPage() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-amber-600" />
+            <Calendar className="w-8 h-8 text-slate-600" />
             จองห้อง
           </h1>
           <p className="text-gray-500 mt-1">
@@ -1042,7 +1484,7 @@ export default function BookRoomPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className="bg-white rounded-xl px-4 py-3 border border-gray-200">
-            <span className="text-2xl font-bold text-amber-600">
+            <span className="text-2xl font-bold text-slate-700">
               {availableCount}
             </span>
             <span className="text-gray-500 ml-2">ห้องว่าง</span>
@@ -1061,7 +1503,7 @@ export default function BookRoomPage() {
               placeholder="ค้นหาห้อง..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm"
             />
           </div>
 
@@ -1071,7 +1513,7 @@ export default function BookRoomPage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="pl-9 pr-8 py-2.5 rounded-lg border border-gray-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm appearance-none bg-white min-w-[160px]"
+              className="pl-9 pr-8 py-2.5 rounded-lg border border-gray-300 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm appearance-none bg-white min-w-[160px]"
             >
               <option value="all">ทุกประเภท</option>
               {roomTypes.map((type) => (
@@ -1088,7 +1530,7 @@ export default function BookRoomPage() {
             <select
               value={filterBuilding || "all"}
               onChange={(e) => setFilterBuilding(e.target.value)}
-              className="pl-9 pr-8 py-2.5 rounded-lg border border-gray-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm appearance-none bg-white min-w-[200px]"
+              className="pl-9 pr-8 py-2.5 rounded-lg border border-gray-300 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm appearance-none bg-white min-w-[200px]"
             >
               <option value="all">ทุกอาคาร</option>
               {buildings.map((b) => (
@@ -1105,7 +1547,7 @@ export default function BookRoomPage() {
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-amber-100 animate-pulse" />
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-200 animate-pulse" />
             <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
           </div>
         </div>
@@ -1131,13 +1573,28 @@ export default function BookRoomPage() {
         </div>
       )}
 
+      {/* Room Detail Modal */}
+      {selectedRoom && modalView === "detail" && (
+        <RoomDetailModal
+          room={selectedRoom}
+          onClose={() => {
+            setSelectedRoom(null);
+            setModalView("detail");
+          }}
+          onBook={() => setModalView("booking")}
+        />
+      )}
+
       {/* Booking Modal */}
-      {selectedRoom && (
+      {selectedRoom && modalView === "booking" && (
         <BookingModal
           room={selectedRoom}
-          onClose={() => setSelectedRoom(null)}
+          onClose={() => {
+            setSelectedRoom(null);
+            setModalView("detail");
+          }}
           onSuccess={() => {
-            // Navigate to booking status or refresh
+            setModalView("detail");
           }}
         />
       )}

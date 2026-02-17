@@ -90,7 +90,12 @@ export type reservationRow = {
   room_code?: string,
   building?: string,
   floor?: string,
-  room_type?: string
+  room_type?: string,
+  capacity?: number,
+  equipment?: string,
+  caretaker?: string,
+  description?: string,
+  contact_phone?: string,
 }
 
 export const ROOM_TYPE = [
