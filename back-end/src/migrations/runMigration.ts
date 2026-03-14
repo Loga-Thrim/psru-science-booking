@@ -14,12 +14,27 @@ async function runMigration() {
   });
 
   try {
-    const migrationPath = path.join(__dirname, '001_create_tables.sql');
-    const sql = fs.readFileSync(migrationPath, 'utf8');
+    const migrationFiles = [
+      '001_create_tables.sql',
+      '002_add_room_fields.sql',
+      '003_add_room_images.sql'
+    ];
+
+    console.log('Running migrations...');
     
-    console.log('Running migration...');
-    await connection.query(sql);
-    console.log('Migration completed successfully!');
+    for (const file of migrationFiles) {
+      const migrationPath = path.join(__dirname, file);
+      if (fs.existsSync(migrationPath)) {
+        const sql = fs.readFileSync(migrationPath, 'utf8');
+        console.log(`Running ${file}...`);
+        await connection.query(sql);
+        console.log(`✓ ${file} completed`);
+      } else {
+        console.log(`⚠ ${file} not found, skipping`);
+      }
+    }
+    
+    console.log('All migrations completed successfully!');
   } catch (error) {
     console.error('Migration failed:', error);
     throw error;
