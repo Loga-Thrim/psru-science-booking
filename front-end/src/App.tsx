@@ -21,8 +21,6 @@ import RoomBookingCreateFormPage from "./pages/RoomBookingCreateFormPage";
 import BookingStatusPage from "./pages/BookingStatusPage";
 
 function App() {
-  console.log("===== > updated version 1.1");
-
   return (
     <AuthProvider>
       <Router>
@@ -35,7 +33,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/book-room" replace />} />
 
             <Route path="/rooms" element={<RoomManagementPage />} />
             <Route path="/users" element={<UserManagementPage />} />

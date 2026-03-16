@@ -24,7 +24,7 @@ function AuthPage() {
 
   const user = localStorage.getItem("user");
   const token = localStorage.getItem("token");
-  if (user && token) navigate("/dashboard");
+  if (user && token) navigate("/book-room");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -56,7 +56,7 @@ function AuthPage() {
           localStorage.setItem("token", token);
           const [{ id, username, email, department, role }] = rows;
           await login(id, username, email, department, role);
-          navigate("/dashboard");
+          navigate("/book-room");
         } else {
           const { message } = await res.json();
           setError(message);
