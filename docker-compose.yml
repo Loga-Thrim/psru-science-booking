@@ -5,8 +5,8 @@ services:
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password01admin}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-psru_booking}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password01admin}
+      MYSQL_DATABASE: ${DB_NAME:-psru_booking}
       MYSQL_ROOT_HOST: ${MYSQL_ROOT_HOST:-%}
     volumes:
       - db:/var/lib/mysql
