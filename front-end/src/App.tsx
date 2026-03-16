@@ -21,7 +21,7 @@ import RoomBookingCreateFormPage from "./pages/RoomBookingCreateFormPage";
 import BookingStatusPage from "./pages/BookingStatusPage";
 
 function App() {
-  console.log("===== > updated version 1.0");
+  console.log("===== > updated version 1.1");
 
   return (
     <AuthProvider>

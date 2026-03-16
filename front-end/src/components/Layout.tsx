@@ -22,7 +22,7 @@ function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navigation = [
-    { name: 'แดชบอร์ด', href: '/dashboard', icon: LayoutDashboard },
+    // { name: 'แดชบอร์ด', href: '/dashboard', icon: LayoutDashboard },
     { name: 'จองห้อง', href: '/book-room', icon: DoorOpen },
     { name: 'สถานะการจอง', href: '/booking-status', icon: FileText },
     ...(user?.role === 'admin' ? [
