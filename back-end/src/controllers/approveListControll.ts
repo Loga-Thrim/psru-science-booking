@@ -1,20 +1,14 @@
 import { Request, Response } from "express";
-import getUnapproveListRepo from "../repositories/getUnapproveListRepo";
-import getAdminApprovedListRepo from "../repositories/getAdminApprovedListRepo";
+import getAllReservationsRepo from "../repositories/getAllReservationsRepo";
 import verifyTokenService from "../services/verifyTokenService";
 export default async function unapproveListControll(req: Request, res: Response) {
     try {
         const tokenHeader = req.headers["authorization"] as string;
         const payload = verifyTokenService({ tokenHeader });
 
-        if (payload.role === "admin") {
-            const pendingRows = (await getUnapproveListRepo()) || [];
-            return res.status(200).json(pendingRows);
-        }
-
-        if (payload.role === "approver") {
-            const adminApprovedRows = (await getAdminApprovedListRepo()) || [];
-            return res.status(200).json(adminApprovedRows);
+        if (payload.role === "admin" || payload.role === "approver") {
+            const rows = (await getAllReservationsRepo()) || [];
+            return res.status(200).json(rows);
         }
 
         return res.status(403).json({ message: "ไม่มีสิทธิ์เข้าถึง" });

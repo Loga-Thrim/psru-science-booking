@@ -5,7 +5,7 @@ import { reservationRow } from "../types/types";
 import ReservationDetailModal from "../components/approve/reservationDetailModal";
 import ReservationApproveModal from "../components/approve/reservationApproveModal";
 import ReservationRejectModal from "../components/approve/reservationRejectModal";
-import { ClipboardCheck, Clock, CheckCircle, XCircle, Search, ShieldX } from "lucide-react";
+import { ClipboardCheck, Clock, CheckCircle, XCircle, Search, ShieldX, Ban } from "lucide-react";
 
 const api = import.meta.env.VITE_API;
 
@@ -71,7 +71,7 @@ function BookingApprovalPage() {
         throw new Error("approve failed");
       }
       setApproveRow(null);
-      window.location.reload();
+      fetchReservations();
     } catch (e) {
       console.error(e);
       alert("อนุมัติไม่สำเร็จ");
@@ -97,7 +97,7 @@ function BookingApprovalPage() {
         throw new Error("reject failed");
       }
       setRejectRow(null);
-      window.location.reload();
+      fetchReservations();
     } catch (e) {
       console.error(e);
       alert("ปฏิเสธไม่สำเร็จ");
@@ -113,6 +113,8 @@ function BookingApprovalPage() {
 
   const pendingCount = rows.filter(r => r.reservation_status === 'pending').length;
   const adminApprovedCount = rows.filter(r => r.reservation_status === 'adminApproved').length;
+  const approvedCount = rows.filter(r => r.reservation_status === 'approverApproved').length;
+  const rejectedCount = rows.filter(r => r.reservation_status === 'rejected').length;
 
   if (!user) {
     return (
@@ -152,37 +154,48 @@ function BookingApprovalPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="luxury-card p-5">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl gradient-warning flex items-center justify-center">
-              <Clock className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{rows.length}</p>
-              <p className="text-sm text-gray-500">รอดำเนินการทั้งหมด</p>
-            </div>
-          </div>
-        </div>
-        <div className="luxury-card p-5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-              <Clock className="w-6 h-6 text-slate-700" />
+            <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-yellow-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>
-              <p className="text-sm text-gray-500">รอการอนุมัติ</p>
+              <p className="text-sm text-gray-500">รอแอดมินอนุมัติ</p>
             </div>
           </div>
         </div>
         <div className="luxury-card p-5">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-blue-600" />
+              <Clock className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{adminApprovedCount}</p>
-              <p className="text-sm text-gray-500">แอดมินอนุมัติแล้ว</p>
+              <p className="text-sm text-gray-500">รอผู้อนุมัติ</p>
+            </div>
+          </div>
+        </div>
+        <div className="luxury-card p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{approvedCount}</p>
+              <p className="text-sm text-gray-500">อนุมัติแล้ว</p>
+            </div>
+          </div>
+        </div>
+        <div className="luxury-card p-5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+              <Ban className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{rejectedCount}</p>
+              <p className="text-sm text-gray-500">ปฏิเสธ</p>
             </div>
           </div>
         </div>
@@ -220,15 +233,16 @@ function BookingApprovalPage() {
           </div>
         ) : filteredRows.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-500" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <ClipboardCheck className="w-8 h-8 text-gray-400" />
             </div>
-            <p className="text-gray-500 font-medium">ไม่มีรายการรอการอนุมัติ</p>
-            <p className="text-gray-400 text-sm mt-1">รายการทั้งหมดได้รับการดำเนินการแล้ว</p>
+            <p className="text-gray-500 font-medium">ไม่มีรายการจอง</p>
+            <p className="text-gray-400 text-sm mt-1">ยังไม่มีรายการจองในระบบ</p>
           </div>
         ) : (
           <ReservationTable
             rows={filteredRows}
+            userRole={user.role}
             onDetail={handleOpenDetail}
             onApprove={handleOpenApprove}
             onReject={handleOpenReject}
