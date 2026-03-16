@@ -67,7 +67,7 @@ function Layout() {
                 <h1 className="text-xl font-bold text-white">
                   PSRU Booking
                 </h1>
-                <p className="text-xs text-gray-400 font-medium">ระบบจองห้องประชุม</p>
+                <p className="text-xs text-gray-400 font-medium">ระบบจองห้อง มรพส.</p>
               </div>
             </div>
           </div>

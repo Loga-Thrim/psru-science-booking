@@ -162,7 +162,7 @@ function DashboardPage() {
             สวัสดี, {user?.name} 
             <Sparkles className="inline-block w-8 h-8 ml-2 text-slate-400" />
           </h1>
-          <p className="text-gray-500 mt-1">ยินดีต้อนรับสู่ระบบจองห้องประชุม PSRU</p>
+          <p className="text-gray-500 mt-1">ยินดีต้อนรับสู่ระบบจองห้อง มรพส.</p>
         </div>
         {getRoleBadge()}
       </div>
@@ -340,7 +340,7 @@ function DashboardPage() {
             </div>
             <div>
               <h4 className="font-semibold text-gray-900">จองห้องใหม่</h4>
-              <p className="text-sm text-gray-500">เริ่มต้นจองห้องประชุม</p>
+              <p className="text-sm text-gray-500">เริ่มต้นจองห้อง มรพส.</p>
             </div>
           </div>
         </Link>

@@ -148,7 +148,7 @@ function BookingApprovalPage() {
           <ClipboardCheck className="w-8 h-8 text-purple-600" />
           อนุมัติการจอง
         </h1>
-        <p className="text-gray-500 mt-1">ตรวจสอบและอนุมัติคำขอจองห้องประชุม</p>
+        <p className="text-gray-500 mt-1">ตรวจสอบและอนุมัติคำขอจองห้อง มรพส.</p>
       </div>
 
       {/* Stats Cards */}

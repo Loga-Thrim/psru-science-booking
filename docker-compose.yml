@@ -3,11 +3,11 @@ services:
     image: mysql:latest
     container_name: mysql
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: password01admin
-      MYSQL_DATABASE: psru_booking
-      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password01admin}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-psru_booking}
+      MYSQL_ROOT_HOST: ${MYSQL_ROOT_HOST:-%}
     volumes:
       - db:/var/lib/mysql
     healthcheck:
@@ -21,15 +21,8 @@ services:
       context: ./back-end
       dockerfile: Dockerfile
     container_name: psru-backend
-    environment:
-      SERVER_PORT: 3000
-      DB_HOST: db
-      DB_NAME: psru_booking
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_PORT: 3306
-      JWT_KEY: secret
-      WEB_ORIGIN: "*"
+    env_file:
+      - ./back-end/.env
     volumes:
       - ./back-end/uploads:/app/uploads
     depends_on:
