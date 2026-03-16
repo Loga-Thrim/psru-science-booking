@@ -173,7 +173,7 @@ function BookingApprovalPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{adminApprovedCount}</p>
-              <p className="text-sm text-gray-500">อนุมัติแล้ว</p>
+              <p className="text-sm text-gray-500">รอผู้อนุมัติ</p>
             </div>
           </div>
         </div>
