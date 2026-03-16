@@ -10,7 +10,7 @@ export default async function getAllReservationsRepo() {
       FROM reservations 
       LEFT JOIN users ON reservations.user_id = users.user_id 
       LEFT JOIN rooms ON reservations.room_id = rooms.room_id
-      ORDER BY reservations.created_at DESC;`);
+      ORDER BY reservations.booking_date DESC, reservations.start_time DESC;`);
     connect.end();
     return rows;
   } catch (err) {
