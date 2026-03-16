@@ -5,16 +5,20 @@ import approverApproveRepo from "../repositories/approverApproveRepo";
 
 export default async function approveControll(req: Request, res: Response) {
     try {
-        const {room_id, user_id} = req.body;
+        const { reservationId } = req.body;
         const tokenHeader = req.headers["authorization"] as string;
         const payload = verifyTokenService({ tokenHeader });
+
+        if (!reservationId) {
+            return res.status(400).json({ message: "reservationId is required" });
+        }
         switch (payload.role) {
             case "admin": {
-                const rows = await adminApproveRepo(room_id, user_id);
+                const rows = await adminApproveRepo(reservationId);
                 return res.status(200).json(rows);
             }
             case "approver": {
-                const rows = await approverApproveRepo(room_id, user_id);
+                const rows = await approverApproveRepo(reservationId);
                 return res.status(200).json(rows);
             }
             default:

@@ -65,13 +65,13 @@ function BookingApprovalPage() {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ room_id: row.room_id, user_id: row.user_id }),
+        body: JSON.stringify({ reservationId: row.reservation_id }),
       });
       if (!res.ok) {
         throw new Error("approve failed");
       }
       setApproveRow(null);
-      await fetchReservations();
+      window.location.reload();
     } catch (e) {
       console.error(e);
       alert("อนุมัติไม่สำเร็จ");
@@ -97,7 +97,7 @@ function BookingApprovalPage() {
         throw new Error("reject failed");
       }
       setRejectRow(null);
-      await fetchReservations();
+      window.location.reload();
     } catch (e) {
       console.error(e);
       alert("ปฏิเสธไม่สำเร็จ");

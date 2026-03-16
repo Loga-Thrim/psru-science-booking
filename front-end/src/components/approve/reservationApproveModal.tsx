@@ -57,6 +57,7 @@ export default function ReservationApproveModal({
     setLoading(true);
     try {
       await onConfirm?.(row);
+      onClose();
     } finally {
       setLoading(false);
     }
@@ -99,7 +100,7 @@ export default function ReservationApproveModal({
             <div className="flex items-center gap-3">
               <Building className="w-4 h-4 text-green-600" />
               <span className="text-sm text-gray-600">ห้อง:</span>
-              <span className="font-semibold text-gray-900">{row.room_id}</span>
+              <span className="font-semibold text-gray-900">{row.room_code}</span>
             </div>
             <div className="flex items-center gap-3">
               <Calendar className="w-4 h-4 text-green-600" />

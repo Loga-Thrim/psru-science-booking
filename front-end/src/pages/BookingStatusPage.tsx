@@ -277,20 +277,22 @@ export default function BookingStatusPage() {
                       >
                         ดูรายละเอียด
                       </button>
-                      <button
-                        onClick={() => setConfirmCancel(r)}
-                        disabled={
-                          normalizeStatus(r.reservation_status) ===
-                          "cancelled" || isCancelling
-                        }
-                        className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium ${normalizeStatus(r.reservation_status) ===
-                            "cancelled" || isCancelling
-                            ? "bg-gray-100 text-gray-400 ring-1 ring-inset ring-gray-200 cursor-not-allowed"
-                            : "bg-red-600 text-white hover:bg-red-700"
-                          }`}
-                      >
-                        ยกเลิก
-                      </button>
+                      {normalizeStatus(r.reservation_status) === "pending" && (
+                        <button
+                          onClick={() => setConfirmCancel(r)}
+                          disabled={
+                            normalizeStatus(r.reservation_status) ===
+                              "cancelled" || isCancelling
+                          }
+                          className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium ${normalizeStatus(r.reservation_status) ===
+                              "cancelled" || isCancelling
+                              ? "bg-gray-100 text-gray-400 ring-1 ring-inset ring-gray-200 cursor-not-allowed"
+                              : "bg-red-600 text-white hover:bg-red-700"
+                            }`}
+                        >
+                          ยกเลิก
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

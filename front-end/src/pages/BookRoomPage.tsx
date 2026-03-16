@@ -53,16 +53,6 @@ const BOOKING_TYPES = [
   { value: "other", label: "อื่นๆ", icon: "📋" },
 ];
 
-const EQUIPMENT_NEEDS = [
-  "โปรเจคเตอร์",
-  "ไมโครโฟน",
-  "คอมพิวเตอร์",
-  "กล้องวีดีโอ",
-  "ระบบเสียง",
-  "กระดานไวท์บอร์ด",
-  "อินเทอร์เน็ต/WiFi",
-];
-
 const TIME_SLOTS = [
   "08:00",
   "08:30",
@@ -491,6 +481,10 @@ function BookingModal({
 }) {
   const navigate = useNavigate();
   const [step, setStep] = useState<BookingStep>("select-datetime");
+  const equipmentList = (room.equipment || "")
+    .split(",")
+    .map((e: string) => e.trim())
+    .filter(Boolean);
   const [form, setForm] = useState<BookingForm>({
     room,
     date: "",
@@ -1308,28 +1302,34 @@ function BookingModal({
                       อุปกรณ์ที่ต้องการใช้งาน
                     </label>
                     <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
-                      {EQUIPMENT_NEEDS.map((eq) => (
-                        <button
-                          key={eq}
-                          type="button"
-                          onClick={() =>
-                            setForm((f) => ({
-                              ...f,
-                              equipmentNeeds: f.equipmentNeeds.includes(eq)
-                                ? f.equipmentNeeds.filter((e) => e !== eq)
-                                : [...f.equipmentNeeds, eq],
-                            }))
-                          }
-                          className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
-                            form.equipmentNeeds.includes(eq)
-                              ? "bg-slate-100 border-slate-500 text-slate-800"
-                              : "bg-white border-gray-300 text-gray-600 hover:border-slate-400"
-                          }`}
-                        >
-                          {form.equipmentNeeds.includes(eq) && <span className="mr-1">✓</span>}
-                          {eq}
-                        </button>
-                      ))}
+                      {equipmentList.length === 0 ? (
+                        <span className="text-sm text-gray-500">ห้องนี้ไม่ได้ระบุอุปกรณ์ไว้</span>
+                      ) : (
+                        equipmentList.map((eq) => (
+                          <button
+                            key={eq}
+                            type="button"
+                            onClick={() =>
+                              setForm((f) => ({
+                                ...f,
+                                equipmentNeeds: f.equipmentNeeds.includes(eq)
+                                  ? f.equipmentNeeds.filter((e) => e !== eq)
+                                  : [...f.equipmentNeeds, eq],
+                              }))
+                            }
+                            className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
+                              form.equipmentNeeds.includes(eq)
+                                ? "bg-slate-100 border-slate-500 text-slate-800"
+                                : "bg-white border-gray-300 text-gray-600 hover:border-slate-400"
+                            }`}
+                          >
+                            {form.equipmentNeeds.includes(eq) && (
+                              <span className="mr-1">✓</span>
+                            )}
+                            {eq}
+                          </button>
+                        ))
+                      )}
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
                       เลือกอุปกรณ์ที่ต้องการใช้ (ถ้ามี)

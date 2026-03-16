@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -16,19 +21,33 @@ import RoomBookingCreateFormPage from "./pages/RoomBookingCreateFormPage";
 import BookingStatusPage from "./pages/BookingStatusPage";
 
 function App() {
+  console.log("===== > updated version 1.0");
+
   return (
     <AuthProvider>
       <Router>
         <Routes>
           <Route path="/authen" element={<AuthPage />} />
-          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
             <Route path="/rooms" element={<RoomManagementPage />} />
             <Route path="/users" element={<UserManagementPage />} />
 
-            <Route path="/book-room/new/form" element={<RoomBookingCreateFormPage />} />
-            <Route path="/book-room/new" element={<RoomBookingDateCalendarPage />} />
+            <Route
+              path="/book-room/new/form"
+              element={<RoomBookingCreateFormPage />}
+            />
+            <Route
+              path="/book-room/new"
+              element={<RoomBookingDateCalendarPage />}
+            />
             <Route path="/booking" element={<RoomBookingTimeCalendarPage />} />
             <Route path="/book-room" element={<BookRoomPage />} />
 
