@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Room } from "../types/types";
 import {
@@ -480,6 +480,7 @@ function BookingModal({
   onSuccess: () => void;
 }) {
   const navigate = useNavigate();
+  const contentRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<BookingStep>("select-datetime");
   const equipmentList = (room.equipment || "")
     .split(",")
@@ -676,6 +677,7 @@ function BookingModal({
       }
 
       setStep("success");
+      contentRef.current?.scrollTo(0, 0);
     } catch (err: any) {
       setError(err.message || "เกิดข้อผิดพลาด");
     } finally {
@@ -709,7 +711,7 @@ function BookingModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-6">
           {step === "success" ? (
             <div className="text-center py-8">
               <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1373,7 +1375,7 @@ function BookingModal({
           <div className="border-t border-gray-200 px-6 py-4 flex justify-between">
             {step === "fill-form" ? (
               <button
-                onClick={() => setStep("select-datetime")}
+                onClick={() => { setStep("select-datetime"); contentRef.current?.scrollTo(0, 0); }}
                 className="px-5 py-2.5 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors"
               >
                 ย้อนกลับ
@@ -1389,7 +1391,7 @@ function BookingModal({
 
             {step === "select-datetime" ? (
               <button
-                onClick={() => setStep("fill-form")}
+                onClick={() => { setStep("fill-form"); contentRef.current?.scrollTo(0, 0); }}
                 disabled={!canProceedToForm}
                 className="px-6 py-2.5 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
