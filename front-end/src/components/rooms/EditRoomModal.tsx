@@ -50,7 +50,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
   const [capacity, setCapacity] = useState("0");
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [customEquipment, setCustomEquipment] = useState("");
-  const [caretaker, setCaretaker] = useState("");
+  const [selectedCaretakers, setSelectedCaretakers] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [room_status, setRoomStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -92,10 +92,8 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
         });
         if (res.ok) {
           const data = await res.json();
-          const filtered = data.filter((u: CaretakerOption) => 
-            u.role === "admin" || u.role === "approver" || u.role === "caretaker"
-          );
-          setCaretakerOptions(filtered);
+          const users = data.rows || data || [];
+          setCaretakerOptions(users);
         }
       } catch (err) {
         console.error("Failed to fetch caretakers:", err);
@@ -112,7 +110,8 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
     setRoomCode(room.room_code);
     setRoomType(room.room_type || "");
     setCapacity(String(room.capacity ?? 0));
-    setCaretaker(room.caretaker || "");
+    const caretakerList = room.caretaker ? room.caretaker.split(", ").filter((c: string) => c.trim()) : [];
+    setSelectedCaretakers(caretakerList);
     setDescription(room.description || "");
     setRoomStatus(room.status || "");
     
@@ -195,6 +194,14 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
     }
   };
 
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'admin': return 'ผู้ดูแลระบบ';
+      case 'approver': return 'ผู้อนุมัติ';
+      default: return 'ผู้ใช้งาน';
+    }
+  };
+
   const toggleDay = (day: string) => {
     setAvailableDays(prev =>
       prev.includes(day)
@@ -214,7 +221,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
         room_status,
         capacity: Number(capacity) || 0,
         equipment: selectedEquipment.join(", "),
-        caretaker,
+        caretaker: selectedCaretakers.join(", "),
         description,
         images: newFiles,
         building,
@@ -353,15 +360,62 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
           <User className="w-4 h-4 text-slate-700" />
           ผู้ดูแลและการติดต่อ
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">ผู้ดูแลห้อง</label>
-            <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
-              value={caretaker} onChange={(e) => setCaretaker(e.target.value)} disabled={loadingCaretakers}>
-              <option value="">-- เลือกผู้ดูแล --</option>
-              {caretakerOptions.map((c) => (<option key={c.user_id} value={c.username}>{c.username} ({c.department})</option>))}
-            </select>
+            <label className="block text-sm font-medium text-gray-700">
+              ผู้ดูแลห้อง (เลือกได้หลายคน)
+            </label>
+            {loadingCaretakers ? (
+              <p className="text-xs text-gray-500">กำลังโหลดรายชื่อผู้ดูแล...</p>
+            ) : caretakerOptions.length === 0 ? (
+              <p className="text-xs text-red-500">ไม่พบผู้ใช้ในระบบ</p>
+            ) : (
+              <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50 max-h-40 overflow-y-auto">
+                {caretakerOptions.map((c) => (
+                  <button
+                    key={c.user_id}
+                    type="button"
+                    onClick={() => setSelectedCaretakers(prev =>
+                      prev.includes(c.username)
+                        ? prev.filter(ct => ct !== c.username)
+                        : [...prev, c.username]
+                    )}
+                    className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
+                      selectedCaretakers.includes(c.username)
+                        ? 'bg-slate-100 border-slate-500 text-slate-800'
+                        : 'bg-white border-gray-300 text-gray-600 hover:border-slate-400 hover:bg-slate-50'
+                    }`}
+                  >
+                    {selectedCaretakers.includes(c.username) && <span className="mr-1">✓</span>}
+                    {c.username} ({getRoleLabel(c.role)})
+                  </button>
+                ))}
+              </div>
+            )}
+            {selectedCaretakers.length > 0 && (
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-xs text-slate-600 mb-2">ผู้ดูแลที่เลือก ({selectedCaretakers.length} คน):</p>
+                <div className="flex flex-wrap gap-1">
+                  {selectedCaretakers.map((name) => (
+                    <span
+                      key={name}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-400 text-xs text-slate-800"
+                    >
+                      {name}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCaretakers(prev => prev.filter(ct => ct !== name))}
+                        className="hover:text-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
           <Input label="เบอร์โทรติดต่อห้อง" value={contactPhone} onChange={setContactPhone} placeholder="เช่น 055-123456 ต่อ 1234" icon={<Phone className="w-4 h-4" />} />
         </div>
       </div>

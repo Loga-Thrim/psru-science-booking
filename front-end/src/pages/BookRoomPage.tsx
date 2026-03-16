@@ -53,33 +53,36 @@ const BOOKING_TYPES = [
   { value: "other", label: "อื่นๆ", icon: "📋" },
 ];
 
-const TIME_SLOTS = [
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-  "18:30",
-  "19:00",
-  "19:30",
-  "20:00",
-];
+function generateTimeSlots(start: string, end: string): string[] {
+  const slots: string[] = [];
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  let mins = sh * 60 + (sm || 0);
+  const endMins = eh * 60 + (em || 0);
+  while (mins <= endMins) {
+    const hh = String(Math.floor(mins / 60)).padStart(2, "0");
+    const mm = String(mins % 60).padStart(2, "0");
+    slots.push(`${hh}:${mm}`);
+    mins += 30;
+  }
+  return slots;
+}
+
+function formatTime(value: string): string {
+  if (!value) return "";
+  // Already "HH:MM" format
+  if (/^\d{2}:\d{2}$/.test(value)) return value;
+  // "HH:MM:SS" format
+  if (/^\d{2}:\d{2}:\d{2}$/.test(value)) return value.substring(0, 5);
+  // ISO datetime string from JSON-serialized Date (e.g. "1970-01-01T01:30:00.000Z")
+  const d = new Date(value);
+  if (!isNaN(d.getTime())) {
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+  return value.substring(0, 5);
+}
 
 function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -482,6 +485,10 @@ function BookingModal({
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<BookingStep>("select-datetime");
+  const timeSlots = generateTimeSlots(
+    room.available_start_time || "08:00",
+    room.available_end_time || "17:00",
+  );
   const equipmentList = (room.equipment || "")
     .split(",")
     .map((e: string) => e.trim())
@@ -551,9 +558,9 @@ function BookingModal({
   // Check if a time slot conflicts with existing bookings
   const isTimeSlotBooked = (time: string) => {
     return bookedSlots.some((slot) => {
-      const slotStart = slot.start_time.substring(0, 5);
-      const slotEnd = slot.end_time.substring(0, 5);
-      return time >= slotStart && time < slotEnd;
+      const slotStart = formatTime(slot.start_time);
+      const slotEnd = formatTime(slot.end_time);
+      return time >= slotStart && time <= slotEnd;
     });
   };
 
@@ -561,10 +568,10 @@ function BookingModal({
   const hasTimeConflict = () => {
     if (!form.startTime || !form.endTime) return false;
     return bookedSlots.some((slot) => {
-      const slotStart = slot.start_time.substring(0, 5);
-      const slotEnd = slot.end_time.substring(0, 5);
+      const slotStart = formatTime(slot.start_time);
+      const slotEnd = formatTime(slot.end_time);
       return (
-        (form.startTime < slotEnd && form.endTime > slotStart)
+        (form.startTime <= slotEnd && form.endTime >= slotStart)
       );
     });
   };
@@ -942,7 +949,7 @@ function BookingModal({
                         <div className="flex flex-wrap gap-2">
                           {bookedSlots.map((slot, idx) => (
                             <span key={idx} className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
-                              {slot.start_time.substring(0, 5)} - {slot.end_time.substring(0, 5)}
+                              {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                               {slot.username && <span className="text-red-500 ml-1">({slot.username})</span>}
                             </span>
                           ))}
@@ -970,7 +977,7 @@ function BookingModal({
                               className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-slate-400 focus:ring-0 cursor-pointer hover:border-slate-300 transition-colors"
                             >
                               <option value="">--:--</option>
-                              {TIME_SLOTS.slice(0, -1).map((t) => (
+                              {timeSlots.map((t: string) => (
                                 <option 
                                   key={t} 
                                   value={t}
@@ -1005,11 +1012,11 @@ function BookingModal({
                               className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-slate-400 focus:ring-0 cursor-pointer hover:border-slate-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-200"
                             >
                               <option value="">--:--</option>
-                              {TIME_SLOTS.filter((t) => t > form.startTime).map((t) => {
+                              {timeSlots.filter((t: string) => t > form.startTime).map((t: string) => {
                                 const wouldConflict = bookedSlots.some((slot) => {
-                                  const slotStart = slot.start_time.substring(0, 5);
-                                  const slotEnd = slot.end_time.substring(0, 5);
-                                  return form.startTime < slotEnd && t > slotStart;
+                                  const slotStart = formatTime(slot.start_time);
+                                  const slotEnd = formatTime(slot.end_time);
+                                  return form.startTime <= slotEnd && t >= slotStart;
                                 });
                                 return (
                                   <option 
