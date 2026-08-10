@@ -1,5 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { reservationTypeLabel } from "../types/types";
+import { Link } from "react-router-dom";
+import dayjs from "dayjs";
+import {
+  CalendarDays,
+  Clock,
+  Users,
+  DoorOpen,
+  Info,
+  Trash2,
+  Plus,
+  AlertTriangle,
+  PencilLine,
+  X,
+} from "lucide-react";
+import clsx from "clsx";
+import StatusBadge from "../components/booking/StatusBadge";
+import ApprovalStepper from "../components/booking/ApprovalStepper";
+import RescheduleModal from "../components/booking/RescheduleModal";
+import { getReservationTypeLabel } from "../constants/bookingStatus";
 
 const api = import.meta.env.VITE_API;
 
@@ -19,11 +37,13 @@ type Reservation = {
   start_time: string;
   end_time: string;
   number_of_users: number;
-  reservation_type: "teaching" | "meeting" | "other" | string;
-  reservation_status: | "pending" | "adminApproved" | "approverApproved" | "rejected" | string;
+  reservation_type: string;
+  reservation_status: string;
   reservation_reason: string | null;
   rejection_reason: string | null;
   phone: string | null;
+  equipment_needs?: string | null;
+  caretaker_name?: string | null;
 };
 
 type Room = {
@@ -40,12 +60,11 @@ type Room = {
 type ApiBlock = { user?: User[]; reservation?: Reservation[]; rooms?: Room[] };
 type ApiShape = ApiBlock | ApiBlock[];
 
-const normalizeStatus = (s: string) => (s === "canceled" ? "cancelled" : s);
+type TabKey = "upcoming" | "past";
 
 function formatDate(iso: string) {
   try {
-    const d = new Date(iso);
-    return d.toLocaleDateString("th-TH", {
+    return new Date(iso).toLocaleDateString("th-TH", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -62,36 +81,16 @@ function formatTime(t: string) {
 
 function Item({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start gap-2">
-      <div className="w-36 shrink-0 text-gray-500">{label}</div>
-      <div className="text-gray-900">{value}</div>
+    <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:gap-3">
+      <div className="w-40 shrink-0 font-medium text-slate-600">{label}</div>
+      <div className="font-semibold text-slate-900">{value}</div>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: Reservation["reservation_status"] }) {
-  const s = normalizeStatus(status);
-  const map: Record<string, string> = {
-    approverApproved: "bg-green-100 text-green-700 ring-green-600/20",
-    pending: "bg-yellow-100 text-yellow-700 ring-yellow-600/20",
-    rejected: "bg-red-100 text-red-700 ring-red-600/20",
-    adminApproved: "bg-gray-100 text-gray-600 ring-gray-500/20",
-  };
-  const labelMap: Record<string, string> = {
-    approverApproved: "อนุมัติ",
-    pending: "รอดำเนินการ",
-    rejected: "ไม่อนุมัติ",
-    adminApproved: "แอดมินอนุมัติแล้ว",
-  };
-  const cls = map[s] ?? "bg-gray-100 text-gray-600 ring-gray-500/20";
-  const label = labelMap[s] ?? s;
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${cls}`}
-    >
-      {label}
-    </span>
-  );
+/** A booking is "past" once its end time has gone by. */
+function isPast(r: Reservation) {
+  return dayjs(`${r.booking_date}T${r.end_time}`).isBefore(dayjs());
 }
 
 export default function BookingStatusPage() {
@@ -103,6 +102,8 @@ export default function BookingStatusPage() {
   const [detail, setDetail] = useState<Reservation | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<Reservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [rescheduling, setRescheduling] = useState<Reservation | null>(null);
+  const [tab, setTab] = useState<TabKey>("upcoming");
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -117,7 +118,7 @@ export default function BookingStatusPage() {
         },
       });
       if (!res.ok)
-        throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+        throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
       const data: ApiShape = await res.json();
 
       let u: User | null = null;
@@ -157,11 +158,9 @@ export default function BookingStatusPage() {
 
   const fullName = useMemo(() => {
     if (!user) return "";
-    const parts = [
-      user.username,
-      user.department ? `(${user.department})` : "",
-    ].filter(Boolean);
-    return parts.join(" ");
+    return [user.username, user.department ? `(${user.department})` : ""]
+      .filter(Boolean)
+      .join(" ");
   }, [user]);
 
   const roomById = useMemo(() => {
@@ -172,9 +171,22 @@ export default function BookingStatusPage() {
 
   const roomCodeOf = (id: string) => roomById.get(id)?.room_code ?? id;
 
-  async function handleCancel(resv: Reservation) {
-    if (normalizeStatus(resv.reservation_status) === "cancelled") return;
+  // Upcoming sorted soonest-first, so the next thing you need is at the top.
+  // History sorted newest-first.
+  const { upcoming, past } = useMemo(() => {
+    const up: Reservation[] = [];
+    const old: Reservation[] = [];
+    reservations.forEach((r) => (isPast(r) ? old : up).push(r));
 
+    const key = (r: Reservation) => `${r.booking_date}T${r.start_time}`;
+    up.sort((a, b) => key(a).localeCompare(key(b)));
+    old.sort((a, b) => key(b).localeCompare(key(a)));
+    return { upcoming: up, past: old };
+  }, [reservations]);
+
+  const visible = tab === "upcoming" ? upcoming : past;
+
+  async function handleCancel(resv: Reservation) {
     setIsCancelling(true);
     try {
       const token = localStorage.getItem("token");
@@ -186,17 +198,18 @@ export default function BookingStatusPage() {
         },
       });
 
-      if (!(resp.status === 204 || (resp.ok && resp.status === 200))) {
-        const msg = `Cancel failed: ${resp.status} ${resp.statusText}`;
+      if (!resp.ok) {
+        let msg = `ยกเลิกไม่สำเร็จ (${resp.status})`;
+        try {
+          const body = await resp.json();
+          if (body?.message) msg = body.message;
+        } catch {
+          /* keep the status-code message */
+        }
         throw new Error(msg);
       }
 
-      setReservations((prev) =>
-        prev.filter((x) => x.reservation_id !== resv.reservation_id)
-      );
-
       await fetchBookings();
-
       setConfirmCancel(null);
       setDetail(null);
     } catch (e: any) {
@@ -209,205 +222,261 @@ export default function BookingStatusPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">สถานะการจอง</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="flex items-center gap-3 text-3xl font-bold text-slate-900">
+            <CalendarDays className="h-8 w-8 text-slate-700" aria-hidden="true" />
+            สถานะการจองของฉัน
+          </h1>
+          <p className="mt-1 text-base text-slate-600">
+            ดูว่าคำขอจองห้องของคุณอนุมัติถึงขั้นไหนแล้ว
+          </p>
+        </div>
+        <Link to="/book-room" className="btn-primary inline-flex items-center gap-2">
+          <Plus className="h-5 w-5" aria-hidden="true" />
+          จองห้องใหม่
+        </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        {loading ? (
-          <div className="p-6 text-gray-500">กำลังโหลดข้อมูล…</div>
-        ) : error ? (
-          <div className="p-6 text-red-600">เกิดข้อผิดพลาด: {error}</div>
-        ) : reservations.length === 0 ? (
-          <div className="p-6 text-gray-500">ยังไม่มีรายการจอง</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    รหัสห้อง
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    วันที่
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    เวลา
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    ประเภท
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    จำนวนคน
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    สถานะ
-                  </th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {reservations.map((r) => (
-                  <tr key={r.reservation_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {roomCodeOf(r.room_id)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {formatDate(r.booking_date)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {formatTime(r.start_time)}–{formatTime(r.end_time)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {reservationTypeLabel(r.reservation_type)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {r.number_of_users}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={r.reservation_status} />
-                    </td>
-                    <td className="px-4 py-3 text-right space-x-2">
-                      <button
-                        onClick={() => setDetail(r)}
-                        className="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-100"
-                      >
-                        ดูรายละเอียด
-                      </button>
-                      {normalizeStatus(r.reservation_status) === "pending" && (
-                        <button
-                          onClick={() => setConfirmCancel(r)}
-                          disabled={
-                            normalizeStatus(r.reservation_status) ===
-                              "cancelled" || isCancelling
-                          }
-                          className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium ${normalizeStatus(r.reservation_status) ===
-                              "cancelled" || isCancelling
-                              ? "bg-gray-100 text-gray-400 ring-1 ring-inset ring-gray-200 cursor-not-allowed"
-                              : "bg-red-600 text-white hover:bg-red-700"
-                            }`}
-                        >
-                          ยกเลิก
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      {/* Two plain tabs. "ที่กำลังจะถึง" is what almost everyone opens this page for. */}
+      <div
+        className="flex flex-wrap gap-3"
+        role="tablist"
+        aria-label="กรองรายการจอง"
+      >
+        {(
+          [
+            { key: "upcoming", label: "ที่กำลังจะถึง", count: upcoming.length },
+            { key: "past", label: "ที่ผ่านมาแล้ว", count: past.length },
+          ] as const
+        ).map((t) => (
+          <button
+            key={t.key}
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => setTab(t.key)}
+            className={clsx(
+              "rounded-xl px-6 py-3 text-base font-semibold transition-colors",
+              tab === t.key
+                ? "bg-slate-800 text-white shadow-md"
+                : "bg-white text-slate-700 ring-2 ring-stone-300 hover:bg-slate-50"
+            )}
+          >
+            {t.label}
+            <span
+              className={clsx(
+                "ml-2 rounded-full px-2.5 py-0.5 text-sm font-bold",
+                tab === t.key ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+              )}
+            >
+              {t.count}
+            </span>
+          </button>
+        ))}
       </div>
+
+      {loading ? (
+        <div className="luxury-card p-10 text-center text-lg text-slate-600">
+          กำลังโหลดข้อมูล…
+        </div>
+      ) : error ? (
+        <div className="luxury-card p-10 text-center">
+          <AlertTriangle className="mx-auto mb-3 h-12 w-12 text-red-500" aria-hidden="true" />
+          <p className="text-lg font-semibold text-red-700">เกิดข้อผิดพลาด: {error}</p>
+          <button onClick={fetchBookings} className="btn-secondary mt-5">
+            ลองใหม่อีกครั้ง
+          </button>
+        </div>
+      ) : visible.length === 0 ? (
+        <div className="luxury-card p-12 text-center">
+          <CalendarDays className="mx-auto mb-4 h-14 w-14 text-slate-300" aria-hidden="true" />
+          <p className="text-xl font-semibold text-slate-700">
+            {tab === "upcoming"
+              ? "ยังไม่มีการจองที่กำลังจะถึง"
+              : "ยังไม่มีประวัติการจอง"}
+          </p>
+          {tab === "upcoming" && (
+            <>
+              <p className="mt-2 text-base text-slate-600">
+                เริ่มจองห้องได้เลย ใช้เวลาไม่ถึงหนึ่งนาที
+              </p>
+              <Link
+                to="/book-room"
+                className="btn-primary mt-6 inline-flex items-center gap-2"
+              >
+                <Plus className="h-5 w-5" aria-hidden="true" />
+                ไปหน้าจองห้อง
+              </Link>
+            </>
+          )}
+        </div>
+      ) : (
+        /* Cards rather than a dense table: bigger text, bigger buttons, and it
+           reflows on a phone without horizontal scrolling. */
+        <div className="space-y-4">
+          {visible.map((r) => (
+            <div key={r.reservation_id} className="luxury-card p-5 sm:p-6">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0 flex-1 space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="inline-flex items-center gap-2 text-xl font-bold text-slate-900">
+                      <DoorOpen className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                      ห้อง {roomCodeOf(r.room_id)}
+                    </span>
+                    <StatusBadge status={r.reservation_status} />
+                  </div>
+
+                  <div className="grid gap-x-8 gap-y-2 text-base text-slate-800 sm:grid-cols-2">
+                    <span className="inline-flex items-center gap-2">
+                      <CalendarDays className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                      {formatDate(r.booking_date)}
+                    </span>
+                    <span className="inline-flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                      {formatTime(r.start_time)} – {formatTime(r.end_time)} น.
+                    </span>
+                    <span className="inline-flex items-center gap-2">
+                      <Info className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                      {getReservationTypeLabel(r.reservation_type)}
+                    </span>
+                    <span className="inline-flex items-center gap-2">
+                      <Users className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                      {r.number_of_users} คน
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 flex-wrap gap-3">
+                  <button
+                    onClick={() => setDetail(r)}
+                    className="btn-secondary inline-flex items-center gap-2"
+                  >
+                    <Info className="h-5 w-5" aria-hidden="true" />
+                    ดูรายละเอียด
+                  </button>
+                  {/* Only a request nobody has reviewed yet can still be moved. */}
+                  {r.reservation_status === "pending" && (
+                    <>
+                      <button
+                        onClick={() => setRescheduling(r)}
+                        className="btn-secondary inline-flex items-center gap-2"
+                      >
+                        <PencilLine className="h-5 w-5" aria-hidden="true" />
+                        เปลี่ยนวัน/เวลา
+                      </button>
+                      <button
+                        onClick={() => setConfirmCancel(r)}
+                        disabled={isCancelling}
+                        className="btn-danger inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Trash2 className="h-5 w-5" aria-hidden="true" />
+                        ยกเลิกการจอง
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {detail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-black/50"
             onClick={() => setDetail(null)}
             aria-hidden
           />
-          <div className="relative z-10 w-full max-w-4xl transform rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 transition-all">
-            <div className="rounded-t-2xl bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-500 px-6 py-5 text-white">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-xl md:text-2xl font-semibold">
-                    รายละเอียดการจอง
-                  </h2>
-                  <p className="mt-1 text-white/90 text-sm">
-                    รหัสการจอง:{" "}
-                    <span className="font-medium">
-                      {detail.reservation_id}
-                    </span>
-                  </p>
-                </div>
-                <button
-                  onClick={() => setDetail(null)}
-                  className="rounded-md p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/60"
-                  aria-label="Close"
-                  title="ปิด"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            <div className="px-6 pb-6 pt-5">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    ข้อมูลการจอง
-                  </h3>
-                  <div className="mt-3 space-y-2 text-sm">
-                    <Item
-                      label="รหัสห้อง"
-                      value={roomCodeOf(detail.room_id)}
-                    />
-                    <Item
-                      label="วันที่"
-                      value={formatDate(detail.booking_date)}
-                    />
-                    <Item
-                      label="เวลา"
-                      value={`${formatTime(detail.start_time)}–${formatTime(
-                        detail.end_time
-                      )}`}
-                    />
-                    <Item
-                      label="ประเภท"
-                      value={reservationTypeLabel(detail.reservation_type)}
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    ติดต่อ & สถานะ
-                  </h3>
-                  <div className="mt-3 space-y-2 text-sm">
-                    <Item label="ผู้จอง" value={fullName || "-"} />
-                    <Item label="โทรศัพท์" value={detail.phone ?? "-"} />
-                    <div className="flex items-start gap-2">
-                      <div className="w-36 shrink-0 text-gray-500">
-                        สถานะ
-                      </div>
-                      <div className="text-gray-900">
-                        <StatusBadge status={detail.reservation_status} />
-                      </div>
-                    </div>
-                    <Item
-                      label="จำนวนผู้ใช้"
-                      value={String(detail.number_of_users)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-900">
-                  เหตุผลการจอง
-                </h3>
-                <p className="mt-2 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 text-sm text-gray-800 ring-1 ring-inset ring-gray-200">
-                  {detail.reservation_reason ?? "-"}
+          <div
+            className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detail-title"
+          >
+            <div className="flex items-start justify-between gap-4 rounded-t-2xl bg-gradient-to-r from-slate-700 to-slate-800 px-6 py-5 text-white">
+              <div>
+                <h2 id="detail-title" className="text-2xl font-bold">
+                  รายละเอียดการจอง
+                </h2>
+                <p className="mt-1 text-sm text-white/80">
+                  รหัสการจอง: {detail.reservation_id}
                 </p>
               </div>
+              <button
+                onClick={() => setDetail(null)}
+                className="rounded-lg p-2 hover:bg-white/20"
+                aria-label="ปิดหน้าต่าง"
+              >
+                <X className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
 
-              {normalizeStatus(detail.reservation_status) === "rejected" &&
+            <div className="space-y-5 px-6 py-6">
+              <section>
+                <h3 className="mb-4 text-lg font-bold text-slate-900">
+                  ขั้นตอนการอนุมัติ
+                </h3>
+                <ApprovalStepper status={detail.reservation_status} />
+              </section>
+
+              <section className="rounded-xl border-2 border-stone-200 p-5">
+                <h3 className="mb-3 text-lg font-bold text-slate-900">
+                  ข้อมูลการจอง
+                </h3>
+                <div className="space-y-2.5 text-base">
+                  <Item label="ห้อง" value={roomCodeOf(detail.room_id)} />
+                  <Item label="วันที่" value={formatDate(detail.booking_date)} />
+                  <Item
+                    label="เวลา"
+                    value={`${formatTime(detail.start_time)} – ${formatTime(detail.end_time)} น.`}
+                  />
+                  <Item
+                    label="ประเภทการจอง"
+                    value={getReservationTypeLabel(detail.reservation_type)}
+                  />
+                  <Item label="จำนวนผู้ใช้" value={`${detail.number_of_users} คน`} />
+                  {detail.equipment_needs && (
+                    <Item label="อุปกรณ์ที่ขอใช้" value={detail.equipment_needs} />
+                  )}
+                  {detail.caretaker_name && (
+                    <Item label="ผู้ดูแลที่เลือก" value={detail.caretaker_name} />
+                  )}
+                </div>
+              </section>
+
+              <section className="rounded-xl border-2 border-stone-200 p-5">
+                <h3 className="mb-3 text-lg font-bold text-slate-900">ผู้จอง</h3>
+                <div className="space-y-2.5 text-base">
+                  <Item label="ชื่อผู้จอง" value={fullName || "-"} />
+                  <Item label="เบอร์โทรศัพท์" value={detail.phone ?? "-"} />
+                </div>
+              </section>
+
+              <section className="rounded-xl border-2 border-stone-200 p-5">
+                <h3 className="mb-3 text-lg font-bold text-slate-900">
+                  เหตุผลในการจอง
+                </h3>
+                <p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-base text-slate-800">
+                  {detail.reservation_reason?.trim() || "ไม่ได้ระบุ"}
+                </p>
+              </section>
+
+              {detail.reservation_status === "rejected" &&
                 detail.rejection_reason && (
-                  <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      เหตุผลการไม่อนุมัติ
+                  <section className="rounded-xl border-2 border-red-200 bg-red-50 p-5">
+                    <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-red-900">
+                      <AlertTriangle className="h-6 w-6" aria-hidden="true" />
+                      เหตุผลที่ไม่อนุมัติ
                     </h3>
-                    <p className="mt-2 whitespace-pre-wrap rounded-lg bg-gray-50 p-3 text-sm text-gray-800 ring-1 ring-inset ring-gray-200">
+                    <p className="whitespace-pre-wrap rounded-lg bg-white p-4 text-base text-slate-900">
                       {detail.rejection_reason}
                     </p>
-                  </div>
+                  </section>
                 )}
 
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => setDetail(null)}
-                  className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
+              <div className="flex justify-end">
+                <button onClick={() => setDetail(null)} className="btn-secondary">
                   ปิด
                 </button>
               </div>
@@ -416,48 +485,66 @@ export default function BookingStatusPage() {
         </div>
       )}
 
+      {rescheduling && (
+        <RescheduleModal
+          reservation={rescheduling}
+          onClose={() => setRescheduling(null)}
+          onSaved={async () => {
+            setRescheduling(null);
+            await fetchBookings();
+          }}
+        />
+      )}
+
       {confirmCancel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-black/50"
             onClick={() => !isCancelling && setConfirmCancel(null)}
             aria-hidden
           />
-          <div className="relative z-10 w-full max-w-md transform rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5">
-            <div className="flex items-start gap-3">
-              <div className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700">
-                !
+          <div
+            className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="cancel-title"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle className="h-8 w-8 text-red-600" aria-hidden="true" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  ยืนยันการยกเลิกการจอง?
+                <h3 id="cancel-title" className="text-xl font-bold text-slate-900">
+                  ต้องการยกเลิกการจองนี้ใช่ไหม?
                 </h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  การจองห้อง{" "}
-                  <span className="font-medium">
-                    {roomCodeOf(confirmCancel.room_id)}
-                  </span>{" "}
-                  วันที่ {formatDate(confirmCancel.booking_date)} เวลา{" "}
-                  {formatTime(confirmCancel.start_time)}–
-                  {formatTime(confirmCancel.end_time)}
+                <p className="mt-2 text-base text-slate-700">
+                  ห้อง <strong>{roomCodeOf(confirmCancel.room_id)}</strong>
+                  <br />
+                  {formatDate(confirmCancel.booking_date)}
+                  <br />
+                  เวลา {formatTime(confirmCancel.start_time)} –{" "}
+                  {formatTime(confirmCancel.end_time)} น.
+                </p>
+                <p className="mt-3 text-base font-semibold text-red-700">
+                  ยกเลิกแล้วจะกู้คืนไม่ได้ ต้องจองใหม่เท่านั้น
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setConfirmCancel(null)}
                 disabled={isCancelling}
-                className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
               >
-                ไม่ยกเลิก
+                ไม่ยกเลิก เก็บการจองไว้
               </button>
               <button
                 onClick={() => handleCancel(confirmCancel)}
                 disabled={isCancelling}
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="btn-danger disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isCancelling ? "กำลังยกเลิก..." : "ยืนยันยกเลิก"}
+                {isCancelling ? "กำลังยกเลิก..." : "ใช่ ยกเลิกการจอง"}
               </button>
             </div>
           </div>

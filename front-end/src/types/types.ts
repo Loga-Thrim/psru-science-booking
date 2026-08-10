@@ -73,28 +73,20 @@ export interface Room {
 }
 export type ReservationType = "teaching" | "exam" | "activity" | "other" | "";
 
-// Single source of truth for booking-type wording. Several pages used to keep their own
-// map built from an older vocabulary, so "exam" and "activity" rendered as "อื่นๆ".
-export const RESERVATION_TYPE_LABELS: Record<string, string> = {
-  teaching: "จัดการเรียนการสอน",
-  exam: "สอบ",
-  activity: "กิจกรรม/อบรม/ประชุม",
-  meeting: "ประชุม",
-  other: "อื่นๆ",
-};
+// Booking wording lives in constants/bookingStatus.ts, which also owns the
+// icons, colours and stepper positions. These re-exports keep the older import
+// sites working without letting a second copy of the labels drift back in.
+export {
+  RESERVATION_TYPE_LABELS,
+  getReservationTypeLabel as reservationTypeLabel,
+} from "../constants/bookingStatus";
 
-export const reservationTypeLabel = (type?: string | null): string =>
-  (type && RESERVATION_TYPE_LABELS[type]) || type || "-";
+export { getStatusInfo } from "../constants/bookingStatus";
 
-export const RESERVATION_STATUS_LABELS: Record<string, string> = {
-  pending: "รอแอดมินอนุมัติ",
-  adminApproved: "รอผู้อนุมัติ",
-  approverApproved: "อนุมัติแล้ว",
-  rejected: "ไม่อนุมัติ",
-};
+import { getStatusInfo as statusInfo } from "../constants/bookingStatus";
 
 export const reservationStatusLabel = (status?: string | null): string =>
-  (status && RESERVATION_STATUS_LABELS[status]) || status || "-";
+  status ? statusInfo(status).label : "-";
 
 export type reservationRow = {
   reservation_id: string,

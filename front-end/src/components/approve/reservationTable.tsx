@@ -1,4 +1,6 @@
 import { reservationRow, UserRole } from "../../types/types";
+import { Info, Check, X } from "lucide-react";
+import StatusBadge from "../booking/StatusBadge";
 
 type Props = {
   rows: reservationRow[];
@@ -6,14 +8,6 @@ type Props = {
   onDetail: (row: reservationRow) => void;
   onApprove: (row: reservationRow) => void;
   onReject: (row: reservationRow) => void;
-};
-
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending: { label: "รอแอดมินอนุมัติ", color: "bg-yellow-100 text-yellow-800" },
-  adminApproved: { label: "รอผู้อนุมัติ", color: "bg-blue-100 text-blue-800" },
-  approverApproved: { label: "อนุมัติแล้ว", color: "bg-green-100 text-green-800" },
-  rejected: { label: "ปฏิเสธ", color: "bg-red-100 text-red-800" },
-  cancelled: { label: "ยกเลิก", color: "bg-gray-100 text-gray-600" },
 };
 
 function isActionable(status: string, role: UserRole) {
@@ -32,14 +26,8 @@ function toThaiDateDDMMYYYY(input: string | number | Date) {
   }).format(date);
 }
 
-function toHHmm(t: string | number | Date) {
-  const d = new Date(t);
-  if (!isNaN(d.getTime())) {
-    const hh = d.getHours().toString().padStart(2, "0");
-    const mm = d.getMinutes().toString().padStart(2, "0");
-    return `${hh}:${mm}`;
-  }
-  return String(t);
+function toHHmm(t: string) {
+  return (t ?? "").slice(0, 5);
 }
 
 export default function ReservationTable({
@@ -50,90 +38,114 @@ export default function ReservationTable({
   onReject,
 }: Props) {
   return (
-    <table className="min-w-full border-separate border-spacing-0">
-      <thead className="bg-gray-50 text-gray-700 border-b sticky top-0 z-10">
-        <tr>
-          <th className="text-left px-4 py-3 border-b font-semibold">ห้อง</th>
-          <th className="text-center px-4 py-3 border-b font-semibold">วันที่/เวลา</th>
-          <th className="text-left px-4 py-3 border-b font-semibold">ผู้จอง</th>
-          <th className="text-center px-4 py-3 border-b font-semibold">เบอร์โทร</th>
-          <th className="text-center px-4 py-3 border-b font-semibold">จำนวนคน</th>
-          <th className="text-center px-4 py-3 border-b font-semibold">สถานะ</th>
-          <th className="text-center px-4 py-3 border-b font-semibold">ดำเนินการ</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, idx) => {
-          const canAction = isActionable(row.reservation_status, userRole);
-          const statusInfo = STATUS_MAP[row.reservation_status] || { label: row.reservation_status, color: "bg-gray-100 text-gray-600" };
-          return (
-            <tr
-              key={(row as any).id ?? row.reservation_id ?? idx}
-              className="hover:bg-slate-50/50 transition-colors"
-            >
-              <td className="border-b px-4 py-3 align-middle">
-                <div className="font-semibold text-gray-900">{row.room_code || row.room_id}</div>
-                <div className="text-xs text-gray-500">
-                  {row.building && <span>{row.building}</span>}
-                  {row.floor && <span> • ชั้น {row.floor}</span>}
-                </div>
-              </td>
-              <td className="text-center border-b px-4 py-3 align-middle">
-                <div className="font-medium text-gray-900">{toThaiDateDDMMYYYY(row.booking_date)}</div>
-                <div className="text-sm text-slate-700 font-medium">
-                  {toHHmm(row.start_time)} - {toHHmm(row.end_time)}
-                </div>
-              </td>
-              <td className="border-b px-4 py-3 align-middle">
-                <div className="font-medium text-gray-900">{row.username}</div>
-                <div className="text-xs text-gray-500">{row.department || row.email}</div>
-              </td>
-              <td className="text-center border-b px-4 py-3 align-middle text-sm text-gray-700">
-                {row.phone || "-"}
-              </td>
-              <td className="text-center border-b px-4 py-3 align-middle">
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-800 font-semibold text-sm">
-                  {row.number_of_users}
-                </span>
-              </td>
-              <td className="text-center border-b px-4 py-3 align-middle">
-                <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                  {statusInfo.label}
-                </span>
-              </td>
-              <td className="px-3 py-3 text-center border-b">
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onDetail(row)}
-                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
-                  >
-                    รายละเอียด
-                  </button>
-                  {canAction && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => onApprove(row)}
-                        className="px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
-                      >
-                        อนุมัติ
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onReject(row)}
-                        className="px-3 py-1.5 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-                      >
-                        ปฏิเสธ
-                      </button>
-                    </>
-                  )}
-                </div>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <div className="overflow-x-auto">
+      <table className="min-w-full border-separate border-spacing-0">
+        <thead className="sticky top-0 z-10 bg-slate-50 text-slate-800">
+          <tr>
+            <th className="border-b-2 border-stone-200 px-4 py-4 text-left text-base font-bold">
+              ห้อง
+            </th>
+            <th className="border-b-2 border-stone-200 px-4 py-4 text-center text-base font-bold">
+              วันที่ / เวลา
+            </th>
+            <th className="border-b-2 border-stone-200 px-4 py-4 text-left text-base font-bold">
+              ผู้จอง
+            </th>
+            <th className="border-b-2 border-stone-200 px-4 py-4 text-center text-base font-bold">
+              เบอร์โทร
+            </th>
+            <th className="border-b-2 border-stone-200 px-4 py-4 text-center text-base font-bold">
+              จำนวนคน
+            </th>
+            <th className="border-b-2 border-stone-200 px-4 py-4 text-center text-base font-bold">
+              สถานะ
+            </th>
+            <th className="border-b-2 border-stone-200 px-4 py-4 text-center text-base font-bold">
+              ดำเนินการ
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, idx) => {
+            const canAction = isActionable(row.reservation_status, userRole);
+            return (
+              <tr
+                key={row.reservation_id ?? idx}
+                className="transition-colors hover:bg-slate-50"
+              >
+                <td className="border-b border-stone-200 px-4 py-4 align-middle">
+                  <div className="text-base font-bold text-slate-900">
+                    {row.room_code || row.room_id}
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    {row.building && <span>{row.building}</span>}
+                    {row.floor && <span> • ชั้น {row.floor}</span>}
+                  </div>
+                </td>
+                <td className="border-b border-stone-200 px-4 py-4 text-center align-middle">
+                  <div className="text-base font-semibold text-slate-900">
+                    {toThaiDateDDMMYYYY(row.booking_date)}
+                  </div>
+                  <div className="text-base text-slate-700">
+                    {toHHmm(row.start_time)} - {toHHmm(row.end_time)} น.
+                  </div>
+                </td>
+                <td className="border-b border-stone-200 px-4 py-4 align-middle">
+                  <div className="text-base font-semibold text-slate-900">
+                    {row.username || "(ผู้ใช้ถูกลบแล้ว)"}
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    {row.department || row.email}
+                  </div>
+                </td>
+                <td className="border-b border-stone-200 px-4 py-4 text-center align-middle text-base text-slate-800">
+                  {row.phone || "-"}
+                </td>
+                <td className="border-b border-stone-200 px-4 py-4 text-center align-middle">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-base font-bold text-slate-900">
+                    {row.number_of_users}
+                  </span>
+                </td>
+                <td className="border-b border-stone-200 px-4 py-4 text-center align-middle">
+                  <StatusBadge status={row.reservation_status} />
+                </td>
+                <td className="border-b border-stone-200 px-3 py-4 text-center">
+                  <div className="flex flex-col items-stretch justify-center gap-2 xl:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => onDetail(row)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-stone-300 px-4 py-2.5 text-base font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                    >
+                      <Info className="h-5 w-5" aria-hidden="true" />
+                      รายละเอียด
+                    </button>
+                    {canAction && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onApprove(row)}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-emerald-800"
+                        >
+                          <Check className="h-5 w-5" aria-hidden="true" />
+                          อนุมัติ
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onReject(row)}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-700 px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-red-800"
+                        >
+                          <X className="h-5 w-5" aria-hidden="true" />
+                          ไม่อนุมัติ
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

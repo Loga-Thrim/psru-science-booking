@@ -10,7 +10,9 @@ export enum bookingStatus {
     overCapacity,
     tooFarAhead,
     conflict,
-    invalidInput
+    invalidInput,
+    notFound,
+    notEditable
 }
 
 export enum reservationState {

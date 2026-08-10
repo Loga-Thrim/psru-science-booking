@@ -21,6 +21,9 @@ import {
 } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/th";
+import clsx from "clsx";
+import TimeSlotPicker from "../components/booking/TimeSlotPicker";
+import { thaiFullDate, thaiShortDate, thaiMonthYear } from "../constants/dates";
 
 dayjs.locale("th");
 
@@ -173,17 +176,19 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
           </div>
         )}
         
+        {/* This badge reflects whether the room is open for booking at all.
+            It is not a statement about any particular day being free. */}
         {!isAvailable && (
-          <div className="absolute inset-0 bg-gray-900/50 flex items-center justify-center">
-            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-              ไม่พร้อมใช้งาน
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/60">
+            <span className="rounded-full bg-red-600 px-4 py-2 text-base font-bold text-white">
+              ปิดปรับปรุง ยังจองไม่ได้
             </span>
           </div>
         )}
         {isAvailable && (
           <div className="absolute top-3 right-3">
-            <span className="bg-emerald-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-              ว่าง
+            <span className="rounded-full bg-emerald-700 px-3 py-1.5 text-sm font-bold text-white">
+              เปิดให้จอง
             </span>
           </div>
         )}
@@ -191,23 +196,23 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
 
       {/* Room Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 text-lg mb-1">
+        <h3 className="mb-1 text-xl font-bold text-slate-900">
           {room.room_code}
         </h3>
 
-        <div className="flex items-center gap-1 text-sm text-gray-500 mb-2">
-          <MapPin className="w-3.5 h-3.5" />
+        <div className="mb-2 flex items-center gap-1.5 text-base text-slate-600">
+          <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{room.building || "-"}</span>
           {room.floor && <span>• ชั้น {room.floor}</span>}
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-          <div className="flex items-center gap-1">
-            <Users className="w-4 h-4 text-gray-400" />
+        <div className="mb-3 flex items-center gap-4 text-base text-slate-700">
+          <div className="flex items-center gap-1.5">
+            <Users className="h-5 w-5 text-slate-400" aria-hidden="true" />
             <span>{room.capacity} ที่นั่ง</span>
           </div>
-          <div className="text-gray-400">|</div>
-          <span className="text-slate-600 font-medium">{room.room_type}</span>
+          <div className="text-slate-300">|</div>
+          <span className="font-medium text-slate-700">{room.room_type}</span>
         </div>
 
         {/* Equipment Tags */}
@@ -707,9 +712,16 @@ function BookingModal({
     }
   };
 
+  const overCapacity =
+    Number.isFinite(form.numberOfUsers) && form.numberOfUsers > room.capacity;
+
   const canProceedToForm = form.date && form.startTime && form.endTime && !hasTimeConflict();
   const canSubmit =
-    canProceedToForm && form.reservationType && form.phoneNumber;
+    canProceedToForm &&
+    form.reservationType &&
+    form.phoneNumber &&
+    form.numberOfUsers >= 1 &&
+    !overCapacity;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -756,7 +768,7 @@ function BookingModal({
                   <div>
                     <span className="text-gray-500">วันที่:</span>
                     <span className="ml-2 font-medium">
-                      {dayjs(form.date).format("D MMM YYYY")}
+                      {thaiShortDate(form.date)}
                     </span>
                   </div>
                   <div>
@@ -848,7 +860,7 @@ function BookingModal({
                           <ChevronLeft className="w-5 h-5 text-gray-600" />
                         </button>
                         <h3 className="text-lg font-semibold text-gray-800">
-                          {currentMonth.format("MMMM YYYY")}
+                          {thaiMonthYear(currentMonth.toDate())}
                         </h3>
                         <button
                           type="button"
@@ -939,7 +951,7 @@ function BookingModal({
                       <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <p className="text-sm text-slate-700 font-medium flex items-center gap-2">
                           <CheckCircle className="w-4 h-4" />
-                          {dayjs(form.date).format("วันddddที่ D MMMM YYYY")}
+                          {thaiFullDate(form.date)}
                         </p>
                       </div>
                     )}
@@ -947,243 +959,23 @@ function BookingModal({
 
                   {/* Time Selection */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      <Clock className="w-4 h-4 inline mr-1" />
+                    <label className="field-label flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-slate-500" aria-hidden="true" />
                       เลือกช่วงเวลา
                     </label>
 
-                    {/* Booked Slots Warning */}
-                    {loadingSlots && (
-                      <div className="mb-3 p-3 bg-gray-100 rounded-lg text-sm text-gray-600">
-                        กำลังโหลดข้อมูลการจอง...
-                      </div>
-                    )}
-                    {!loadingSlots && bookedSlots.length > 0 && (
-                      <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-sm font-medium text-amber-800 mb-2">⚠️ ช่วงเวลาที่ถูกจองแล้ว:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {bookedSlots.map((slot, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
-                              {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                              {slot.username && <span className="text-red-500 ml-1">({slot.username})</span>}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Time Range Card */}
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      {/* Start & End Time Inputs */}
-                      <div className="flex items-center gap-3">
-                        {/* Start Time */}
-                        <div className="flex-1">
-                          <div className="text-xs text-gray-500 mb-1.5 font-medium">เริ่มต้น</div>
-                          <div className="relative">
-                            <select
-                              value={form.startTime}
-                              onChange={(e) =>
-                                setForm((f) => ({
-                                  ...f,
-                                  startTime: e.target.value,
-                                  endTime: "",
-                                }))
-                              }
-                              className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-slate-400 focus:ring-0 cursor-pointer hover:border-slate-300 transition-colors"
-                            >
-                              <option value="">--:--</option>
-                              {timeSlots.map((t: string) => (
-                                <option 
-                                  key={t} 
-                                  value={t}
-                                  disabled={isTimeSlotBooked(t)}
-                                  className={isTimeSlotBooked(t) ? "text-red-400 bg-red-50" : ""}
-                                >
-                                  {t} {isTimeSlotBooked(t) ? "(จองแล้ว)" : ""}
-                                </option>
-                              ))}
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                              <ChevronDown className="w-4 h-4" />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Arrow */}
-                        <div className="flex flex-col items-center pt-5">
-                          <ArrowRight className="w-5 h-5 text-slate-500" />
-                        </div>
-
-                        {/* End Time */}
-                        <div className="flex-1">
-                          <div className="text-xs text-gray-500 mb-1.5 font-medium">สิ้นสุด</div>
-                          <div className="relative">
-                            <select
-                              value={form.endTime}
-                              onChange={(e) =>
-                                setForm((f) => ({ ...f, endTime: e.target.value }))
-                              }
-                              disabled={!form.startTime}
-                              className="w-full appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-lg font-semibold text-gray-800 focus:border-slate-400 focus:ring-0 cursor-pointer hover:border-slate-300 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-200"
-                            >
-                              <option value="">--:--</option>
-                              {timeSlots.filter((t: string) => t > form.startTime).map((t: string) => {
-                                const wouldConflict = bookedSlots.some((slot) => {
-                                  const slotStart = formatTime(slot.start_time);
-                                  const slotEnd = formatTime(slot.end_time);
-                                  return form.startTime <= slotEnd && t >= slotStart;
-                                });
-                                return (
-                                  <option 
-                                    key={t} 
-                                    value={t}
-                                    disabled={wouldConflict}
-                                    className={wouldConflict ? "text-red-400 bg-red-50" : ""}
-                                  >
-                                    {t} {wouldConflict ? "(ทับซ้อน)" : ""}
-                                  </option>
-                                );
-                              })}
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                              <ChevronDown className="w-4 h-4" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Conflict Warning */}
-                      {hasTimeConflict() && (
-                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm">
-                          <AlertCircle className="w-4 h-4" />
-                          ช่วงเวลาที่เลือกทับซ้อนกับการจองที่มีอยู่แล้ว
-                        </div>
-                      )}
-
-                      {/* Quick Duration Chips */}
-                      {form.startTime && !form.endTime && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <div className="text-xs text-gray-500 mb-2">เลือกระยะเวลา:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              { label: "30 นาที", mins: 30 },
-                              { label: "1 ชม.", mins: 60 },
-                              { label: "1.5 ชม.", mins: 90 },
-                              { label: "2 ชม.", mins: 120 },
-                              { label: "3 ชม.", mins: 180 },
-                              { label: "4 ชม.", mins: 240 },
-                            ].map((preset) => {
-                              const [h, m] = form.startTime.split(":").map(Number);
-                              const startMins = h * 60 + m;
-                              const endMins = startMins + preset.mins;
-                              const endHour = Math.floor(endMins / 60);
-                              const endMin = endMins % 60;
-                              const endTimeStr = `${String(endHour).padStart(2, "0")}:${String(endMin).padStart(2, "0")}`;
-                              const isValid = endHour <= 20;
-
-                              return (
-                                <button
-                                  key={preset.label}
-                                  type="button"
-                                  disabled={!isValid}
-                                  onClick={() => setForm((f) => ({ ...f, endTime: endTimeStr }))}
-                                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                                    isValid
-                                      ? "bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-400 shadow-sm"
-                                      : "bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed"
-                                  }`}
-                                >
-                                  {preset.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Visual Summary */}
-                    {form.startTime && form.endTime && (
-                      <div className="bg-gradient-to-r from-slate-50 to-stone-50 rounded-xl p-4 border border-slate-200">
-                        {/* Timeline Bar */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xs text-gray-500 w-10">
-                            08:00
-                          </span>
-                          <div className="flex-1 h-6 bg-gray-200 rounded-full relative overflow-hidden">
-                            {(() => {
-                              const startMins =
-                                parseInt(form.startTime.split(":")[0]) * 60 +
-                                parseInt(form.startTime.split(":")[1]);
-                              const endMins =
-                                parseInt(form.endTime.split(":")[0]) * 60 +
-                                parseInt(form.endTime.split(":")[1]);
-                              const dayStart = 8 * 60;
-                              const dayEnd = 20 * 60;
-                              const totalMins = dayEnd - dayStart;
-                              const leftPercent =
-                                ((startMins - dayStart) / totalMins) * 100;
-                              const widthPercent =
-                                ((endMins - startMins) / totalMins) * 100;
-                              return (
-                                <div
-                                  className="absolute h-full bg-gradient-to-r from-slate-500 to-slate-600 rounded-full"
-                                  style={{
-                                    left: `${leftPercent}%`,
-                                    width: `${widthPercent}%`,
-                                  }}
-                                />
-                              );
-                            })()}
-                          </div>
-                          <span className="text-xs text-gray-500 w-10">
-                            20:00
-                          </span>
-                        </div>
-
-                        {/* Summary Text */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5 text-slate-700">
-                              <Clock className="w-4 h-4" />
-                              <span className="font-semibold">
-                                {form.startTime} - {form.endTime} น.
-                              </span>
-                            </div>
-                            <span className="px-2 py-0.5 bg-slate-200 text-slate-800 rounded-full text-xs font-medium">
-                              {(() => {
-                                const start =
-                                  parseInt(form.startTime.split(":")[0]) * 60 +
-                                  parseInt(form.startTime.split(":")[1]);
-                                const end =
-                                  parseInt(form.endTime.split(":")[0]) * 60 +
-                                  parseInt(form.endTime.split(":")[1]);
-                                const diff = end - start;
-                                const hours = Math.floor(diff / 60);
-                                const mins = diff % 60;
-                                return hours > 0
-                                  ? `${hours} ชม. ${mins > 0 ? `${mins} น.` : ""}`
-                                  : `${mins} นาที`;
-                              })()}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setForm((f) => ({
-                                ...f,
-                                startTime: "",
-                                endTime: "",
-                              }))
-                            }
-                            className="text-xs text-gray-500 hover:text-red-500 underline"
-                          >
-                            เปลี่ยน
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    <TimeSlotPicker
+                      slots={timeSlots}
+                      booked={bookedSlots}
+                      startTime={form.startTime}
+                      endTime={form.endTime}
+                      loading={loadingSlots}
+                      onChange={(startTime, endTime) =>
+                        setForm((f) => ({ ...f, startTime, endTime }))
+                      }
+                    />
                   </div>
+
                 </div>
               )}
 
@@ -1195,7 +987,7 @@ function BookingModal({
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4 text-slate-600" />
                         <span className="font-medium">
-                          {dayjs(form.date).format("D MMM YYYY")}
+                          {thaiShortDate(form.date)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -1277,26 +1069,41 @@ function BookingModal({
 
                   {/* Number of Users */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Users className="w-4 h-4 inline mr-1" />
-                      จำนวนผู้เข้าใช้ <span className="text-red-500">*</span>
+                    <label htmlFor="number-of-users" className="field-label flex items-center gap-2">
+                      <Users className="h-5 w-5 text-slate-500" aria-hidden="true" />
+                      จำนวนผู้เข้าใช้ <span className="text-red-600">*</span>
                     </label>
                     <input
+                      id="number-of-users"
                       type="number"
                       min={1}
                       max={room.capacity}
                       value={form.numberOfUsers}
+                      aria-invalid={overCapacity || undefined}
+                      aria-describedby="number-of-users-hint"
                       onChange={(e) =>
                         setForm((f) => ({
                           ...f,
                           numberOfUsers: parseInt(e.target.value),
                         }))
                       }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                      className={clsx(
+                        "input-luxury",
+                        overCapacity && "border-red-500 focus:border-red-600 focus:ring-red-200"
+                      )}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      ความจุห้องสูงสุด {room.capacity} คน
-                    </p>
+                    {/* The browser's `max` does not stop typing, so say it here
+                        rather than letting the server reject it after submit. */}
+                    {overCapacity ? (
+                      <p id="number-of-users-hint" className="field-error" role="alert">
+                        <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+                        ห้องนี้รับได้สูงสุด {room.capacity} คน กรุณาลดจำนวนลง
+                      </p>
+                    ) : (
+                      <p id="number-of-users-hint" className="field-hint">
+                        ห้องนี้รับได้สูงสุด {room.capacity} คน
+                      </p>
+                    )}
                   </div>
 
                   {/* Phone */}

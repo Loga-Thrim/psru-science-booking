@@ -14,10 +14,54 @@
     --gradient-warning: linear-gradient(135deg, #92400e 0%, #b45309 100%);
     --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   }
-  
+
+  /* Most of the people booking rooms here are older faculty and staff.
+     Scaling the root size lifts every rem-based size in one place. */
+  html {
+    font-size: 17px;
+  }
+
   body {
-    @apply antialiased;
+    @apply antialiased text-slate-800;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    line-height: 1.65;
+  }
+
+  /* Thai has no ascenders/descenders to spare, so keep body copy roomy. */
+  p, li, td, label {
+    line-height: 1.7;
+  }
+
+  /* A visible keyboard focus ring on everything interactive. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  /* Comfortable hit targets. 44px is the accepted minimum for older hands. */
+  button,
+  [role="button"],
+  select,
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea {
+    min-height: 2.75rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
@@ -55,26 +99,41 @@
   }
   
   .btn-primary {
-    @apply px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300 transform shadow-md shadow-slate-500/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-slate-500/30;
+    @apply px-7 py-3.5 text-base rounded-xl font-semibold text-white transition-all duration-300 transform shadow-md shadow-slate-500/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-slate-500/30;
     background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   }
-  
+
   .btn-secondary {
-    @apply px-6 py-3 rounded-xl font-semibold text-slate-700 bg-white border-2 border-stone-200 transition-all duration-300 shadow-md shadow-stone-200/50 hover:border-stone-400 hover:shadow-lg hover:shadow-stone-300/50;
+    @apply px-7 py-3.5 text-base rounded-xl font-semibold text-slate-700 bg-white border-2 border-stone-300 transition-all duration-300 shadow-md shadow-stone-200/50 hover:border-stone-500 hover:shadow-lg hover:shadow-stone-300/50;
   }
-  
+
   .btn-danger {
-    @apply px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300 transform shadow-md shadow-red-400/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-red-400/30;
+    @apply px-7 py-3.5 text-base rounded-xl font-semibold text-white transition-all duration-300 transform shadow-md shadow-red-400/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-red-400/30;
     background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
   }
-  
+
   .btn-success {
-    @apply px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300 transform shadow-md shadow-emerald-500/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/30;
+    @apply px-7 py-3.5 text-base rounded-xl font-semibold text-white transition-all duration-300 transform shadow-md shadow-emerald-500/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/30;
     background: linear-gradient(135deg, #047857 0%, #059669 100%);
   }
-  
+
   .input-luxury {
-    @apply w-full px-4 py-3 rounded-xl border-2 border-stone-200 bg-white/50 backdrop-blur-sm transition-all duration-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 focus:outline-none;
+    @apply w-full px-4 py-3.5 text-base rounded-xl border-2 border-stone-300 bg-white transition-all duration-300 focus:border-slate-500 focus:ring-4 focus:ring-slate-200 focus:outline-none;
+  }
+
+  /* Field labels sit above every input; keep them readable, not decorative. */
+  .field-label {
+    @apply block text-base font-semibold text-slate-800 mb-1.5;
+  }
+
+  /* Short helper line under a field explaining what to enter. */
+  .field-hint {
+    @apply mt-1.5 text-sm text-slate-600;
+  }
+
+  /* Inline validation message. Paired with an icon by the caller. */
+  .field-error {
+    @apply mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-red-700;
   }
   
   .stat-card {
@@ -89,16 +148,18 @@
     @apply bg-gradient-to-r from-stone-50 to-slate-50;
   }
   
+  /* `uppercase tracking-wider` at text-xs is unreadable for older eyes and
+     does nothing for Thai, which has no letter case. */
   .table-luxury th {
-    @apply px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider;
+    @apply px-6 py-4 text-left text-base font-bold text-slate-800;
   }
-  
+
   .table-luxury td {
-    @apply px-6 py-4 whitespace-nowrap;
+    @apply px-6 py-4 text-base text-slate-800 whitespace-nowrap;
   }
-  
+
   .table-luxury tbody tr {
-    @apply border-b border-stone-100 transition-all duration-200 hover:bg-stone-50/50;
+    @apply border-b-2 border-stone-100 transition-all duration-200 hover:bg-slate-50;
   }
 }
 

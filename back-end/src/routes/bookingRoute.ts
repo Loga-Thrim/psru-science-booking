@@ -6,6 +6,7 @@ import getNewBookingRoomControll from "../controllers/getBookingRoomControll";
 import bookingController from "../controllers/bookingControll";
 import bookingListControll from "../controllers/bookingListControll";
 import bookingDeleteControll from "../controllers/bookingDeleteControll";
+import bookingUpdateControll from "../controllers/bookingUpdateControll";
 
 export default function bookingRoute(app: Express){
   app.get("/book-rooms", checkUser, getBookRoomsControll);
@@ -13,5 +14,6 @@ export default function bookingRoute(app: Express){
   app.get("/book-room/:id", checkUser, getNewBookingRoomControll);
   app.post("/booking", checkUser, bookingController);
   app.get("/booking-list", checkUser, bookingListControll)
+  app.patch("/booking/:id", checkUser, bookingUpdateControll)
   app.delete("/booking/:id", checkUser, bookingDeleteControll)
 }
