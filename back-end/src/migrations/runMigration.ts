@@ -17,7 +17,8 @@ async function runMigration() {
     const migrationFiles = [
       '001_create_tables.sql',
       '002_add_room_fields.sql',
-      '003_add_room_images.sql'
+      '003_add_room_images.sql',
+      '004_add_reservation_fields.sql'
     ];
 
     console.log('Running migrations...');

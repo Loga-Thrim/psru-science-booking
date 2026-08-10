@@ -1,4 +1,5 @@
-export type UserRole = "admin" | "approver" | "caretaker" | "user";
+// Mirrors ROLES in back-end/src/dto/type.ts, which now rejects anything else.
+export type UserRole = "admin" | "approver" | "user";
 
 export interface UserLogin {
   user_id: string;
@@ -21,7 +22,8 @@ export interface Booking {
 }
 
 export type UserRow = {
-  user_id: number;
+  // CHAR(8) in the database, e.g. "9BD9C27E" — not numeric.
+  user_id: string;
   email: string;
   username: string;
   department: string;
@@ -35,6 +37,9 @@ export type UpsertForm = {
   role: UserRole;
   password?: string;
 };
+
+// Must stay in sync with MIN_PASSWORD_LENGTH in back-end/src/dto/type.ts
+export const MIN_PASSWORD_LENGTH = 8;
 
 export const DEPARTMENTS = [
   "คณะครุศาสตร์",
@@ -68,6 +73,29 @@ export interface Room {
 }
 export type ReservationType = "teaching" | "exam" | "activity" | "other" | "";
 
+// Single source of truth for booking-type wording. Several pages used to keep their own
+// map built from an older vocabulary, so "exam" and "activity" rendered as "อื่นๆ".
+export const RESERVATION_TYPE_LABELS: Record<string, string> = {
+  teaching: "จัดการเรียนการสอน",
+  exam: "สอบ",
+  activity: "กิจกรรม/อบรม/ประชุม",
+  meeting: "ประชุม",
+  other: "อื่นๆ",
+};
+
+export const reservationTypeLabel = (type?: string | null): string =>
+  (type && RESERVATION_TYPE_LABELS[type]) || type || "-";
+
+export const RESERVATION_STATUS_LABELS: Record<string, string> = {
+  pending: "รอแอดมินอนุมัติ",
+  adminApproved: "รอผู้อนุมัติ",
+  approverApproved: "อนุมัติแล้ว",
+  rejected: "ไม่อนุมัติ",
+};
+
+export const reservationStatusLabel = (status?: string | null): string =>
+  (status && RESERVATION_STATUS_LABELS[status]) || status || "-";
+
 export type reservationRow = {
   reservation_id: string,
   room_id: string,
@@ -79,10 +107,11 @@ export type reservationRow = {
   reservation_type: string,
   reservation_status: string,
   reservation_reason: string,
+  equipment_needs?: string | null,
+  caretaker_name?: string | null,
   rejection_reason: null | string,
   phone: string,
   email: string,
-  password: string,
   username: string,
   department: string,
   role: string,

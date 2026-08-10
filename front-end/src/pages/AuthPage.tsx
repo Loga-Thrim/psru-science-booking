@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { LogIn, UserPlus, Mail, Lock, User, GraduationCap } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { DEPARTMENTS } from "../types/types";
+import { DEPARTMENTS, MIN_PASSWORD_LENGTH } from "../types/types";
 
 const api = import.meta.env.VITE_API;
 
@@ -22,9 +22,12 @@ function AuthPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const user = localStorage.getItem("user");
-  const token = localStorage.getItem("token");
-  if (user && token) navigate("/book-room");
+  // Navigating during render warns in React; redirect as an effect instead.
+  React.useEffect(() => {
+    if (localStorage.getItem("user") && localStorage.getItem("token")) {
+      navigate("/book-room", { replace: true });
+    }
+  }, [navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,8 +57,9 @@ function AuthPage() {
         if (res.ok) {
           const { token, rows } = await res.json();
           localStorage.setItem("token", token);
-          const [{ id, username, email, department, role }] = rows;
-          await login(id, username, email, department, role);
+          // The API returns user_id; destructuring `id` left user_id undefined until reload.
+          const [{ user_id, username, email, department, role }] = rows;
+          await login(user_id, username, email, department, role, token);
           navigate("/book-room");
         } else {
           const { message } = await res.json();
@@ -64,6 +68,17 @@ function AuthPage() {
       } else {
         if (formData.password !== formData.confirmPassword) {
           setError("รหัสผ่านไม่ตรงกัน");
+          setLoading(false);
+          return;
+        }
+        // Mirrors the server-side rule so the user sees the problem before submitting.
+        if (formData.password.length < MIN_PASSWORD_LENGTH) {
+          setError(`รหัสผ่านต้องมีอย่างน้อย ${MIN_PASSWORD_LENGTH} ตัวอักษร`);
+          setLoading(false);
+          return;
+        }
+        if (!formData.department) {
+          setError("กรุณาเลือกคณะ");
           setLoading(false);
           return;
         }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { reservationStatusLabel } from '../types/types';
 import { 
   DoorOpen, 
   Users, 
@@ -111,24 +112,7 @@ function DashboardPage() {
     },
   ];
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      pending: 'รอดำเนินการ',
-      adminApproved: 'แอดมินอนุมัติ',
-      approverApproved: 'อนุมัติแล้ว',
-      rejected: 'ไม่อนุมัติ'
-    };
-    return labels[status] || status;
-  };
-
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      teaching: 'การสอน',
-      meeting: 'ประชุม',
-      other: 'อื่นๆ'
-    };
-    return labels[type] || type;
-  };
+  const getStatusLabel = reservationStatusLabel;
 
   const formatDate = (dateStr: string) => {
     try {

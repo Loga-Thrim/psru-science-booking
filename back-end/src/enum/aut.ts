@@ -27,6 +27,10 @@ export enum deleteStatus {
 export enum updateStatus {
   updated,
   canNotUpdate,
+  notFound,
+  duplicateEmail,
+  duplicateUserName,
+  duplicateRoomCode,
 }
 
 export enum createRoomStatus {

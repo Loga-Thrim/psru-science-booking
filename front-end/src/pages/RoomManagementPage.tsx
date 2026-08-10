@@ -285,7 +285,7 @@ export default function RoomManagementPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {rooms.filter(r => r.status === 'avaliable' || !r.status).length}
+                {rooms.filter(r => r.status !== 'unavailable' && r.status !== 'unavaliable').length}
               </p>
               <p className="text-sm text-gray-500">พร้อมใช้งาน</p>
             </div>

@@ -44,11 +44,12 @@ const STATUS_META: Record<
   { label: string; className: string }
 > = {
   available: {
-    label: "ว่าง",
+    label: "เปิดให้จอง",
     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
   },
+  // This flag means the room is closed for booking, not that a booking exists.
   unavailable: {
-    label: "จองแล้ว",
+    label: "ปิดใช้งาน",
     className: "border-slate-200 bg-slate-50 text-slate-800",
   },
 };

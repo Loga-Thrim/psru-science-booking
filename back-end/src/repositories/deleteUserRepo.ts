@@ -1,7 +1,7 @@
 import dbConnect from "../configs/dbConnect";
 import { ResultSetHeader } from "mysql2";
 import { deleteStatus } from "../enum/aut";
-export default async function deleteUsersRepo(id: number) {
+export default async function deleteUsersRepo(id: string) {
   try {
     const connect = await dbConnect();
     const [result] = await connect.execute<ResultSetHeader>("DELETE FROM users WHERE user_id = ?", [id]);

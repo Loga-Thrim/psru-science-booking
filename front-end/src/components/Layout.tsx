@@ -33,7 +33,10 @@ function Layout() {
     ...(user?.role === 'approver' ? [
       { name: 'อนุมัติการจอง', href: '/approvals', icon: ClipboardCheck },
     ] : []),
-    { name: 'รายงาน', href: '/reports', icon: BarChart3 },
+    // Reports aggregate every user's bookings, so they are staff-only.
+    ...(user?.role === 'admin' || user?.role === 'approver' ? [
+      { name: 'รายงาน', href: '/reports', icon: BarChart3 },
+    ] : []),
   ];
 
   return (

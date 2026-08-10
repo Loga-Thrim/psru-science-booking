@@ -1,6 +1,8 @@
 services:
   db:
-    image: mysql:latest
+    # Pinned to an LTS release. "latest" moved from 9.x to 26.x and MySQL refuses to
+    # upgrade across that gap, which left the container crash-looping on an existing volume.
+    image: mysql:8.4
     container_name: mysql
     ports:
       - "${MYSQL_PORT:-3306}:3306"
@@ -8,6 +10,9 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password01admin}
       MYSQL_DATABASE: ${DB_NAME:-psru_booking}
       MYSQL_ROOT_HOST: ${MYSQL_ROOT_HOST:-%}
+      # CURDATE() decides what "today" means for past-date and advance-booking checks.
+      # Containers default to UTC, which is a day behind the users for 7 hours every night.
+      TZ: ${TZ:-Asia/Bangkok}
     volumes:
       - db:/var/lib/mysql
     healthcheck:
@@ -23,6 +28,9 @@ services:
     container_name: psru-backend
     env_file:
       - ./back-end/.env
+    environment:
+      # Must match the db service, or the two disagree about the current date.
+      TZ: ${TZ:-Asia/Bangkok}
     volumes:
       - ./back-end/uploads:/app/uploads
     depends_on:
@@ -43,7 +51,8 @@ services:
     image: nginx:alpine
     container_name: psru-nginx
     ports:
-      - "80:80"
+      # Override with APP_PORT if 80 is already taken, e.g. APP_PORT=8080.
+      - "${APP_PORT:-80}:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

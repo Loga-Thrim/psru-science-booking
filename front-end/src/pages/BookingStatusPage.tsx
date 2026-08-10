@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { reservationTypeLabel } from "../types/types";
 
 const api = import.meta.env.VITE_API;
 
@@ -258,11 +259,7 @@ export default function BookingStatusPage() {
                       {formatTime(r.start_time)}–{formatTime(r.end_time)}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
-                      {r.reservation_type === "teaching"
-                        ? "สอน"
-                        : r.reservation_type === "meeting"
-                          ? "ประชุม"
-                          : "อื่นๆ"}
+                      {reservationTypeLabel(r.reservation_type)}
                     </td>
                     <td className="px-4 py-3 text-gray-700">
                       {r.number_of_users}
@@ -357,11 +354,7 @@ export default function BookingStatusPage() {
                     />
                     <Item
                       label="ประเภท"
-                      value={
-                        detail.reservation_type === "teaching" ? "สอน"
-                          : detail.reservation_type === "meeting" ? "ประชุม"
-                            : "อื่นๆ"
-                      }
+                      value={reservationTypeLabel(detail.reservation_type)}
                     />
                   </div>
                 </div>

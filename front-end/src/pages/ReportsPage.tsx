@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { reservationRow, reservationStatusLabel, reservationTypeLabel } from '../types/types';
 import { 
   BarChart3, 
   Calendar, 
@@ -27,8 +28,36 @@ interface ReportStats {
   bookingsByType: { type: string; count: number }[];
 }
 
+// Each option is a calendar window, not an open-ended "from now on" cut-off:
+// "วันนี้" means bookings dated today, not every booking from today onwards.
+// Returns [start, end] inclusive, or null for "all time".
+function dateWindow(range: string): [Date, Date] | null {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  switch (range) {
+    case 'today':
+      return [midnight, midnight];
+    case 'week': {
+      const monday = new Date(midnight);
+      // getDay() is 0 on Sunday, which belongs to the week that started six days earlier.
+      monday.setDate(midnight.getDate() - ((midnight.getDay() + 6) % 7));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      return [monday, sunday];
+    }
+    case 'month':
+      return [
+        new Date(now.getFullYear(), now.getMonth(), 1),
+        new Date(now.getFullYear(), now.getMonth() + 1, 0),
+      ];
+    default:
+      return null;
+  }
+}
+
 function ReportsPage() {
   const [stats, setStats] = useState<ReportStats | null>(null);
+  const [bookings, setBookings] = useState<reservationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('all');
 
@@ -36,12 +65,17 @@ function ReportsPage() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${api}/dashboard-stats`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
+        const headers = { Authorization: `Bearer ${token}` };
+        // dashboard-stats covers room/user totals; the reservation list is what the
+        // date filter and the CSV export actually operate on.
+        const [statsRes, listRes] = await Promise.all([
+          fetch(`${api}/dashboard-stats`, { headers }),
+          fetch(`${api}/reservation-list`, { headers }),
+        ]);
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (listRes.ok) {
+          const data = await listRes.json();
+          setBookings(Array.isArray(data) ? data : []);
         }
       } catch (err) {
         console.error(err);
@@ -52,44 +86,84 @@ function ReportsPage() {
     fetchStats();
   }, []);
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      pending: 'รอดำเนินการ',
-      adminApproved: 'แอดมินอนุมัติ',
-      approverApproved: 'อนุมัติแล้ว',
-      rejected: 'ไม่อนุมัติ'
-    };
-    return labels[status] || status;
-  };
+  const filteredBookings = useMemo(() => {
+    const window = dateWindow(dateRange);
+    if (!window) return bookings;
+    const [start, end] = window;
+    return bookings.filter((b) => {
+      if (!b.booking_date) return false;
+      const d = new Date(`${String(b.booking_date).slice(0, 10)}T00:00:00`);
+      return !Number.isNaN(d.getTime()) && d >= start && d <= end;
+    });
+  }, [bookings, dateRange]);
 
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      teaching: 'การสอน',
-      meeting: 'ประชุม',
-      other: 'อื่นๆ'
+  // Every chart below is derived from the filtered set so the date filter has real effect.
+  const view = useMemo(() => {
+    const countBy = (key: (b: reservationRow) => string) => {
+      const acc: Record<string, number> = {};
+      for (const b of filteredBookings) {
+        const k = key(b) || 'other';
+        acc[k] = (acc[k] ?? 0) + 1;
+      }
+      return acc;
     };
-    return labels[type] || type;
+
+    const byRoom = countBy((b) => b.room_code || b.room_id || '-');
+    const roomUtilization = Object.entries(byRoom)
+      .map(([room_code, count]) => ({ room_code, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const bookingsByType = Object.entries(countBy((b) => b.reservation_type))
+      .map(([type, count]) => ({ type, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const bookingsByStatus = Object.entries(countBy((b) => b.reservation_status))
+      .map(([status, count]) => ({ status, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return { roomUtilization, bookingsByType, bookingsByStatus };
+  }, [filteredBookings]);
+
+  const getStatusLabel = reservationStatusLabel;
+  const getTypeLabel = reservationTypeLabel;
+
+  // Wraps a field in quotes when it contains a comma, quote or newline, otherwise
+  // a value like "อาคาร 1, ชั้น 2" would silently split into two columns.
+  const csvCell = (value: unknown) => {
+    const s = value === null || value === undefined ? '' : String(value);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
 
   const exportToCSV = () => {
-    if (!stats?.recentBookings) return;
-    
-    const headers = ['ห้อง', 'ผู้จอง', 'วันที่', 'เวลาเริ่ม', 'เวลาสิ้นสุด', 'สถานะ'];
-    const rows = stats.recentBookings.map(b => [
+    if (filteredBookings.length === 0) return;
+
+    const headers = ['รหัสการจอง', 'ห้อง', 'อาคาร', 'ผู้จอง', 'คณะ/หน่วยงาน', 'เบอร์โทร', 'วันที่', 'เวลาเริ่ม', 'เวลาสิ้นสุด', 'จำนวนคน', 'ประเภท', 'สถานะ', 'เหตุผลการจอง', 'เหตุผลการปฏิเสธ'];
+    const rows = filteredBookings.map(b => [
+      b.reservation_id,
       b.room_code,
+      b.building,
       b.username,
+      b.department,
+      b.phone,
       b.booking_date,
       b.start_time,
       b.end_time,
-      getStatusLabel(b.reservation_status)
+      b.number_of_users,
+      getTypeLabel(b.reservation_type),
+      getStatusLabel(b.reservation_status),
+      b.reservation_reason,
+      b.rejection_reason,
     ]);
-    
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+
+    const csvContent = [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `booking-report-${new Date().toISOString().split('T')[0]}.csv`;
+    link.href = url;
+    link.download = `booking-report-${dateRange}-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -103,10 +177,12 @@ function ReportsPage() {
     );
   }
 
-  const approvedCount = stats?.bookingsByStatus?.find(s => s.status === 'approverApproved')?.count || 0;
-  const rejectedCount = stats?.bookingsByStatus?.find(s => s.status === 'rejected')?.count || 0;
-  const pendingCount = stats?.bookingsByStatus?.find(s => s.status === 'pending')?.count || 0;
-  const totalBookings = stats?.totalBookings || 0;
+  const statusCount = (status: string) => view.bookingsByStatus.find(s => s.status === status)?.count || 0;
+  const approvedCount = statusCount('approverApproved');
+  const rejectedCount = statusCount('rejected');
+  // "รอดำเนินการ" covers both approval stages that have not finished yet.
+  const pendingCount = statusCount('pending') + statusCount('adminApproved');
+  const totalBookings = filteredBookings.length;
   const approvalRate = totalBookings > 0 ? ((approvedCount / totalBookings) * 100).toFixed(1) : '0';
 
   return (
@@ -207,9 +283,9 @@ function ReportsPage() {
             <DoorOpen className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {stats?.roomUtilization && stats.roomUtilization.length > 0 ? (
-              stats.roomUtilization.map((room, index) => {
-                const maxCount = Math.max(...stats.roomUtilization.map(r => r.count));
+            {view.roomUtilization.length > 0 ? (
+              view.roomUtilization.map((room, index) => {
+                const maxCount = Math.max(...view.roomUtilization.map(r => r.count));
                 const percentage = maxCount > 0 ? (room.count / maxCount) * 100 : 0;
                 const colors = [
                   'from-violet-500 to-purple-500',
@@ -249,17 +325,21 @@ function ReportsPage() {
             <Filter className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {stats?.bookingsByType && stats.bookingsByType.length > 0 ? (
-              stats.bookingsByType.map((item) => {
-                const total = stats.bookingsByType.reduce((sum, t) => sum + t.count, 0);
+            {view.bookingsByType.length > 0 ? (
+              view.bookingsByType.map((item) => {
+                const total = view.bookingsByType.reduce((sum, t) => sum + t.count, 0);
                 const percentage = total > 0 ? (item.count / total) * 100 : 0;
                 const typeColors: Record<string, string> = {
                   teaching: 'from-blue-500 to-indigo-500',
+                  exam: 'from-amber-500 to-orange-500',
+                  activity: 'from-emerald-500 to-teal-500',
                   meeting: 'from-emerald-500 to-teal-500',
                   other: 'from-gray-400 to-gray-500'
                 };
                 const typeIcons: Record<string, string> = {
                   teaching: '📚',
+                  exam: '📝',
+                  activity: '👥',
                   meeting: '👥',
                   other: '📋'
                 };
@@ -298,7 +378,7 @@ function ReportsPage() {
           <span className="text-sm text-gray-500">รวม {totalBookings} รายการ</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats?.bookingsByStatus?.map((item) => {
+          {view.bookingsByStatus.map((item) => {
             const percentage = totalBookings > 0 ? ((item.count / totalBookings) * 100).toFixed(1) : '0';
             const statusConfig: Record<string, { bg: string; text: string; icon: any }> = {
               pending: { bg: 'bg-slate-50 border-slate-200', text: 'text-slate-800', icon: Clock },

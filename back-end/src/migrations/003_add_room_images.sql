@@ -2,8 +2,9 @@
 -- Run this script after rooms have been created
 -- This will add 4 unique images per room with variety
 
--- Delete existing images first (to avoid duplicates)
-DELETE FROM room_images;
+-- Clear only the previously seeded sample images so re-running stays idempotent.
+-- Rows uploaded by admins have a real image_path and must survive.
+DELETE FROM room_images WHERE image_path = 'external';
 
 -- Use row number to create variety
 SET @row_num = 0;

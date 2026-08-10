@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { reservationRow } from "../../types/types";
+import { reservationRow, reservationTypeLabel } from "../../types/types";
 import { FileText, X, Calendar, Clock, Users, User, Building, Phone, Mail, MessageSquare, AlertCircle, Monitor, UserCheck, Info } from "lucide-react";
 
 type Props = {
@@ -175,8 +175,20 @@ export default function ReservationDetailModal({ row, onClose }: Props) {
               <Field label="วันที่" value={toThaiDateDDMMYYYY(row.booking_date)} icon={<Calendar className="w-4 h-4" />} />
               <Field label="เวลา" value={`${toHHmm(row.start_time)} - ${toHHmm(row.end_time)}`} icon={<Clock className="w-4 h-4" />} />
               <Field label="จำนวนผู้เข้าใช้งาน" value={String(row.number_of_users)} icon={<Users className="w-4 h-4" />} />
-              <Field label="ประเภทการจอง" value={row.reservation_type} icon={<FileText className="w-4 h-4" />} />
+              <Field label="ประเภทการจอง" value={reservationTypeLabel(row.reservation_type)} icon={<FileText className="w-4 h-4" />} />
+              {row.caretaker_name && (
+                <Field label="ผู้ดูแลที่เลือก" value={row.caretaker_name} icon={<UserCheck className="w-4 h-4" />} />
+              )}
             </div>
+            {row.equipment_needs && (
+              <div className="mt-3 p-3 rounded-xl bg-gray-50/80">
+                <span className="text-xs font-medium text-gray-500 mb-1 block flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  อุปกรณ์ที่ผู้จองต้องการ
+                </span>
+                <p className="text-sm text-gray-700">{row.equipment_needs}</p>
+              </div>
+            )}
           </div>
 
           {/* User Info */}

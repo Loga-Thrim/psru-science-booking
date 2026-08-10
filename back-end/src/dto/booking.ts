@@ -6,9 +6,11 @@ export interface bookingRequest {
   end_time: string,
   number_of_users: number,
   reservation_type: string,
-  reservation_reason: string, 
+  reservation_reason: string,
   phone_number: string,
-  user_id: string
+  user_id: string,
+  equipment_needs?: string,
+  caretaker_name?: string
 }
 
 export interface bookingResponse {

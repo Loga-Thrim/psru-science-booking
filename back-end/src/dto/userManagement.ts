@@ -14,7 +14,7 @@ export interface createUserResponse {
 }
 
 export interface deleteUserRequest {
-  user_id: number;
+  user_id: string;
 }
 
 export interface deleteUserResponse {
@@ -22,7 +22,7 @@ export interface deleteUserResponse {
 }
 
 export interface updateUserRequest {
-  user_id: number;
+  user_id: string;
   email: string;
   username: string;
   department: string;

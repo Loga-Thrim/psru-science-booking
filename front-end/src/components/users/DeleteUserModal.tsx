@@ -9,7 +9,7 @@ export function DeleteUserModal({
 }: {
   user: UserRow;
   onClose: () => void;
-  onConfirm: (user_id: number) => Promise<void> | void;
+  onConfirm: (user_id: string) => Promise<void> | void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +54,12 @@ export function DeleteUserModal({
           <p className="text-sm text-red-500 mt-2 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
             การกระทำนี้ไม่สามารถย้อนกลับได้
+          </p>
+          {/* The reservations FK is ON DELETE SET NULL, so old bookings survive
+              without an owner and show a blank name on the approval screen. */}
+          <p className="text-sm text-amber-700 mt-3 rounded-xl bg-amber-50 border border-amber-200 p-3">
+            หากผู้ใช้รายนี้มีประวัติการจอง รายการจองจะยังคงอยู่ในระบบแต่จะไม่มีชื่อผู้จอง
+            แนะนำให้ตรวจสอบและจัดการรายการจองที่ค้างอยู่ก่อนลบบัญชี
           </p>
         </div>
 

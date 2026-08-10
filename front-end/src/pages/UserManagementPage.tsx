@@ -68,7 +68,7 @@ function UserManagementPage() {
     await loadUsers();
   };
 
-  const handleUpdate = async (payload: UpsertForm & { user_id: number }) => {
+  const handleUpdate = async (payload: UpsertForm & { user_id: string }) => {
     const token = localStorage.getItem("token");
     const body: any = {
       user_id: payload.user_id,
@@ -93,7 +93,7 @@ function UserManagementPage() {
     await loadUsers();
   };
 
-  const handleDelete = async (user_id: number) => {
+  const handleDelete = async (user_id: string) => {
     const token = localStorage.getItem("token");
     const res = await fetch(`${api}/users`, {
       method: "DELETE",

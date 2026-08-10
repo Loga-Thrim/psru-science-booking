@@ -555,24 +555,24 @@ function BookingModal({
     fetchBookedSlots();
   }, [form.date, room.room_id]);
 
-  // Check if a time slot conflicts with existing bookings
+  // A slot is unusable as a start time only if a booking is actually running then.
+  // The end boundary is exclusive: a booking that ends at 15:00 leaves 15:00 free.
   const isTimeSlotBooked = (time: string) => {
     return bookedSlots.some((slot) => {
       const slotStart = formatTime(slot.start_time);
       const slotEnd = formatTime(slot.end_time);
-      return time >= slotStart && time <= slotEnd;
+      return time >= slotStart && time < slotEnd;
     });
   };
 
-  // Check if selected time range conflicts
+  // Two ranges overlap when each starts strictly before the other ends, so
+  // back-to-back bookings (09:00-11:00 and 11:00-12:00) are allowed.
   const hasTimeConflict = () => {
     if (!form.startTime || !form.endTime) return false;
     return bookedSlots.some((slot) => {
       const slotStart = formatTime(slot.start_time);
       const slotEnd = formatTime(slot.end_time);
-      return (
-        (form.startTime <= slotEnd && form.endTime >= slotStart)
-      );
+      return form.startTime < slotEnd && form.endTime > slotStart;
     });
   };
 
@@ -593,6 +593,11 @@ function BookingModal({
       .split(",")
       .map((d) => d.trim().toLowerCase());
     const dayMap = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+    // The room's advance_booking_days is a real limit; the server rejects anything beyond it.
+    const advanceDays = Number(room.advance_booking_days);
+    const lastBookable =
+      Number.isFinite(advanceDays) && advanceDays > 0 ? today.add(advanceDays, "day") : null;
 
     const days: Array<{
       date: string;
@@ -621,12 +626,13 @@ function BookingModal({
       const dayKey = dayMap[date.day()];
       const isPast = date.isBefore(today, "day");
       const isDayAllowed = availableDaysConfig.includes(dayKey);
+      const isTooFarAhead = lastBookable ? date.isAfter(lastBookable, "day") : false;
 
       days.push({
         date: date.format("YYYY-MM-DD"),
         display: d,
         isCurrentMonth: true,
-        isAvailable: !isPast && isDayAllowed,
+        isAvailable: !isPast && isDayAllowed && !isTooFarAhead,
         isToday: date.isSame(today, "day"),
         isPast,
       });
@@ -637,8 +643,15 @@ function BookingModal({
 
   const calendarDays = getCalendarDays();
 
-  // No limit on how far ahead user can book
-  const canGoNextMonth = true;
+  // Don't page past the last month that still contains a bookable day.
+  const advanceLimitDays = Number(room.advance_booking_days);
+  const lastBookableDay =
+    Number.isFinite(advanceLimitDays) && advanceLimitDays > 0
+      ? dayjs().add(advanceLimitDays, "day")
+      : null;
+  const canGoNextMonth = lastBookableDay
+    ? currentMonth.add(1, "month").isBefore(lastBookableDay.endOf("month"))
+    : true;
 
   const goToPrevMonth = () => {
     const thisMonth = dayjs().startOf("month");
@@ -680,7 +693,9 @@ function BookingModal({
       });
 
       if (!res.ok) {
-        throw new Error("ไม่สามารถจองห้องได้ กรุณาลองใหม่อีกครั้ง");
+        // The API explains exactly which rule failed; showing that beats a generic retry message.
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || "ไม่สามารถจองห้องได้ กรุณาลองใหม่อีกครั้ง");
       }
 
       setStep("success");

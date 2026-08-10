@@ -8,7 +8,7 @@ import { Edit3, Mail, User, Building, Lock } from "lucide-react";
 
 export function EditUserModal(
     { user, onClose, onSubmit }:
-    { user: UserRow; onClose: () => void; onSubmit: (data: UpsertForm & { user_id: number }) => Promise<void> | void; }
+    { user: UserRow; onClose: () => void; onSubmit: (data: UpsertForm & { user_id: string }) => Promise<void> | void; }
   ) {
   const isValidDepartment = useMemo(
     () => DEPARTMENTS.includes(user.department as (typeof DEPARTMENTS)[number]),
