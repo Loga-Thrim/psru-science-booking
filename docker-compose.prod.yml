@@ -1,0 +1,49 @@
+# Production overlay. Use together with the base file:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Set these in the project-root .env alongside it:
+#   APP_BIND=127.0.0.1   APP_PORT=8080   SITE_ADDRESS=your.domain
+#
+# Note: compose *appends* port mappings when merging files, so a published port
+# can never be removed by an overlay. That is why the base file takes the bind
+# address from APP_BIND/DB_BIND instead of hard-coding 0.0.0.0.
+services:
+  db:
+    restart: unless-stopped
+
+  backend:
+    restart: unless-stopped
+
+  frontend:
+    restart: unless-stopped
+
+  nginx:
+    restart: unless-stopped
+
+  # Terminates TLS and fetches/renews Let's Encrypt certificates on its own.
+  # Everything behind it keeps speaking plain HTTP over the compose network.
+  caddy:
+    image: caddy:2-alpine
+    container_name: psru-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS in .env}
+      # Lets someone who types the bare IP get redirected to SITE_ADDRESS
+      # instead of hitting a TLS error. Optional.
+      SERVER_IP: ${SERVER_IP:-127.0.0.1}
+      TZ: ${TZ:-Asia/Bangkok}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nginx
+
+volumes:
+  # Holds the issued certificates. Losing this means re-requesting them, which
+  # runs into Let's Encrypt rate limits, so keep the volume across redeploys.
+  caddy_data: {}
+  caddy_config: {}

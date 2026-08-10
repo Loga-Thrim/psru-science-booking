@@ -1,0 +1,80 @@
+[
+  {
+    "email": "thanapon.s@psru.ac.th",
+    "username": "ผศ.ดร.ธนพล ศรีวิชัย",
+    "role": "approver",
+    "note": "รองคณบดีฝ่ายวิชาการ / สาขาวิชาเคมี"
+  },
+  {
+    "email": "nanthawan.p@psru.ac.th",
+    "username": "ผศ.ดร.นันทวัน พงษ์ไพบูลย์",
+    "role": "approver",
+    "note": "รองคณบดีฝ่ายบริหาร / สาขาวิชาชีววิทยา"
+  },
+  {
+    "email": "porntip.j@psru.ac.th",
+    "username": "นางสาวพรทิพย์ ใจงาม",
+    "role": "admin",
+    "note": "เจ้าหน้าที่บริหารงานทั่วไป สำนักงานคณบดี"
+  },
+  {
+    "email": "kittipong.s@psru.ac.th",
+    "username": "อ.ดร.กิตติพงษ์ แสงทอง",
+    "role": "user",
+    "note": "สาขาวิชาฟิสิกส์"
+  },
+  {
+    "email": "siriporn.c@psru.ac.th",
+    "username": "อ.ดร.ศิริพร จันทร์เพ็ญ",
+    "role": "user",
+    "note": "สาขาวิชาจุลชีววิทยา"
+  },
+  {
+    "email": "wannipa.t@psru.ac.th",
+    "username": "ผศ.วรรณิภา ทองอยู่",
+    "role": "user",
+    "note": "สาขาวิชาคณิตศาสตร์"
+  },
+  {
+    "email": "nattapon.k@psru.ac.th",
+    "username": "อ.ดร.ณัฐพล เกษมสุข",
+    "role": "user",
+    "note": "สาขาวิชาวิทยาการคอมพิวเตอร์"
+  },
+  {
+    "email": "piyanuch.s@psru.ac.th",
+    "username": "อ.ปิยะนุช สมบูรณ์",
+    "role": "user",
+    "note": "สาขาวิชาคหกรรมศาสตร์"
+  },
+  {
+    "email": "orathai.p@psru.ac.th",
+    "username": "อ.ดร.อรทัย ภูมิวัฒน์",
+    "role": "user",
+    "note": "สาขาวิชาสาธารณสุขศาสตร์"
+  },
+  {
+    "email": "surasak.d@psru.ac.th",
+    "username": "อ.สุรศักดิ์ ดำรงชัย",
+    "role": "user",
+    "note": "สาขาวิชาเทคโนโลยีสารสนเทศ"
+  },
+  {
+    "email": "methawee.r@psru.ac.th",
+    "username": "อ.ดร.เมธาวี รัตนากร",
+    "role": "user",
+    "note": "สาขาวิชาวิทยาศาสตร์และเทคโนโลยีสิ่งแวดล้อม"
+  },
+  {
+    "email": "chonticha.t@psru.ac.th",
+    "username": "อ.ชลธิชา ทิพย์สุวรรณ",
+    "role": "user",
+    "note": "สาขาวิชาวิทยาการข้อมูลและการจัดการสารสนเทศ"
+  },
+  {
+    "email": "anucha.p@psru.ac.th",
+    "username": "นายอนุชา พลอยงาม",
+    "role": "user",
+    "note": "นักวิชาการโสตทัศนศึกษา"
+  }
+]

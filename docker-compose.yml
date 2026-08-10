@@ -5,7 +5,10 @@ services:
     image: mysql:8.4
     container_name: mysql
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      # Bound to loopback: the app reaches MySQL over the compose network, so
+      # publishing this on 0.0.0.0 would only expose the database to the internet.
+      # A GUI client on the host still connects via 127.0.0.1.
+      - "${DB_BIND:-127.0.0.1}:${MYSQL_PORT:-3306}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password01admin}
       MYSQL_DATABASE: ${DB_NAME:-psru_booking}
@@ -52,7 +55,9 @@ services:
     container_name: psru-nginx
     ports:
       # Override with APP_PORT if 80 is already taken, e.g. APP_PORT=8080.
-      - "${APP_PORT:-80}:80"
+      # In production APP_BIND is set to 127.0.0.1 so only Caddy, which holds
+      # 80/443 and terminates TLS, can reach this.
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-80}:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

@@ -1,0 +1,63 @@
+{
+	# A client connecting to a bare IP sends no SNI at all: the TLS spec only
+	# allows hostnames there. With several sites configured Caddy then has no
+	# way to pick a certificate and aborts the handshake with an internal
+	# error, even though it holds a valid certificate for the address.
+	# Naming the IP here is what those SNI-less connections fall back to.
+	default_sni {$SERVER_IP:127.0.0.1}
+}
+
+# Visiting the bare IP has to work, because that is what people copy out of the
+# DigitalOcean console before a domain exists.
+#
+# Two blocks are needed. Browsers that already cached the old
+# "http://IP -> https://IP" permanent redirect never ask the server again, so
+# the https:// block has to be reachable on its own or those visitors stay
+# stuck on a TLS error.
+#
+# Let's Encrypt's "shortlived" profile issues certificates for IP addresses
+# (the default "classic" profile does not). They are valid ~6 days; Caddy
+# renews them on its own.
+https://{$SERVER_IP:127.0.0.1} {
+	tls {
+		issuer acme {
+			profile shortlived
+		}
+	}
+	# Temporary, not permanent: this target changes the day a real domain is
+	# pointed here, and a cached 301 would be impossible to take back.
+	redir https://{$SITE_ADDRESS}{uri} temporary
+}
+
+# The http:// prefix keeps this block HTTP-only, so Caddy does not try to
+# redirect it to https://IP before the redirect below can run.
+http://{$SERVER_IP:127.0.0.1} {
+	redir https://{$SITE_ADDRESS}{uri} temporary
+}
+
+# SITE_ADDRESS comes from the project-root .env.
+# Use a real domain (booking.psru.ac.th) once DNS points here; until then a
+# free wildcard-DNS name such as 143-198-81-130.sslip.io resolves to this host.
+{$SITE_ADDRESS} {
+	encode gzip
+
+	# Everything is handed to the existing nginx container, which already knows
+	# how to split /api, /uploads and the SPA fallback.
+	reverse_proxy nginx:80
+
+	header {
+		# Tell browsers to stick to HTTPS for this host.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
