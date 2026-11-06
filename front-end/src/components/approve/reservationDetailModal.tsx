@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { reservationRow, reservationTypeLabel } from "../../types/types";
 import { FileText, X, Calendar, Clock, Users, User, Building, Phone, Mail, MessageSquare, AlertCircle, Monitor, UserCheck, Info } from "lucide-react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 type Props = {
   row: reservationRow;
@@ -40,6 +41,7 @@ function Field({ label, value, icon }: { label: string; value?: string | null; i
 }
 
 export default function ReservationDetailModal({ row, onClose }: Props) {
+  useScrollLock();
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { reservationRow } from "../../types/types";
 import { XCircle, X, Calendar, Clock, User, Building, MessageSquare } from "lucide-react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 type Props = {
   row: reservationRow;
@@ -33,6 +34,7 @@ export default function ReservationRejectModal({
   onClose,
   onConfirm,
 }: Props) {
+  useScrollLock();
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const [reason, setReason] = useState("");

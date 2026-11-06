@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Room } from "../types/types";
 import {
@@ -26,6 +26,10 @@ import "dayjs/locale/th";
 import clsx from "clsx";
 import TimeSlotPicker from "../components/booking/TimeSlotPicker";
 import { thaiFullDate, thaiShortDate, thaiMonthYear } from "../constants/dates";
+import { useRoomSchedule, dayOccupancy } from "../hooks/useRoomSchedule";
+import { useScrollLock } from "../hooks/useScrollLock";
+import StatusBadge from "../components/booking/StatusBadge";
+import { getReservationTypeLabel } from "../constants/bookingStatus";
 
 dayjs.locale("th");
 
@@ -135,11 +139,14 @@ function RoomCard({
 
   return (
     <div
-      className={`flex flex-col bg-white rounded-xl border overflow-hidden transition-all duration-200 ${
+      className={clsx(
+        // h-full + flex column is what makes every card in a row the same
+        // height, so the buttons can line up along the bottom edge.
+        "flex h-full flex-col overflow-hidden rounded-xl border-2 bg-white transition-all duration-200",
         isAvailable
-          ? "border-gray-200 hover:border-slate-400 hover:shadow-lg cursor-pointer"
-          : "border-gray-200 opacity-60"
-      }`}
+          ? "cursor-pointer border-stone-200 hover:border-slate-400 hover:shadow-lg"
+          : "border-stone-200 bg-stone-50",
+      )}
       onClick={isAvailable ? onBook : undefined}
     >
       {/* Room Image Carousel. Without photos the empty placeholder only pushed the
@@ -200,7 +207,8 @@ function RoomCard({
       </div>
       )}
 
-      {/* Room Info */}
+      {/* flex-1 lets this section absorb the leftover space, which is what
+          pushes the footer down to a common baseline across the row. */}
       <div className="flex flex-1 flex-col p-4">
         <div className="mb-1 flex items-start justify-between gap-2">
           <h3 className="text-xl font-bold text-slate-900">{room.room_code}</h3>
@@ -217,21 +225,17 @@ function RoomCard({
             <Info className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
-        {/* Only the exception is labelled: an open room needs no badge saying so. */}
-        {!isAvailable && (
-          <p className="mb-2 inline-block rounded-full bg-red-600 px-3 py-1 text-sm font-bold text-white">
-            ปิดปรับปรุง
-          </p>
-        )}
-
-        <div className="mb-2 flex items-start gap-1.5 text-base text-slate-600">
+        {/* Two lines are reserved whether the building name needs them or not.
+            Long names like "อาคารปฏิบัติการคหกรรมศาสตร์" wrap while short ones
+            do not, which otherwise makes whole rows of the grid taller than
+            their neighbours. One text run so it wraps as a sentence. */}
+        <p className="mb-2 flex min-h-[3.4rem] items-start gap-1.5 text-base text-slate-600">
           <MapPin className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
-          {/* One text run so a long building name wraps as a sentence, not as two columns. */}
-          <span>
+          <span className="line-clamp-2">
             {room.building || "-"}
             {room.floor && ` ชั้น ${room.floor}`}
           </span>
-        </div>
+        </p>
 
         <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base text-slate-700">
           <div className="flex items-center gap-1.5">
@@ -241,13 +245,22 @@ function RoomCard({
           <span className="font-medium text-slate-700">{room.room_type}</span>
         </div>
 
-        {/* Book Button: goes straight to picking a time; room details sit behind the info icon. */}
-        {isAvailable && (
-          <button className="w-full mt-auto py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center gap-2">
-            จอง
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        )}
+        {/* Book Button: goes straight to picking a time; room details sit behind the info icon.
+            mt-auto sticks it to the bottom no matter how tall the text above turned out. */}
+        <div className="mt-auto">
+          {isAvailable ? (
+            <button className="w-full py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center gap-2">
+              จอง
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            /* Only the exception is labelled, and rendered rather than omitted so a
+               closed room keeps the same footprint and the grid stays even. */
+            <p className="rounded-lg bg-stone-100 py-2.5 text-center text-base font-semibold text-slate-500">
+              ปิดปรับปรุง
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -262,6 +275,7 @@ function RoomDetailModal({
   onClose: () => void;
   onBook: () => void;
 }) {
+  useScrollLock();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = room.images || [];
   const hasMultipleImages = images.length > 1;
@@ -562,6 +576,7 @@ function BookingModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  useScrollLock();
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
   const timeSectionRef = useRef<HTMLDivElement>(null);
@@ -631,6 +646,22 @@ function BookingModal({
   );
   const [bookedSlots, setBookedSlots] = useState<Array<{ start_time: string; end_time: string; username?: string }>>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // The whole visible month in one request, so every day cell can show how
+  // busy it is before the user commits to clicking one.
+  const monthRange = useMemo(
+    () => ({
+      from: currentMonth.startOf("month").format("YYYY-MM-DD"),
+      to: currentMonth.endOf("month").format("YYYY-MM-DD"),
+    }),
+    [currentMonth],
+  );
+  const { byDate: scheduleByDate, loading: loadingMonth, reload: reloadMonth } =
+    useRoomSchedule({
+      from: monthRange.from,
+      to: monthRange.to,
+      roomId: room.room_id,
+    });
 
   // Fetch booked slots when date changes
   useEffect(() => {
@@ -812,6 +843,9 @@ function BookingModal({
       }
 
       saveLastPhone(form.phoneNumber);
+      // The day just filled up a little more; keep the month grid honest in
+      // case the user goes back to book another slot.
+      reloadMonth();
       setStep("success");
       contentRef.current?.scrollTo(0, 0);
     } catch (err: any) {
@@ -980,40 +1014,108 @@ function BookingModal({
                               className="aspect-square"
                             />
                           ) : (
-                            <button
-                              key={`${d.date}-${idx}`}
-                              type="button"
-                              disabled={!d.isAvailable}
-                              onClick={() =>
-                                d.isAvailable &&
-                                setForm((f) => ({ ...f, date: d.date }))
-                              }
-                              className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-all relative ${
-                                form.date === d.date
-                                  ? "bg-slate-600 text-white shadow-md"
-                                  : d.isAvailable
-                                    ? "bg-white hover:bg-slate-100 text-gray-700 hover:text-slate-700 border border-gray-200"
-                                    : d.isPast
-                                      ? "bg-gray-50 text-gray-300 cursor-not-allowed"
-                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              }`}
-                            >
-                              <span
-                                className={`font-semibold ${d.isToday && form.date !== d.date ? "text-slate-600" : ""}`}
-                              >
-                                {d.display}
-                              </span>
-                              {d.isToday && (
-                                <span
-                                  className={`text-[9px] ${form.date === d.date ? "text-slate-200" : "text-slate-500"}`}
+                            (() => {
+                              const occ = dayOccupancy(
+                                scheduleByDate.get(d.date),
+                                room.available_start_time || "08:00",
+                                room.available_end_time || "17:00",
+                              );
+                              const selected = form.date === d.date;
+                              const count = occ.entries.length;
+                              // A day with no free time left is not worth
+                              // clicking into, so treat it like a closed day.
+                              const noRoomLeft = d.isAvailable && occ.level === "full";
+
+                              return (
+                                <button
+                                  key={`${d.date}-${idx}`}
+                                  type="button"
+                                  disabled={!d.isAvailable || noRoomLeft}
+                                  aria-label={
+                                    `${d.display}` +
+                                    (!d.isAvailable
+                                      ? " ไม่เปิดให้จอง"
+                                      : noRoomLeft
+                                        ? " เต็มแล้ว"
+                                        : count > 0
+                                          ? ` มีการจองแล้ว ${count} รายการ ยังมีเวลาว่าง`
+                                          : " ว่างทั้งวัน")
+                                  }
+                                  onClick={() =>
+                                    d.isAvailable &&
+                                    !noRoomLeft &&
+                                    setForm((f) => ({ ...f, date: d.date }))
+                                  }
+                                  className={clsx(
+                                    "relative flex aspect-square flex-col items-center justify-center rounded-lg text-base transition-all",
+                                    selected &&
+                                      "bg-slate-700 text-white shadow-md ring-2 ring-slate-400",
+                                    !selected &&
+                                      d.isAvailable &&
+                                      !noRoomLeft &&
+                                      occ.level === "free" &&
+                                      "border-2 border-emerald-200 bg-white text-slate-800 hover:border-emerald-500 hover:bg-emerald-50",
+                                    !selected &&
+                                      d.isAvailable &&
+                                      !noRoomLeft &&
+                                      occ.level === "partial" &&
+                                      "border-2 border-amber-300 bg-amber-50 text-slate-900 hover:border-amber-500",
+                                    !selected &&
+                                      noRoomLeft &&
+                                      "cursor-not-allowed border-2 border-red-200 bg-red-50 text-red-400",
+                                    !selected &&
+                                      !d.isAvailable &&
+                                      (d.isPast
+                                        ? "cursor-not-allowed bg-gray-50 text-gray-300"
+                                        : "cursor-not-allowed bg-gray-100 text-gray-400"),
+                                  )}
                                 >
-                                  วันนี้
-                                </span>
-                              )}
-                            </button>
+                                  <span className="font-bold leading-none">
+                                    {d.display}
+                                  </span>
+
+                                  {d.isToday && (
+                                    <span
+                                      className={clsx(
+                                        "text-[10px] leading-tight",
+                                        selected ? "text-slate-200" : "text-slate-500",
+                                      )}
+                                    >
+                                      วันนี้
+                                    </span>
+                                  )}
+
+                                  {/* Occupancy is spelled out, not just coloured,
+                                      so it survives a colour-blind reader. */}
+                                  {d.isAvailable && count > 0 && (
+                                    <span
+                                      className={clsx(
+                                        "mt-0.5 text-[10px] font-bold leading-tight",
+                                        selected
+                                          ? "text-white"
+                                          : noRoomLeft
+                                            ? "text-red-600"
+                                            : "text-amber-700",
+                                      )}
+                                    >
+                                      {noRoomLeft ? "เต็ม" : `จอง ${count}`}
+                                    </span>
+                                  )}
+                                  {d.isAvailable && count === 0 && !selected && (
+                                    <span className="mt-0.5 text-[10px] font-semibold leading-tight text-emerald-700">
+                                      ว่าง
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })()
                           ),
                         )}
                       </div>
+                      {/* No legend: each day already spells out ว่าง / จอง N / เต็ม. */}
+                      {loadingMonth && (
+                        <p className="mt-2 text-sm text-slate-500">กำลังโหลดตาราง…</p>
+                      )}
                     </div>
 
                     {/* Without this the greyed-out days and the dead "next month" arrow look like a bug. */}
@@ -1023,13 +1125,51 @@ function BookingModal({
                       </p>
                     )}
 
-                    {/* Selected Date Display */}
+                    {/* Selected day, plus what is already on the room that day. */}
                     {form.date && (
-                      <div ref={timeSectionRef} className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                        <p className="text-sm text-slate-700 font-medium flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" />
+                      <div ref={timeSectionRef} className="mt-3 rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
+                        <p className="flex items-center gap-2 text-base font-bold text-slate-800">
+                          <CheckCircle className="h-5 w-5 text-emerald-600" aria-hidden="true" />
                           {thaiFullDate(form.date)}
                         </p>
+
+                        {(() => {
+                          const dayEntries = scheduleByDate.get(form.date) ?? [];
+                          if (dayEntries.length === 0) {
+                            return (
+                              <p className="mt-2 text-base text-emerald-800">
+                                ว่างทั้งวัน
+                              </p>
+                            );
+                          }
+                          return (
+                            <div className="mt-3">
+                              <p className="mb-2 text-base font-semibold text-slate-700">
+                                จองแล้ว {dayEntries.length} รายการ
+                              </p>
+                              <ul className="space-y-2">
+                                {dayEntries.map((e) => (
+                                  <li
+                                    key={e.reservation_id}
+                                    className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200"
+                                  >
+                                    <span className="font-bold text-slate-900">
+                                      {e.start_time.slice(0, 5)} – {e.end_time.slice(0, 5)}
+                                    </span>
+                                    <span className="text-slate-700">
+                                      {getReservationTypeLabel(e.reservation_type)}
+                                    </span>
+                                    {/* username only arrives for admins/approvers */}
+                                    {e.username && (
+                                      <span className="text-slate-500">โดย {e.username}</span>
+                                    )}
+                                    <StatusBadge status={e.reservation_status} />
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -1462,7 +1602,7 @@ export default function BookRoomPage() {
           <p className="text-gray-500">ไม่พบห้องที่ค้นหา</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredRooms.map((room) => (
             <RoomCard
               key={room.room_id}

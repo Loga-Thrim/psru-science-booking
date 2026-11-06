@@ -1,5 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 interface ModalProps {
   children: React.ReactNode;
@@ -16,6 +17,16 @@ export function Modal({
   icon,
   size = "lg",
 }: ModalProps) {
+  useScrollLock();
+
+  // Escape is the reflex for getting out of a dialog, and the only other way
+  // out on a phone is finding the small X.
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const sizeClasses = {
     sm: "max-w-md",
     md: "max-w-xl",
@@ -24,7 +35,12 @@ export function Modal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"

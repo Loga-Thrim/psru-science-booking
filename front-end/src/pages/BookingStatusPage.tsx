@@ -18,6 +18,7 @@ import StatusBadge from "../components/booking/StatusBadge";
 import ApprovalStepper from "../components/booking/ApprovalStepper";
 import RescheduleModal from "../components/booking/RescheduleModal";
 import { getReservationTypeLabel } from "../constants/bookingStatus";
+import { useScrollLock } from "../hooks/useScrollLock";
 
 const api = import.meta.env.VITE_API;
 
@@ -104,6 +105,11 @@ export default function BookingStatusPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [rescheduling, setRescheduling] = useState<Reservation | null>(null);
   const [tab, setTab] = useState<TabKey>("upcoming");
+
+  // These two dialogs are rendered inline rather than as components, so the
+  // lock is driven by their own visibility. RescheduleModal locks itself.
+  useScrollLock(Boolean(detail));
+  useScrollLock(Boolean(confirmCancel));
 
   const fetchBookings = async () => {
     setLoading(true);

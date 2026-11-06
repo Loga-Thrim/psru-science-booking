@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import clsx from "clsx";
 import { X, CalendarDays, AlertCircle, Users } from "lucide-react";
 import TimeSlotPicker from "./TimeSlotPicker";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 const api = import.meta.env.VITE_API as string;
 
@@ -70,6 +71,7 @@ export default function RescheduleModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  useScrollLock();
   const [room, setRoom] = useState<RoomRules | null>(null);
   const [date, setDate] = useState(reservation.booking_date);
   const [startTime, setStartTime] = useState(reservation.start_time.slice(0, 5));

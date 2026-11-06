@@ -7,9 +7,12 @@ import bookingController from "../controllers/bookingControll";
 import bookingListControll from "../controllers/bookingListControll";
 import bookingDeleteControll from "../controllers/bookingDeleteControll";
 import bookingUpdateControll from "../controllers/bookingUpdateControll";
+import roomScheduleControll from "../controllers/roomScheduleControll";
 
 export default function bookingRoute(app: Express){
   app.get("/book-rooms", checkUser, getBookRoomsControll);
+  // Whole-month occupancy for the calendar views.
+  app.get("/room-schedule", checkUser, roomScheduleControll);
   app.get("/room-image/:id", checkUser, getRoomImageControll);
   app.get("/book-room/:id", checkUser, getNewBookingRoomControll);
   app.post("/booking", checkUser, bookingController);

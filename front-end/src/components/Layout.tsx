@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import clsx from 'clsx';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 const api = import.meta.env.VITE_API as string;
 
@@ -74,6 +75,10 @@ function Layout() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const pendingCount = usePendingApprovalCount(user?.role);
+
+  // The mobile sidebar covers the page the same way a modal does; letting the
+  // content scroll underneath it is just as disorienting.
+  useScrollLock(isMobileMenuOpen);
 
   const navigation = [
     { name: 'จองห้อง', href: '/book-room', icon: DoorOpen },

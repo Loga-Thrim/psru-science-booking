@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Room } from "../../types/types";
 import { Trash2, AlertTriangle, X } from "lucide-react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 type Props = {
   room: Room | null;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export default function DeleteRoomModal({ room, onClose, onConfirm }: Props) {
+  useScrollLock();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {

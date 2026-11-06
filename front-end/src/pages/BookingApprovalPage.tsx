@@ -7,7 +7,8 @@ import { reservationRow } from "../types/types";
 import ReservationDetailModal from "../components/approve/reservationDetailModal";
 import ReservationApproveModal from "../components/approve/reservationApproveModal";
 import ReservationRejectModal from "../components/approve/reservationRejectModal";
-import { ClipboardCheck, Clock, CheckCircle, XCircle, Search, ShieldX, Ban, CalendarDays } from "lucide-react";
+import ReservationCalendar from "../components/approve/ReservationCalendar";
+import { ClipboardCheck, Clock, CheckCircle, XCircle, Search, ShieldX, Ban, CalendarDays, List as ListIcon } from "lucide-react";
 
 const api = import.meta.env.VITE_API;
 
@@ -40,6 +41,7 @@ function BookingApprovalPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todo");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
   const [detailRow, setDetailRow] = useState<reservationRow | null>(null);
   const [approveRow, setApproveRow] = useState<reservationRow | null>(null);
@@ -326,7 +328,47 @@ function BookingApprovalPage() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* List gives you the queue to work through; calendar answers
+          "what does this room already have on it". */}
+      <div className="flex flex-wrap gap-3" role="tablist" aria-label="รูปแบบการแสดงผล">
+        {(
+          [
+            { key: "list", label: "แบบรายการ", icon: ListIcon },
+            { key: "calendar", label: "แบบปฏิทิน", icon: CalendarDays },
+          ] as const
+        ).map((v) => {
+          const Icon = v.icon;
+          return (
+            <button
+              key={v.key}
+              role="tab"
+              aria-selected={viewMode === v.key}
+              onClick={() => setViewMode(v.key)}
+              className={clsx(
+                "inline-flex items-center gap-2 rounded-xl px-6 py-3 text-base font-semibold transition-colors",
+                viewMode === v.key
+                  ? "bg-slate-800 text-white shadow-md"
+                  : "bg-white text-slate-700 ring-2 ring-stone-300 hover:bg-slate-50"
+              )}
+            >
+              <Icon className="h-5 w-5" aria-hidden="true" />
+              {v.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {viewMode === "calendar" ? (
+        <div className="luxury-card p-5">
+          {loading ? (
+            <p className="py-10 text-center text-lg text-slate-600">กำลังโหลดข้อมูล...</p>
+          ) : (
+            /* The calendar shows the whole picture, so it deliberately ignores
+               the status cards and only honours the room filter inside it. */
+            <ReservationCalendar rows={rows} onSelect={setDetailRow} />
+          )}
+        </div>
+      ) : (
       <div className="luxury-card overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
@@ -379,6 +421,7 @@ function BookingApprovalPage() {
           />
         )}
       </div>
+      )}
 
       {detailRow && (
         <ReservationDetailModal
