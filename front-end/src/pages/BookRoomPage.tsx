@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Room } from "../types/types";
 import {
@@ -24,6 +24,10 @@ import "dayjs/locale/th";
 import clsx from "clsx";
 import TimeSlotPicker from "../components/booking/TimeSlotPicker";
 import { thaiFullDate, thaiShortDate, thaiMonthYear } from "../constants/dates";
+import { useRoomSchedule, dayOccupancy } from "../hooks/useRoomSchedule";
+import { useScrollLock } from "../hooks/useScrollLock";
+import StatusBadge from "../components/booking/StatusBadge";
+import { getReservationTypeLabel } from "../constants/bookingStatus";
 
 dayjs.locale("th");
 
@@ -110,24 +114,36 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
 
   return (
     <div
-      className={`bg-white rounded-xl border overflow-hidden transition-all duration-200 ${
+      className={clsx(
+        // h-full + flex column is what makes every card in a row the same
+        // height, so the buttons can line up along the bottom edge.
+        "flex h-full flex-col overflow-hidden rounded-xl border-2 bg-white transition-all duration-200",
         isAvailable
-          ? "border-gray-200 hover:border-slate-400 hover:shadow-lg cursor-pointer"
-          : "border-gray-200 opacity-60"
-      }`}
+          ? "cursor-pointer border-stone-200 hover:border-slate-400 hover:shadow-lg"
+          : "border-stone-200 bg-stone-50",
+      )}
       onClick={isAvailable ? onSelect : undefined}
     >
-      {/* Room Image Carousel */}
-      <div className="h-40 bg-gradient-to-br from-stone-100 to-slate-50 relative overflow-hidden group">
+      {/* Room Image Carousel.
+          Shorter when there is no photo: a large grey icon repeated down the
+          whole grid drew the eye without telling anyone anything. */}
+      <div
+        className={clsx(
+          "group relative overflow-hidden",
+          images.length > 0
+            ? "h-40 bg-gradient-to-br from-stone-100 to-slate-50"
+            : "h-16 border-b border-stone-200 bg-stone-50",
+        )}
+      >
         {images.length > 0 ? (
-          <img 
-            src={images[currentImageIndex]} 
+          <img
+            src={images[currentImageIndex]}
             alt={`${room.room_code} - ${currentImageIndex + 1}`}
-            className="w-full h-full object-cover transition-opacity duration-300"
+            className="h-full w-full object-cover transition-opacity duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Building className="w-16 h-16 text-stone-300" />
+          <div className="flex h-full w-full items-center justify-center">
+            <Building className="h-7 w-7 text-stone-300" aria-hidden="true" />
           </div>
         )}
         
@@ -176,71 +192,83 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
           </div>
         )}
         
-        {/* This badge reflects whether the room is open for booking at all.
-            It is not a statement about any particular day being free. */}
+        {/* Only the exception is flagged. Nearly every room is open, so a green
+            "เปิดให้จอง" badge on all of them was noise that made the one closed
+            room harder to spot, not easier. */}
         {!isAvailable && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900/60">
             <span className="rounded-full bg-red-600 px-4 py-2 text-base font-bold text-white">
-              ปิดปรับปรุง ยังจองไม่ได้
-            </span>
-          </div>
-        )}
-        {isAvailable && (
-          <div className="absolute top-3 right-3">
-            <span className="rounded-full bg-emerald-700 px-3 py-1.5 text-sm font-bold text-white">
-              เปิดให้จอง
+              ปิดปรับปรุง
             </span>
           </div>
         )}
       </div>
 
-      {/* Room Info */}
-      <div className="p-4">
-        <h3 className="mb-1 text-xl font-bold text-slate-900">
-          {room.room_code}
-        </h3>
+      {/* flex-1 lets this section absorb the leftover space, which is what
+          pushes the footer down to a common baseline across the row. */}
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="text-xl font-bold text-slate-900">{room.room_code}</h3>
 
-        <div className="mb-2 flex items-center gap-1.5 text-base text-slate-600">
-          <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>{room.building || "-"}</span>
-          {room.floor && <span>• ชั้น {room.floor}</span>}
+        {/* Two lines are reserved whether the building name needs them or not.
+            Long names like "อาคารปฏิบัติการคหกรรมศาสตร์" wrap while short ones
+            do not, which otherwise makes whole rows of the grid taller than
+            their neighbours. */}
+        <p className="mt-1.5 flex min-h-[3.4rem] items-start gap-1.5 text-base text-slate-600">
+          <MapPin className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="line-clamp-2">
+            {room.building || "-"}
+            {room.floor && ` ชั้น ${room.floor}`}
+          </span>
+        </p>
+
+        {/* Kept on a single line. A long type such as
+            "ห้องปฏิบัติการคอมพิวเตอร์" used to wrap onto a second row, making
+            those cards taller than the rest of the grid. */}
+        <div className="mt-3 flex items-center gap-2">
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-100 px-2.5 py-1 text-base font-semibold text-slate-800">
+            <Users className="h-4 w-4 text-slate-500" aria-hidden="true" />
+            {room.capacity} ที่นั่ง
+          </span>
+          <span
+            className="min-w-0 truncate rounded-lg bg-slate-100 px-2.5 py-1 text-base text-slate-700"
+            title={room.room_type}
+          >
+            {room.room_type}
+          </span>
         </div>
 
-        <div className="mb-3 flex items-center gap-4 text-base text-slate-700">
-          <div className="flex items-center gap-1.5">
-            <Users className="h-5 w-5 text-slate-400" aria-hidden="true" />
-            <span>{room.capacity} ที่นั่ง</span>
-          </div>
-          <div className="text-slate-300">|</div>
-          <span className="font-medium text-slate-700">{room.room_type}</span>
-        </div>
-
-        {/* Equipment Tags */}
+        {/* One truncated line rather than a cloud of chips. Chips wrapped to a
+            different number of rows per card, which is what knocked the
+            buttons out of alignment, and four tiny boxes per card read as
+            clutter more than as information. */}
         {equipmentList.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {equipmentList.slice(0, 3).map((eq, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
-              >
-                {eq}
-              </span>
-            ))}
-            {equipmentList.length > 3 && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs">
-                +{equipmentList.length - 3}
-              </span>
-            )}
-          </div>
+          <p
+            className="mt-3 truncate text-base text-slate-600"
+            title={equipmentList.join(", ")}
+          >
+            <span className="text-slate-500">อุปกรณ์: </span>
+            {equipmentList.slice(0, 2).join(", ")}
+            {equipmentList.length > 2 &&
+              ` และอีก ${equipmentList.length - 2} รายการ`}
+          </p>
         )}
 
-        {/* Book Button */}
-        {isAvailable && (
-          <button className="w-full mt-2 py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center gap-2">
-            จองห้องนี้
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        )}
+        {/* mt-auto sticks the footer to the bottom no matter how tall the
+            text above it turned out. */}
+        <div className="mt-auto pt-5">
+          {isAvailable ? (
+            <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-800 py-3 text-base font-semibold text-white transition-colors hover:bg-slate-700">
+              จองห้องนี้
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+          ) : (
+            /* Rendered rather than omitted so a closed room keeps the same
+               footprint and the grid stays even. */
+            <p className="rounded-lg bg-stone-100 py-3 text-center text-base font-semibold text-slate-500">
+              ยังไม่เปิดให้จอง
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -255,6 +283,7 @@ function RoomDetailModal({
   onClose: () => void;
   onBook: () => void;
 }) {
+  useScrollLock();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = room.images || [];
   const hasMultipleImages = images.length > 1;
@@ -487,6 +516,7 @@ function BookingModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  useScrollLock();
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<BookingStep>("select-datetime");
@@ -517,6 +547,22 @@ function BookingModal({
   );
   const [bookedSlots, setBookedSlots] = useState<Array<{ start_time: string; end_time: string; username?: string }>>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // The whole visible month in one request, so every day cell can show how
+  // busy it is before the user commits to clicking one.
+  const monthRange = useMemo(
+    () => ({
+      from: currentMonth.startOf("month").format("YYYY-MM-DD"),
+      to: currentMonth.endOf("month").format("YYYY-MM-DD"),
+    }),
+    [currentMonth],
+  );
+  const { byDate: scheduleByDate, loading: loadingMonth, reload: reloadMonth } =
+    useRoomSchedule({
+      from: monthRange.from,
+      to: monthRange.to,
+      roomId: room.room_id,
+    });
 
   // Fetch booked slots when date changes
   useEffect(() => {
@@ -703,6 +749,9 @@ function BookingModal({
         throw new Error(body?.message || "ไม่สามารถจองห้องได้ กรุณาลองใหม่อีกครั้ง");
       }
 
+      // The day just filled up a little more; keep the month grid honest in
+      // case the user goes back to book another slot.
+      reloadMonth();
       setStep("success");
       contentRef.current?.scrollTo(0, 0);
     } catch (err: any) {
@@ -894,65 +943,174 @@ function BookingModal({
                               className="aspect-square"
                             />
                           ) : (
-                            <button
-                              key={`${d.date}-${idx}`}
-                              type="button"
-                              disabled={!d.isAvailable}
-                              onClick={() =>
-                                d.isAvailable &&
-                                setForm((f) => ({ ...f, date: d.date }))
-                              }
-                              className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-all relative ${
-                                form.date === d.date
-                                  ? "bg-slate-600 text-white shadow-md"
-                                  : d.isAvailable
-                                    ? "bg-white hover:bg-slate-100 text-gray-700 hover:text-slate-700 border border-gray-200"
-                                    : d.isPast
-                                      ? "bg-gray-50 text-gray-300 cursor-not-allowed"
-                                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              }`}
-                            >
-                              <span
-                                className={`font-semibold ${d.isToday && form.date !== d.date ? "text-slate-600" : ""}`}
-                              >
-                                {d.display}
-                              </span>
-                              {d.isToday && (
-                                <span
-                                  className={`text-[9px] ${form.date === d.date ? "text-slate-200" : "text-slate-500"}`}
+                            (() => {
+                              const occ = dayOccupancy(
+                                scheduleByDate.get(d.date),
+                                room.available_start_time || "08:00",
+                                room.available_end_time || "17:00",
+                              );
+                              const selected = form.date === d.date;
+                              const count = occ.entries.length;
+                              // A day with no free time left is not worth
+                              // clicking into, so treat it like a closed day.
+                              const noRoomLeft = d.isAvailable && occ.level === "full";
+
+                              return (
+                                <button
+                                  key={`${d.date}-${idx}`}
+                                  type="button"
+                                  disabled={!d.isAvailable || noRoomLeft}
+                                  aria-label={
+                                    `${d.display}` +
+                                    (!d.isAvailable
+                                      ? " ไม่เปิดให้จอง"
+                                      : noRoomLeft
+                                        ? " เต็มแล้ว"
+                                        : count > 0
+                                          ? ` มีการจองแล้ว ${count} รายการ ยังมีเวลาว่าง`
+                                          : " ว่างทั้งวัน")
+                                  }
+                                  onClick={() =>
+                                    d.isAvailable &&
+                                    !noRoomLeft &&
+                                    setForm((f) => ({ ...f, date: d.date }))
+                                  }
+                                  className={clsx(
+                                    "relative flex aspect-square flex-col items-center justify-center rounded-lg text-base transition-all",
+                                    selected &&
+                                      "bg-slate-700 text-white shadow-md ring-2 ring-slate-400",
+                                    !selected &&
+                                      d.isAvailable &&
+                                      !noRoomLeft &&
+                                      occ.level === "free" &&
+                                      "border-2 border-emerald-200 bg-white text-slate-800 hover:border-emerald-500 hover:bg-emerald-50",
+                                    !selected &&
+                                      d.isAvailable &&
+                                      !noRoomLeft &&
+                                      occ.level === "partial" &&
+                                      "border-2 border-amber-300 bg-amber-50 text-slate-900 hover:border-amber-500",
+                                    !selected &&
+                                      noRoomLeft &&
+                                      "cursor-not-allowed border-2 border-red-200 bg-red-50 text-red-400",
+                                    !selected &&
+                                      !d.isAvailable &&
+                                      (d.isPast
+                                        ? "cursor-not-allowed bg-gray-50 text-gray-300"
+                                        : "cursor-not-allowed bg-gray-100 text-gray-400"),
+                                  )}
                                 >
-                                  วันนี้
-                                </span>
-                              )}
-                            </button>
+                                  <span className="font-bold leading-none">
+                                    {d.display}
+                                  </span>
+
+                                  {d.isToday && (
+                                    <span
+                                      className={clsx(
+                                        "text-[10px] leading-tight",
+                                        selected ? "text-slate-200" : "text-slate-500",
+                                      )}
+                                    >
+                                      วันนี้
+                                    </span>
+                                  )}
+
+                                  {/* Occupancy is spelled out, not just coloured,
+                                      so it survives a colour-blind reader. */}
+                                  {d.isAvailable && count > 0 && (
+                                    <span
+                                      className={clsx(
+                                        "mt-0.5 text-[10px] font-bold leading-tight",
+                                        selected
+                                          ? "text-white"
+                                          : noRoomLeft
+                                            ? "text-red-600"
+                                            : "text-amber-700",
+                                      )}
+                                    >
+                                      {noRoomLeft ? "เต็ม" : `จอง ${count}`}
+                                    </span>
+                                  )}
+                                  {d.isAvailable && count === 0 && !selected && (
+                                    <span className="mt-0.5 text-[10px] font-semibold leading-tight text-emerald-700">
+                                      ว่าง
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })()
                           ),
                         )}
                       </div>
 
                       {/* Legend */}
-                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-white border border-gray-200"></div>
-                          <span>เลือกได้</span>
+                      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t-2 border-gray-200 pt-3 text-sm text-slate-700">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-4 w-4 rounded border-2 border-emerald-200 bg-white" />
+                          <span>ว่างทั้งวัน</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-gray-100"></div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-4 w-4 rounded border-2 border-amber-300 bg-amber-50" />
+                          <span>มีจองบางช่วง</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-4 w-4 rounded border-2 border-red-200 bg-red-50" />
+                          <span>เต็มแล้ว</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-4 w-4 rounded bg-gray-100" />
                           <span>ไม่เปิดให้จอง</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-slate-600"></div>
-                          <span>เลือกแล้ว</span>
-                        </div>
+                        {loadingMonth && (
+                          <span className="text-slate-500">กำลังโหลดตาราง…</span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Selected Date Display */}
+                    {/* Selected day, plus what is already on the room that day. */}
                     {form.date && (
-                      <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                        <p className="text-sm text-slate-700 font-medium flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4" />
+                      <div className="mt-3 rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
+                        <p className="flex items-center gap-2 text-base font-bold text-slate-800">
+                          <CheckCircle className="h-5 w-5 text-emerald-600" aria-hidden="true" />
                           {thaiFullDate(form.date)}
                         </p>
+
+                        {(() => {
+                          const dayEntries = scheduleByDate.get(form.date) ?? [];
+                          if (dayEntries.length === 0) {
+                            return (
+                              <p className="mt-2 text-base text-emerald-800">
+                                ยังไม่มีใครจองห้องนี้ในวันดังกล่าว ว่างทั้งวัน
+                              </p>
+                            );
+                          }
+                          return (
+                            <div className="mt-3">
+                              <p className="mb-2 text-base font-semibold text-slate-700">
+                                ตารางใช้ห้องวันนี้ ({dayEntries.length} รายการ)
+                              </p>
+                              <ul className="space-y-2">
+                                {dayEntries.map((e) => (
+                                  <li
+                                    key={e.reservation_id}
+                                    className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200"
+                                  >
+                                    <span className="font-bold text-slate-900">
+                                      {e.start_time.slice(0, 5)} – {e.end_time.slice(0, 5)}
+                                    </span>
+                                    <span className="text-slate-700">
+                                      {getReservationTypeLabel(e.reservation_type)}
+                                    </span>
+                                    {/* username only arrives for admins/approvers */}
+                                    {e.username && (
+                                      <span className="text-slate-500">โดย {e.username}</span>
+                                    )}
+                                    <StatusBadge status={e.reservation_status} />
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -1393,7 +1551,7 @@ export default function BookRoomPage() {
           <p className="text-gray-500">ไม่พบห้องที่ค้นหา</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredRooms.map((room) => (
             <RoomCard
               key={room.room_id}

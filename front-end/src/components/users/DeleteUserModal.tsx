@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { UserRow } from "../../types/types";
 import { Trash2, AlertTriangle, X } from "lucide-react";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 export function DeleteUserModal({
   user,
@@ -11,6 +12,7 @@ export function DeleteUserModal({
   onClose: () => void;
   onConfirm: (user_id: string) => Promise<void> | void;
 }) {
+  useScrollLock();
   const [loading, setLoading] = useState(false);
 
   async function handleDelete() {
