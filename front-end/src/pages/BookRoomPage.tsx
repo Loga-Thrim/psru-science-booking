@@ -232,8 +232,9 @@ function RoomCard({
         <p className="mb-2 flex min-h-[3.4rem] items-start gap-1.5 text-base text-slate-600">
           <MapPin className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="line-clamp-2">
-            {room.building || "-"}
-            {room.floor && ` ชั้น ${room.floor}`}
+            {/* Non-breaking spaces keep "อาคารวิทยาศาสตร์ 1" and "ชั้น 1" from splitting off their numbers. */}
+            {(room.building || "-").replace(/ (\d+)$/, " $1")}
+            {room.floor && ` ชั้น ${room.floor}`}
           </span>
         </p>
 
