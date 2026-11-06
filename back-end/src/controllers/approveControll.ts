@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import verifyTokenService from "../services/verifyTokenService";
 import adminApproveRepo, { TransitionResult } from "../repositories/adminApproveRepo";
 import approverApproveRepo from "../repositories/approverApproveRepo";
+import { notifyAdminApproved, notifyApproved } from "../services/notifyService";
 
 function respond(res: Response, result: TransitionResult, wrongStateMessage: string) {
     switch (result) {
@@ -27,10 +28,16 @@ export default async function approveControll(req: Request, res: Response) {
         }
 
         switch (payload.role) {
-            case "admin":
-                return respond(res, await adminApproveRepo(reservationId), "รายการนี้ไม่ได้อยู่ในสถานะรอแอดมินอนุมัติ");
-            case "approver":
-                return respond(res, await approverApproveRepo(reservationId), "รายการนี้ต้องผ่านการอนุมัติจากแอดมินก่อน");
+            case "admin": {
+                const result = await adminApproveRepo(reservationId);
+                if (result === "ok") notifyAdminApproved(reservationId);
+                return respond(res, result, "รายการนี้ไม่ได้อยู่ในสถานะรอแอดมินอนุมัติ");
+            }
+            case "approver": {
+                const result = await approverApproveRepo(reservationId);
+                if (result === "ok") notifyApproved(reservationId);
+                return respond(res, result, "รายการนี้ต้องผ่านการอนุมัติจากแอดมินก่อน");
+            }
             default:
                 return res.status(403).json({ message: "คุณไม่มีสิทธิ์ในการอนุมัติ" });
         }

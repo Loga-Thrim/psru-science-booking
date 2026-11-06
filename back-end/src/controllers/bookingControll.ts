@@ -3,6 +3,7 @@ import verifyTokenService from "../services/verifyTokenService";
 import bookingService from "../services/bookingService";
 import { bookingStatus } from "../enum/booking";
 import { BOOKING_FAILURES as FAILURES } from "./bookingFailures";
+import { notifyNewBooking } from "../services/notifyService";
 
 export default async function bookingController(req: Request, res: Response) {
     try {
@@ -14,6 +15,7 @@ export default async function bookingController(req: Request, res: Response) {
         const { status } = await bookingService({ room_id, date, start_time, end_time, number_of_users, reservation_type, reservation_reason, phone_number, user_id, equipment_needs, caretaker_name });
 
         if (status === bookingStatus.success) {
+            notifyNewBooking({ room_id, user_id, date, start_time, end_time });
             return res.status(201).json({ message: "จองห้องสำเร็จ" });
         }
 

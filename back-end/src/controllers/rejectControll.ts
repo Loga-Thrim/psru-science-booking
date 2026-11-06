@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import rejectRepo from "../repositories/rejectRepo";
+import { notifyRejected } from "../services/notifyService";
 
 export default async function rejectControll(req: Request, res: Response) {
   try {
@@ -15,6 +16,7 @@ export default async function rejectControll(req: Request, res: Response) {
     const result = await rejectRepo(reservationId, rejectionReason.trim());
     switch (result) {
       case "ok":
+        notifyRejected(reservationId);
         return res.status(200).json({ message: "ปฏิเสธรายการจองแล้ว" });
       case "notFound":
         return res.status(404).json({ message: "ไม่พบรายการจองนี้" });

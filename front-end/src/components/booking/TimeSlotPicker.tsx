@@ -26,6 +26,10 @@ const hhmm = (t: string) => (t ?? "").slice(0, 5);
  * Interaction is deliberately forgiving: the first tap books that single
  * block, a second tap further along extends the range, and tapping before the
  * current start simply begins a new selection.
+ *
+ * Once a start is picked, the blocks from there on are labelled by the time
+ * they end ("ถึง 16:00"). Labelled by start time, someone booking 13:00–16:00
+ * tapped "16:00" and silently got until 16:30.
  */
 export default function TimeSlotPicker({
   slots,
@@ -104,26 +108,9 @@ export default function TimeSlotPicker({
     <div className="space-y-4">
       <p className="rounded-xl bg-blue-50 px-4 py-3 text-base font-medium text-blue-900 ring-1 ring-blue-200">
         {!startTime
-          ? "แตะช่องเวลาที่ต้องการเริ่มใช้ห้อง"
-          : "แตะช่องเวลาสุดท้ายที่ต้องการใช้ เพื่อขยายเวลาจอง"}
+          ? "1. แตะเวลาเริ่มใช้ห้อง"
+          : `2. แตะเวลาเลิกใช้ห้อง (เริ่ม ${startTime} น.)`}
       </p>
-
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-base">
-        <span className="inline-flex items-center gap-2">
-          <span className="h-5 w-5 rounded border-2 border-stone-300 bg-white" />
-          ว่าง
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded bg-slate-300">
-            <Ban className="h-3.5 w-3.5 text-slate-600" aria-hidden="true" />
-          </span>
-          มีคนจองแล้ว
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <span className="h-5 w-5 rounded bg-emerald-600" />
-          เวลาที่คุณเลือก
-        </span>
-      </div>
 
       <div
         className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5"
@@ -134,6 +121,8 @@ export default function TimeSlotPicker({
           const isBooked = bookedCells.has(cell);
           const selected = inSelection(cell);
           const blocked = !isBooked && !selected && !canExtendTo(cell);
+          const isStart = cell === startTime;
+          const showsEnd = Boolean(startTime) && cell > startTime && !isBooked;
 
           return (
             <button
@@ -157,7 +146,7 @@ export default function TimeSlotPicker({
                   "cursor-not-allowed border-stone-200 bg-stone-50 text-slate-400"
               )}
             >
-              <span>{cell}</span>
+              <span>{isStart ? `เริ่ม ${cell}` : showsEnd ? `ถึง ${nextOf(cell)}` : cell}</span>
               {isBooked && (
                 <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold">
                   <Ban className="h-3.5 w-3.5" aria-hidden="true" />
@@ -172,7 +161,7 @@ export default function TimeSlotPicker({
         })}
       </div>
 
-      {startTime && endTime ? (
+      {startTime && endTime && (
         <div className="flex flex-col gap-3 rounded-xl bg-emerald-50 px-5 py-4 ring-2 ring-emerald-200 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-center gap-3 text-lg font-bold text-emerald-900">
             <Clock className="h-6 w-6" aria-hidden="true" />
@@ -190,10 +179,6 @@ export default function TimeSlotPicker({
             เลือกใหม่
           </button>
         </div>
-      ) : (
-        <p className="rounded-xl bg-slate-50 px-5 py-4 text-base text-slate-600 ring-1 ring-slate-200">
-          ยังไม่ได้เลือกเวลา
-        </p>
       )}
     </div>
   );

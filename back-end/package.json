@@ -24,11 +24,13 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "mysql2": "^3.15.1"
+    "mysql2": "^3.15.1",
+    "nodemailer": "^6.10.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.6.0",
+    "@types/nodemailer": "^6.4.24",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"

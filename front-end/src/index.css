@@ -19,6 +19,17 @@
      Scaling the root size lifts every rem-based size in one place. */
   html {
     font-size: 17px;
+    /* Keeps the layout from jumping sideways when the scroll lock below hides the scrollbar. */
+    scrollbar-gutter: stable;
+  }
+
+  /* While any modal is open the page behind it must stay put; otherwise the wheel
+     scrolls the background as soon as the modal's own content reaches its end.
+     Every modal overlay in the app is a `fixed inset-0 z-50` (the image lightbox is
+     z-[9999]), so one rule covers them all without each modal managing it. */
+  body:has(.fixed.inset-0.z-50),
+  body:has(.fixed.inset-0.z-\[9999\]) {
+    overflow: hidden;
   }
 
   body {

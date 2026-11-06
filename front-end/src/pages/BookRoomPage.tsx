@@ -18,6 +18,8 @@ import {
   FileText,
   CheckCircle,
   AlertCircle,
+  Info,
+  Plus,
 } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/th";
@@ -87,14 +89,37 @@ function formatTime(value: string): string {
   return value.substring(0, 5);
 }
 
-function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
+const LAST_PHONE_KEY = "lastBookingPhone";
+
+// Storage can be unavailable (private mode, blocked site data); the form then just starts empty.
+function readLastPhone(): string {
+  try {
+    return localStorage.getItem(LAST_PHONE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function saveLastPhone(phone: string) {
+  try {
+    localStorage.setItem(LAST_PHONE_KEY, phone);
+  } catch {
+    // Remembering the number is a convenience only.
+  }
+}
+
+function RoomCard({
+  room,
+  onBook,
+  onInfo,
+}: {
+  room: Room;
+  onBook: () => void;
+  onInfo: () => void;
+}) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const isAvailable = (room.status ?? "").toLowerCase() === "available";
-  const equipmentList = (room.equipment || "")
-    .split(",")
-    .map((e) => e.trim())
-    .filter(Boolean);
-  
+
   const images = room.images || [];
   const hasMultipleImages = images.length > 1;
 
@@ -110,27 +135,23 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
 
   return (
     <div
-      className={`bg-white rounded-xl border overflow-hidden transition-all duration-200 ${
+      className={`flex flex-col bg-white rounded-xl border overflow-hidden transition-all duration-200 ${
         isAvailable
           ? "border-gray-200 hover:border-slate-400 hover:shadow-lg cursor-pointer"
           : "border-gray-200 opacity-60"
       }`}
-      onClick={isAvailable ? onSelect : undefined}
+      onClick={isAvailable ? onBook : undefined}
     >
-      {/* Room Image Carousel */}
+      {/* Room Image Carousel. Without photos the empty placeholder only pushed the
+          room list down, so the card starts straight at the room code. */}
+      {images.length > 0 && (
       <div className="h-40 bg-gradient-to-br from-stone-100 to-slate-50 relative overflow-hidden group">
-        {images.length > 0 ? (
-          <img 
-            src={images[currentImageIndex]} 
-            alt={`${room.room_code} - ${currentImageIndex + 1}`}
-            className="w-full h-full object-cover transition-opacity duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Building className="w-16 h-16 text-stone-300" />
-          </div>
-        )}
-        
+        <img
+          src={images[currentImageIndex]}
+          alt={`${room.room_code} - ${currentImageIndex + 1}`}
+          className="w-full h-full object-cover transition-opacity duration-300"
+        />
+
         {/* Navigation Arrows */}
         {hasMultipleImages && (
           <>
@@ -176,68 +197,54 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: () => void }) {
           </div>
         )}
         
-        {/* This badge reflects whether the room is open for booking at all.
-            It is not a statement about any particular day being free. */}
-        {!isAvailable && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/60">
-            <span className="rounded-full bg-red-600 px-4 py-2 text-base font-bold text-white">
-              ปิดปรับปรุง ยังจองไม่ได้
-            </span>
-          </div>
-        )}
-        {isAvailable && (
-          <div className="absolute top-3 right-3">
-            <span className="rounded-full bg-emerald-700 px-3 py-1.5 text-sm font-bold text-white">
-              เปิดให้จอง
-            </span>
-          </div>
-        )}
       </div>
+      )}
 
       {/* Room Info */}
-      <div className="p-4">
-        <h3 className="mb-1 text-xl font-bold text-slate-900">
-          {room.room_code}
-        </h3>
+      <div className="flex flex-1 flex-col p-4">
+        <div className="mb-1 flex items-start justify-between gap-2">
+          <h3 className="text-xl font-bold text-slate-900">{room.room_code}</h3>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onInfo();
+            }}
+            aria-label={`ข้อมูลห้อง ${room.room_code}`}
+            title="ข้อมูลห้อง"
+            className="-mr-1 -mt-1 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          >
+            <Info className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+        {/* Only the exception is labelled: an open room needs no badge saying so. */}
+        {!isAvailable && (
+          <p className="mb-2 inline-block rounded-full bg-red-600 px-3 py-1 text-sm font-bold text-white">
+            ปิดปรับปรุง
+          </p>
+        )}
 
-        <div className="mb-2 flex items-center gap-1.5 text-base text-slate-600">
-          <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span>{room.building || "-"}</span>
-          {room.floor && <span>• ชั้น {room.floor}</span>}
+        <div className="mb-2 flex items-start gap-1.5 text-base text-slate-600">
+          <MapPin className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
+          {/* One text run so a long building name wraps as a sentence, not as two columns. */}
+          <span>
+            {room.building || "-"}
+            {room.floor && ` ชั้น ${room.floor}`}
+          </span>
         </div>
 
-        <div className="mb-3 flex items-center gap-4 text-base text-slate-700">
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-base text-slate-700">
           <div className="flex items-center gap-1.5">
             <Users className="h-5 w-5 text-slate-400" aria-hidden="true" />
-            <span>{room.capacity} ที่นั่ง</span>
+            <span>{room.capacity} คน</span>
           </div>
-          <div className="text-slate-300">|</div>
           <span className="font-medium text-slate-700">{room.room_type}</span>
         </div>
 
-        {/* Equipment Tags */}
-        {equipmentList.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {equipmentList.slice(0, 3).map((eq, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
-              >
-                {eq}
-              </span>
-            ))}
-            {equipmentList.length > 3 && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs">
-                +{equipmentList.length - 3}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Book Button */}
+        {/* Book Button: goes straight to picking a time; room details sit behind the info icon. */}
         {isAvailable && (
-          <button className="w-full mt-2 py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center gap-2">
-            จองห้องนี้
+          <button className="w-full mt-auto py-2.5 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center gap-2">
+            จอง
             <ChevronRight className="w-4 h-4" />
           </button>
         )}
@@ -379,7 +386,7 @@ function RoomDetailModal({
                   <div>
                     <p className="text-xs text-gray-500">เวลาเปิดบริการ</p>
                     <p className="font-medium text-gray-900">
-                      {room.available_start_time || "08:00"} - {room.available_end_time || "17:00"} น.
+                      {formatTime(room.available_start_time || "08:00")} - {formatTime(room.available_end_time || "17:00")} น.
                     </p>
                   </div>
                 </div>
@@ -478,6 +485,74 @@ function RoomDetailModal({
   );
 }
 
+const SHORT_DAY_LABELS: Record<string, string> = {
+  sun: "อา", mon: "จ", tue: "อ", wed: "พ", thu: "พฤ", fri: "ศ", sat: "ส",
+};
+
+/**
+ * The room facts someone may need while booking, folded to one line by default.
+ * Restrictions stay visible because they can decide whether the booking is allowed at all.
+ */
+function RoomInfoPanel({ room }: { room: Room }) {
+  const [open, setOpen] = useState(false);
+  const equipment = (room.equipment || "").split(",").map((e) => e.trim()).filter(Boolean);
+  const days = (room.available_days || "mon,tue,wed,thu,fri")
+    .split(",")
+    .map((d) => SHORT_DAY_LABELS[d.trim()] || d.trim())
+    .join(" ");
+  const hours = `${formatTime(room.available_start_time || "08:00")}–${formatTime(room.available_end_time || "17:00")} น.`;
+  const contact = [room.caretaker, room.contact_phone].filter(Boolean).join(" · ");
+
+  return (
+    <div className="mb-5 space-y-2">
+      {room.restrictions && (
+        <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          {room.restrictions}
+        </p>
+      )}
+      <div className="rounded-lg border border-gray-200">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-gray-50"
+        >
+          <span className="flex items-center gap-2">
+            <Info className="h-4 w-4 text-slate-500" aria-hidden="true" />
+            ข้อมูลห้อง
+          </span>
+          <ChevronDown className={clsx("h-4 w-4 transition-transform", open && "rotate-180")} aria-hidden="true" />
+        </button>
+        {open && (
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 border-t border-gray-200 px-3 py-3 text-sm">
+            <dt className="text-gray-500">เปิด</dt>
+            <dd className="text-gray-900">{days} {hours}</dd>
+            {equipment.length > 0 && (
+              <>
+                <dt className="text-gray-500">อุปกรณ์</dt>
+                <dd className="text-gray-900">{equipment.join(", ")}</dd>
+              </>
+            )}
+            {contact && (
+              <>
+                <dt className="text-gray-500">ติดต่อ</dt>
+                <dd className="text-gray-900">{contact}</dd>
+              </>
+            )}
+            {room.description && (
+              <>
+                <dt className="text-gray-500">อื่นๆ</dt>
+                <dd className="text-gray-900">{room.description}</dd>
+              </>
+            )}
+          </dl>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function BookingModal({
   room,
   onClose,
@@ -489,6 +564,33 @@ function BookingModal({
 }) {
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
+  const timeSectionRef = useRef<HTMLDivElement>(null);
+
+  // The time slots sit below a tall calendar, out of view. Bring them up so the
+  // next thing to do is on screen, not something the user has to discover.
+  // Scrolls only the modal body: the page behind is locked and must not move.
+  const scrollToTime = useCallback(() => {
+    const container = contentRef.current;
+    const target = timeSectionRef.current;
+    if (!container || !target) return;
+    const from = container.scrollTop;
+    const to =
+      target.getBoundingClientRect().top -
+      container.getBoundingClientRect().top +
+      from -
+      12;
+    // Animated by hand: the browser's own smooth scroll is too quick to follow,
+    // and the point is for the user to see where the page went.
+    const duration = 900;
+    const start = performance.now();
+    const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+    const step = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      container.scrollTop = from + (to - from) * ease(t);
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, []);
   const [step, setStep] = useState<BookingStep>("select-datetime");
   const timeSlots = generateTimeSlots(
     room.available_start_time || "08:00",
@@ -498,6 +600,11 @@ function BookingModal({
     .split(",")
     .map((e: string) => e.trim())
     .filter(Boolean);
+  // Get caretakers from room data
+  const roomCaretakers = (room.caretaker || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
   const [form, setForm] = useState<BookingForm>({
     room,
     date: "",
@@ -506,10 +613,17 @@ function BookingModal({
     numberOfUsers: 1,
     reservationType: "",
     reservationReason: "",
-    phoneNumber: "",
+    // Most people book with the same number every time, so offer the last one.
+    phoneNumber: readLastPhone(),
     equipmentNeeds: [],
-    selectedApprover: "",
+    // With a single caretaker there is nothing to choose, so the field stays hidden.
+    selectedApprover: roomCaretakers.length === 1 ? roomCaretakers[0] : "",
   });
+  const [showExtras, setShowExtras] = useState(false);
+
+  useEffect(() => {
+    if (form.date) scrollToTime();
+  }, [form.date, scrollToTime]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() =>
@@ -580,12 +694,6 @@ function BookingModal({
       return form.startTime < slotEnd && form.endTime > slotStart;
     });
   };
-
-  // Get caretakers from room data
-  const roomCaretakers = (room.caretaker || "")
-    .split(",")
-    .map((c) => c.trim())
-    .filter(Boolean);
 
   // Get calendar data for current month view
   const getCalendarDays = () => {
@@ -703,6 +811,7 @@ function BookingModal({
         throw new Error(body?.message || "ไม่สามารถจองห้องได้ กรุณาลองใหม่อีกครั้ง");
       }
 
+      saveLastPhone(form.phoneNumber);
       setStep("success");
       contentRef.current?.scrollTo(0, 0);
     } catch (err: any) {
@@ -733,7 +842,7 @@ function BookingModal({
               จองห้อง {room.room_code}
             </h2>
             <p className="text-slate-300 text-sm">
-              {room.building} • ชั้น {room.floor}
+              {room.building} ชั้น {room.floor} · {room.capacity} คน · {room.room_type}
             </p>
           </div>
           <button
@@ -752,12 +861,12 @@ function BookingModal({
                 <CheckCircle className="w-10 h-10 text-emerald-700" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                จองสำเร็จ!
+                ส่งคำขอจองแล้ว
               </h3>
               <p className="text-gray-600 mb-6">
-                การจองของคุณถูกส่งไปยังผู้อนุมัติแล้ว
+                ห้องยังไม่ถูกจองจนกว่าจะได้รับอนุมัติ
                 <br />
-                กรุณารอการอนุมัติ
+                ติดตามผลได้ที่หน้าสถานะการจอง
               </p>
               <div className="bg-gray-50 rounded-xl p-4 text-left mb-6">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -810,30 +919,7 @@ function BookingModal({
             </div>
           ) : (
             <>
-              {/* Step Indicator */}
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-                    step === "select-datetime"
-                      ? "bg-slate-100 text-slate-700"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  <Calendar className="w-4 h-4" />
-                  เลือกวัน-เวลา
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-                    step === "fill-form"
-                      ? "bg-slate-100 text-slate-700"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  กรอกข้อมูล
-                </div>
-              </div>
+              <RoomInfoPanel room={room} />
 
               {step === "select-datetime" && (
                 <div className="space-y-6">
@@ -928,27 +1014,18 @@ function BookingModal({
                           ),
                         )}
                       </div>
-
-                      {/* Legend */}
-                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-white border border-gray-200"></div>
-                          <span>เลือกได้</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-gray-100"></div>
-                          <span>ไม่เปิดให้จอง</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 rounded bg-slate-600"></div>
-                          <span>เลือกแล้ว</span>
-                        </div>
-                      </div>
                     </div>
+
+                    {/* Without this the greyed-out days and the dead "next month" arrow look like a bug. */}
+                    {lastBookableDay && (
+                      <p className="mt-2 text-sm text-slate-500">
+                        ห้องนี้จองล่วงหน้าได้ถึง {thaiShortDate(lastBookableDay.format("YYYY-MM-DD"))}
+                      </p>
+                    )}
 
                     {/* Selected Date Display */}
                     {form.date && (
-                      <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                      <div ref={timeSectionRef} className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <p className="text-sm text-slate-700 font-medium flex items-center gap-2">
                           <CheckCircle className="w-4 h-4" />
                           {thaiFullDate(form.date)}
@@ -957,7 +1034,9 @@ function BookingModal({
                     )}
                   </div>
 
-                  {/* Time Selection */}
+                  {/* Time Selection: hidden until a date is picked, otherwise a chosen
+                      time leaves "ถัดไป" disabled with nothing saying why. */}
+                  {form.date && (
                   <div>
                     <label className="field-label flex items-center gap-2">
                       <Clock className="h-5 w-5 text-slate-500" aria-hidden="true" />
@@ -975,6 +1054,7 @@ function BookingModal({
                       }
                     />
                   </div>
+                  )}
 
                 </div>
               )}
@@ -1015,9 +1095,10 @@ function BookingModal({
                               reservationType: type.value,
                             }))
                           }
+                          aria-pressed={form.reservationType === type.value}
                           className={`p-3 rounded-lg border text-left transition-all ${
                             form.reservationType === type.value
-                              ? "border-slate-500 bg-slate-50 text-slate-700"
+                              ? "border-slate-700 bg-slate-700 text-white"
                               : "border-gray-200 hover:border-slate-300"
                           }`}
                         >
@@ -1028,15 +1109,13 @@ function BookingModal({
                     </div>
                   </div>
 
-                  {/* Caretaker Selection */}
+                  {/* Caretaker Selection: only when there is a real choice to make. */}
+                  {roomCaretakers.length > 1 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <Users className="w-4 h-4 inline mr-1" />
-                      เลือกผู้ดูแลห้อง
+                      ผู้ดูแลห้อง
                     </label>
-                    {roomCaretakers.length === 0 ? (
-                      <p className="text-xs text-gray-500">ห้องนี้ยังไม่มีผู้ดูแล</p>
-                    ) : (
                       <div className="space-y-2">
                         {roomCaretakers.map((caretaker) => (
                           <button
@@ -1064,8 +1143,8 @@ function BookingModal({
                           </button>
                         ))}
                       </div>
-                    )}
                   </div>
+                  )}
 
                   {/* Number of Users */}
                   <div>
@@ -1097,11 +1176,11 @@ function BookingModal({
                     {overCapacity ? (
                       <p id="number-of-users-hint" className="field-error" role="alert">
                         <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
-                        ห้องนี้รับได้สูงสุด {room.capacity} คน กรุณาลดจำนวนลง
+                        เกินความจุ (สูงสุด {room.capacity} คน)
                       </p>
                     ) : (
                       <p id="number-of-users-hint" className="field-hint">
-                        ห้องนี้รับได้สูงสุด {room.capacity} คน
+                        สูงสุด {room.capacity} คน
                       </p>
                     )}
                   </div>
@@ -1127,16 +1206,14 @@ function BookingModal({
                     />
                   </div>
 
-                  {/* Equipment Needs */}
+                  {/* Equipment Needs: visible, since the caretaker prepares it, but marked optional. */}
+                  {equipmentList.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      อุปกรณ์ที่ต้องการใช้งาน
+                      อุปกรณ์ที่ต้องใช้ <span className="font-normal text-gray-500">(ไม่บังคับ)</span>
                     </label>
                     <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
-                      {equipmentList.length === 0 ? (
-                        <span className="text-sm text-gray-500">ห้องนี้ไม่ได้ระบุอุปกรณ์ไว้</span>
-                      ) : (
-                        equipmentList.map((eq) => (
+                      {equipmentList.map((eq) => (
                           <button
                             key={eq}
                             type="button"
@@ -1159,19 +1236,28 @@ function BookingModal({
                             )}
                             {eq}
                           </button>
-                        ))
-                      )}
+                        ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      เลือกอุปกรณ์ที่ต้องการใช้ (ถ้ามี)
-                    </p>
                   </div>
+                  )}
 
+                  {/* The free-text note stays folded away; most bookings need none. */}
+                  {!showExtras ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowExtras(true)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+                    >
+                      <Plus className="h-4 w-4" aria-hidden="true" />
+                      เพิ่มหมายเหตุ (ไม่บังคับ)
+                    </button>
+                  ) : (
+                  <>
                   {/* Reason */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <FileText className="w-4 h-4 inline mr-1" />
-                      เหตุผลในการจอง / รายละเอียดเพิ่มเติม
+                      หมายเหตุ
                     </label>
                     <textarea
                       rows={3}
@@ -1182,10 +1268,12 @@ function BookingModal({
                           reservationReason: e.target.value,
                         }))
                       }
-                      placeholder="ระบุรายละเอียดเพิ่มเติม เช่น จุดประสงค์การใช้งาน, ข้อกำหนดพิเศษ (ถ้ามี)"
+                      placeholder="เช่น ชื่อวิชา หรือหัวข้อประชุม"
                       className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 resize-none"
                     />
                   </div>
+                  </>
+                  )}
 
                   {error && (
                     <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -1295,43 +1383,24 @@ export default function BookRoomPage() {
     return matchesSearch && matchesType && matchesBuilding;
   });
 
-  // Stats
-  const availableCount = rooms.filter(
-    (r) => (r.status || "").toLowerCase() === "available",
-  ).length;
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Calendar className="w-8 h-8 text-slate-600" />
-            จองห้อง
-          </h1>
-          <p className="text-gray-500 mt-1">
-            เลือกห้องที่ต้องการจองและกรอกข้อมูลการจอง
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-white rounded-xl px-4 py-3 border border-gray-200">
-            <span className="text-2xl font-bold text-slate-700">
-              {availableCount}
-            </span>
-            <span className="text-gray-500 ml-2">ห้องว่าง</span>
-          </div>
-        </div>
-      </div>
+      <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+        <Calendar className="w-8 h-8 text-slate-600" />
+        จองห้อง
+      </h1>
 
       {/* Search & Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
+        {/* Wraps instead of squeezing: on narrow laptops the fixed-width selects left the search box a few characters wide. */}
+        <div className="flex flex-wrap gap-4">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-full md:w-auto md:min-w-[18rem] md:flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="ค้นหาห้อง..."
+              placeholder="ค้นหา เช่น SC2-101, ประชุม"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm"
@@ -1398,7 +1467,14 @@ export default function BookRoomPage() {
             <RoomCard
               key={room.room_id}
               room={room}
-              onSelect={() => setSelectedRoom(room)}
+              onBook={() => {
+                setSelectedRoom(room);
+                setModalView("booking");
+              }}
+              onInfo={() => {
+                setSelectedRoom(room);
+                setModalView("detail");
+              }}
             />
           ))}
         </div>

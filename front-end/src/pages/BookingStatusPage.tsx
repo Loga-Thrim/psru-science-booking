@@ -228,9 +228,6 @@ export default function BookingStatusPage() {
             <CalendarDays className="h-8 w-8 text-slate-700" aria-hidden="true" />
             สถานะการจองของฉัน
           </h1>
-          <p className="mt-1 text-base text-slate-600">
-            ดูว่าคำขอจองห้องของคุณอนุมัติถึงขั้นไหนแล้ว
-          </p>
         </div>
         <Link to="/book-room" className="btn-primary inline-flex items-center gap-2">
           <Plus className="h-5 w-5" aria-hidden="true" />
@@ -316,7 +313,8 @@ export default function BookingStatusPage() {
         <div className="space-y-4">
           {visible.map((r) => (
             <div key={r.reservation_id} className="luxury-card p-5 sm:p-6">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              {/* Side by side only from xl: below that the sidebar leaves too little room and the details collapse under the buttons. */}
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0 flex-1 space-y-3">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="inline-flex items-center gap-2 text-xl font-bold text-slate-900">
@@ -326,7 +324,7 @@ export default function BookingStatusPage() {
                     <StatusBadge status={r.reservation_status} />
                   </div>
 
-                  <div className="grid gap-x-8 gap-y-2 text-base text-slate-800 sm:grid-cols-2">
+                  <div className="flex flex-wrap gap-x-8 gap-y-2 text-base text-slate-800">
                     <span className="inline-flex items-center gap-2">
                       <CalendarDays className="h-5 w-5 text-slate-400" aria-hidden="true" />
                       {formatDate(r.booking_date)}
