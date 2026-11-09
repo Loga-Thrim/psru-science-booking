@@ -107,9 +107,12 @@ export function getReservationTypeLabel(type: string | null | undefined): string
   return RESERVATION_TYPE_LABELS[type] ?? type;
 }
 
-/** Whether this role takes the next approval step on a booking in this status. */
+/**
+ * Whether this role can take the next approval step on a booking in this status.
+ * An admin can take either step, including the final one an approver gives.
+ */
 export function isActionable(status: string, role: UserRole): boolean {
-  if (role === "admin") return status === "pending";
+  if (role === "admin") return status === "pending" || status === "adminApproved";
   if (role === "approver") return status === "adminApproved";
   return false;
 }

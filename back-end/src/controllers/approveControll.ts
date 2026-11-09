@@ -29,9 +29,19 @@ export default async function approveControll(req: Request, res: Response) {
 
         switch (payload.role) {
             case "admin": {
-                const result = await adminApproveRepo(reservationId);
-                if (result === "ok") notifyAdminApproved(reservationId);
-                return respond(res, result, "รายการนี้ไม่ได้อยู่ในสถานะรอแอดมินอนุมัติ");
+                // An admin takes whichever step the booking is at: the first review,
+                // or the final approval an approver would otherwise give. Each repo
+                // only moves a row out of its own state, so this never skips a step.
+                const first = await adminApproveRepo(reservationId);
+                if (first === "ok") {
+                    notifyAdminApproved(reservationId);
+                    return respond(res, first, "");
+                }
+                if (first !== "wrongState") return respond(res, first, "");
+
+                const final = await approverApproveRepo(reservationId);
+                if (final === "ok") notifyApproved(reservationId);
+                return respond(res, final, "รายการนี้อนุมัติหรือถูกปฏิเสธไปแล้ว");
             }
             case "approver": {
                 const result = await approverApproveRepo(reservationId);
