@@ -7,42 +7,11 @@
 	default_sni {$SERVER_IP:127.0.0.1}
 }
 
-# Visiting the bare IP has to work, because that is what people copy out of the
-# DigitalOcean console before a domain exists.
-#
-# Two blocks are needed. Browsers that already cached the old
-# "http://IP -> https://IP" permanent redirect never ask the server again, so
-# the https:// block has to be reachable on its own or those visitors stay
-# stuck on a TLS error.
-#
-# Let's Encrypt's "shortlived" profile issues certificates for IP addresses
-# (the default "classic" profile does not). They are valid ~6 days; Caddy
-# renews them on its own.
-https://{$SERVER_IP:127.0.0.1} {
-	tls {
-		issuer acme {
-			profile shortlived
-		}
-	}
-	# Temporary, not permanent: this target changes the day a real domain is
-	# pointed here, and a cached 301 would be impossible to take back.
-	redir https://{$SITE_ADDRESS}{uri} temporary
-}
-
-# The http:// prefix keeps this block HTTP-only, so Caddy does not try to
-# redirect it to https://IP before the redirect below can run.
-http://{$SERVER_IP:127.0.0.1} {
-	redir https://{$SITE_ADDRESS}{uri} temporary
-}
-
-# SITE_ADDRESS comes from the project-root .env.
-# Use a real domain (booking.psru.ac.th) once DNS points here; until then a
-# free wildcard-DNS name such as 143-198-81-130.sslip.io resolves to this host.
-{$SITE_ADDRESS} {
+# What both addresses serve. Everything is handed to the existing nginx
+# container, which already knows how to split /api, /uploads and the SPA fallback.
+(app) {
 	encode gzip
 
-	# Everything is handed to the existing nginx container, which already knows
-	# how to split /api, /uploads and the SPA fallback.
 	reverse_proxy nginx:80
 
 	header {
@@ -60,4 +29,39 @@ http://{$SERVER_IP:127.0.0.1} {
 			roll_keep 5
 		}
 	}
+}
+
+# The bare IP serves the app itself rather than redirecting to SITE_ADDRESS.
+# The university's Fortinet firewall blocks *.sslip.io by category, and staff
+# can only use university machines, so the IP is the address that gets through.
+# Switch this back to a redirect once a real domain is in place.
+#
+# Two blocks are needed. Browsers that already cached the old
+# "http://IP -> https://IP" permanent redirect never ask the server again, so
+# the https:// block has to be reachable on its own or those visitors stay
+# stuck on a TLS error.
+#
+# Let's Encrypt's "shortlived" profile issues certificates for IP addresses
+# (the default "classic" profile does not). They are valid ~6 days; Caddy
+# renews them on its own.
+https://{$SERVER_IP:127.0.0.1} {
+	tls {
+		issuer acme {
+			profile shortlived
+		}
+	}
+	import app
+}
+
+# The http:// prefix keeps this block HTTP-only. Temporary, not permanent: a
+# cached 301 would be impossible to take back when the target changes.
+http://{$SERVER_IP:127.0.0.1} {
+	redir https://{$SERVER_IP:127.0.0.1}{uri} temporary
+}
+
+# SITE_ADDRESS comes from the project-root .env.
+# Use a real domain (booking.psru.ac.th) once DNS points here; until then a
+# free wildcard-DNS name such as 143-198-81-130.sslip.io resolves to this host.
+{$SITE_ADDRESS} {
+	import app
 }
