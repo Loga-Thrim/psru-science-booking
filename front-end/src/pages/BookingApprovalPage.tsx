@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import clsx from "clsx";
 import ReservationTable from "../components/approve/reservationTable";
+import { isActionable } from "../constants/bookingStatus";
 import { useAuth } from "../contexts/AuthContext";
 import { reservationRow } from "../types/types";
 import ReservationDetailModal from "../components/approve/reservationDetailModal";
@@ -427,6 +428,17 @@ function BookingApprovalPage() {
         <ReservationDetailModal
           row={detailRow}
           onClose={() => setDetailRow(null)}
+          {...(isActionable(detailRow.reservation_status, user.role) && {
+            // Swap the detail modal for the confirm dialog rather than stacking them.
+            onApprove: (row: reservationRow) => {
+              setDetailRow(null);
+              handleOpenApprove(row);
+            },
+            onReject: (row: reservationRow) => {
+              setDetailRow(null);
+              handleOpenReject(row);
+            },
+          })}
         />
       )}
 

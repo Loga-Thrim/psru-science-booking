@@ -1,6 +1,7 @@
 import { reservationRow, UserRole } from "../../types/types";
 import { Info, Check, X } from "lucide-react";
 import StatusBadge from "../booking/StatusBadge";
+import { isActionable } from "../../constants/bookingStatus";
 
 type Props = {
   rows: reservationRow[];
@@ -9,12 +10,6 @@ type Props = {
   onApprove: (row: reservationRow) => void;
   onReject: (row: reservationRow) => void;
 };
-
-function isActionable(status: string, role: UserRole) {
-  if (role === "admin") return status === "pending";
-  if (role === "approver") return status === "adminApproved";
-  return false;
-}
 
 function toThaiDateDDMMYYYY(input: string | number | Date) {
   const date = new Date(input);

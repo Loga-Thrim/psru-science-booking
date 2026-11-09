@@ -5,6 +5,7 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
+import type { UserRole } from "../types/types";
 
 /**
  * Single source of truth for how a reservation_status is shown.
@@ -104,4 +105,11 @@ export const RESERVATION_TYPE_LABELS: Record<string, string> = {
 export function getReservationTypeLabel(type: string | null | undefined): string {
   if (!type) return "ไม่ระบุ";
   return RESERVATION_TYPE_LABELS[type] ?? type;
+}
+
+/** Whether this role takes the next approval step on a booking in this status. */
+export function isActionable(status: string, role: UserRole): boolean {
+  if (role === "admin") return status === "pending";
+  if (role === "approver") return status === "adminApproved";
+  return false;
 }

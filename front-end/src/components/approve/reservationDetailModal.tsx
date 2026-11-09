@@ -1,11 +1,15 @@
 import { useEffect, useRef } from "react";
 import { reservationRow, reservationTypeLabel } from "../../types/types";
-import { FileText, X, Calendar, Clock, Users, User, Building, Phone, Mail, MessageSquare, AlertCircle, Monitor, UserCheck, Info } from "lucide-react";
+import { FileText, X, Check, Calendar, Clock, Users, User, Building, Phone, Mail, MessageSquare, AlertCircle, Monitor, UserCheck, Info } from "lucide-react";
 import { useScrollLock } from "../../hooks/useScrollLock";
 
 type Props = {
   row: reservationRow;
   onClose: () => void;
+  /** Passed only when the viewer may act on this row. The calendar view has no
+      table buttons, so without these the modal was a dead end for approving. */
+  onApprove?: (row: reservationRow) => void;
+  onReject?: (row: reservationRow) => void;
 };
 
 function toThaiDateDDMMYYYY(input: string | number | Date) {
@@ -40,7 +44,7 @@ function Field({ label, value, icon }: { label: string; value?: string | null; i
   );
 }
 
-export default function ReservationDetailModal({ row, onClose }: Props) {
+export default function ReservationDetailModal({ row, onClose, onApprove, onReject }: Props) {
   useScrollLock();
   const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -237,13 +241,33 @@ export default function ReservationDetailModal({ row, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t">
+        <div className="flex flex-wrap items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t">
           <button
             onClick={onClose}
             className="px-6 py-2.5 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors"
           >
             ปิด
           </button>
+          {onReject && (
+            <button
+              type="button"
+              onClick={() => onReject(row)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-700 px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-red-800"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+              ไม่อนุมัติ
+            </button>
+          )}
+          {onApprove && (
+            <button
+              type="button"
+              onClick={() => onApprove(row)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-emerald-800"
+            >
+              <Check className="h-5 w-5" aria-hidden="true" />
+              อนุมัติ
+            </button>
+          )}
         </div>
       </div>
     </div>
