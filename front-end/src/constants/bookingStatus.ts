@@ -25,7 +25,7 @@ export interface BookingStatusInfo {
   label: string;
   /** Plain-language explanation of what is happening and what to expect next. */
   description: string;
-  /** Which step of the 2-stage approval this is. -1 means the flow stopped. */
+  /** Which step of the approval this is. -1 means the flow stopped. */
   step: number;
   icon: LucideIcon;
   /** Badge styling. Always paired with an icon so colour is never the only cue. */
@@ -34,22 +34,24 @@ export interface BookingStatusInfo {
   dotClass: string;
 }
 
-/** ส่งคำขอ -> แอดมินตรวจสอบ -> ผู้อนุมัติพิจารณา */
-export const TOTAL_APPROVAL_STEPS = 3;
+/** ส่งคำขอ -> แอดมินอนุมัติ. A single admin step; there is no separate approver. */
+export const TOTAL_APPROVAL_STEPS = 2;
 
 export const BOOKING_STATUS: Record<BookingStatus, BookingStatusInfo> = {
   pending: {
-    label: "รอแอดมินตรวจสอบ",
-    description: "ส่งคำขอแล้ว กำลังรอแอดมินตรวจสอบเป็นขั้นแรก",
+    label: "รออนุมัติ",
+    description: "ส่งคำขอแล้ว ช่วงเวลานี้ถูกล็อกไว้ให้แล้ว กำลังรอแอดมินอนุมัติ",
     step: 1,
     icon: Clock,
     badgeClass: "bg-amber-100 text-amber-900 ring-1 ring-amber-300",
     dotClass: "bg-amber-500",
   },
+  // Left over from the old two-stage flow (migration 005 moves these to
+  // approverApproved); shown as still waiting in case any slip through.
   adminApproved: {
-    label: "รอผู้อนุมัติ",
-    description: "แอดมินตรวจสอบผ่านแล้ว กำลังรอผู้อนุมัติพิจารณาขั้นสุดท้าย",
-    step: 2,
+    label: "รออนุมัติ",
+    description: "ส่งคำขอแล้ว กำลังรอแอดมินอนุมัติ",
+    step: 1,
     icon: ClipboardCheck,
     badgeClass: "bg-blue-100 text-blue-900 ring-1 ring-blue-300",
     dotClass: "bg-blue-600",
@@ -57,7 +59,7 @@ export const BOOKING_STATUS: Record<BookingStatus, BookingStatusInfo> = {
   approverApproved: {
     label: "อนุมัติแล้ว",
     description: "อนุมัติเรียบร้อย ใช้ห้องได้ตามวันและเวลาที่จองไว้",
-    step: 3,
+    step: 2,
     icon: CheckCircle2,
     badgeClass: "bg-emerald-100 text-emerald-900 ring-1 ring-emerald-300",
     dotClass: "bg-emerald-600",
@@ -86,11 +88,10 @@ export function getStatusInfo(status: string | null | undefined): BookingStatusI
   return BOOKING_STATUS[status as BookingStatus] ?? UNKNOWN_STATUS;
 }
 
-/** Names of the three stages, used by the progress stepper. */
+/** Names of the stages, used by the progress stepper. */
 export const APPROVAL_STEP_LABELS = [
   "ส่งคำขอ",
-  "แอดมินตรวจสอบ",
-  "ผู้อนุมัติพิจารณา",
+  "แอดมินอนุมัติ",
 ];
 
 /** Booking types are stored in English but must always be shown in Thai. */
@@ -107,12 +108,7 @@ export function getReservationTypeLabel(type: string | null | undefined): string
   return RESERVATION_TYPE_LABELS[type] ?? type;
 }
 
-/**
- * Whether this role can take the next approval step on a booking in this status.
- * An admin can take either step, including the final one an approver gives.
- */
+/** Whether this role can approve or reject a booking in this status. Only admins approve. */
 export function isActionable(status: string, role: UserRole): boolean {
-  if (role === "admin") return status === "pending" || status === "adminApproved";
-  if (role === "approver") return status === "adminApproved";
-  return false;
+  return role === "admin" && (status === "pending" || status === "adminApproved");
 }

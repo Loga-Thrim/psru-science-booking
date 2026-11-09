@@ -88,10 +88,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           setUser(null);
+        } else if (!res.ok) {
+          // A 502 while the backend restarts (e.g. during a deploy) says
+          // nothing about the token; keep the stored session instead of
+          // signing the admin out.
         } else {
           const data = await res.json();
           const user = getUser(data);
@@ -101,10 +105,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (err) {
+        // Unreachable server, same as a 502: keep the session. Staff API calls
+        // still reject a bad token on their own.
         console.log(err);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setUser(null);
       } finally {
         setLoading(false);
       }

@@ -6,28 +6,16 @@ import { ShieldX } from "lucide-react";
 
 function PageLoader() {
   return (
-    <div className="w-screen h-screen flex items-center justify-center">
+    <div className="flex min-h-[60vh] items-center justify-center">
       <div className="text-sm text-gray-600">กำลังตรวจสอบสิทธิ์...</div>
     </div>
   );
 }
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
-  const location = useLocation();
-
-  if (loading) return <PageLoader />;
-
-  if (!isAuthenticated) {
-    return <Navigate to="/authen" replace state={{ from: location }} />;
-  }
-
-  return <>{children}</>;
-}
-
 /**
- * Route-level role gate. The API enforces these rules too; this exists so a user who
- * types a staff-only URL gets a clear message instead of a half-rendered admin screen.
+ * Route-level gate for the staff pages. A visitor who is not signed in is sent
+ * to the staff sign-in page; a signed-in account without the role gets a clear
+ * message. The API enforces the same rules.
  */
 export function RequireRole({
   roles,
@@ -37,10 +25,15 @@ export function RequireRole({
   children: React.ReactNode;
 }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) return <PageLoader />;
 
-  if (!user || !roles.includes(user.role)) {
+  if (!user) {
+    return <Navigate to="/authen" replace state={{ from: location }} />;
+  }
+
+  if (!roles.includes(user.role)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">

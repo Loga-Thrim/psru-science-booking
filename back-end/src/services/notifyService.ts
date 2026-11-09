@@ -2,8 +2,9 @@ import nodemailer, { Transporter } from "nodemailer";
 import { RowDataPacket } from "mysql2";
 import dbConnect from "../configs/dbConnect";
 
-// Email is the one channel every staff member already has, so nobody has to
-// open the system just to find out whether a request moved.
+// Admins hear about new requests by email. Bookers usually book as guests
+// (name and phone only) and check their status by phone number instead; only a
+// booking an admin made while signed in has an address to reply to.
 //
 // Sending is best effort: a mail server outage must never fail a booking or an
 // approval that has already been saved, so every public function here swallows
@@ -39,7 +40,8 @@ type Details = {
   start_time: string;
   end_time: string;
   username: string;
-  email: string;
+  /** Null for guest bookings, which have no account and so no address. */
+  email: string | null;
   rejection_reason: string | null;
 };
 
@@ -78,10 +80,11 @@ async function reservationDetails(reservationId: string): Promise<Details | null
   const connect = await dbConnect();
   try {
     const [rows] = await connect.execute<RowDataPacket[]>(
-      `SELECT r.room_code, v.booking_date, v.start_time, v.end_time, u.username, u.email, v.rejection_reason
+      `SELECT r.room_code, v.booking_date, v.start_time, v.end_time,
+              COALESCE(v.booker_name, u.username) AS username, u.email, v.rejection_reason
        FROM reservations v
        JOIN rooms r ON r.room_id = v.room_id
-       JOIN users u ON u.user_id = v.user_id
+       LEFT JOIN users u ON u.user_id = v.user_id
        WHERE v.reservation_id = ?`,
       [reservationId]
     );
@@ -96,16 +99,13 @@ function quietly(task: () => Promise<void>) {
 }
 
 /** A new request is waiting for the first review. */
-export function notifyNewBooking(b: { room_id: string; user_id: string; date: string; start_time: string; end_time: string }) {
+export function notifyNewBooking(b: { room_id: string; booker_name: string; date: string; start_time: string; end_time: string }) {
   quietly(async () => {
     const connect = await dbConnect();
     let room_code = "";
-    let username = "";
     try {
       const [rooms] = await connect.execute<RowDataPacket[]>("SELECT room_code FROM rooms WHERE room_id = ?", [b.room_id]);
-      const [users] = await connect.execute<RowDataPacket[]>("SELECT username FROM users WHERE user_id = ?", [b.user_id]);
       room_code = rooms[0]?.room_code ?? "";
-      username = users[0]?.username ?? "";
     } finally {
       connect.end();
     }
@@ -113,21 +113,7 @@ export function notifyNewBooking(b: { room_id: string; user_id: string; date: st
     await send(
       await emailsOfRole("admin"),
       `[จองห้อง] คำขอใหม่ ${room_code}`,
-      [`${username} ขอใช้ห้อง ${room_code}`, slot],
-      "/approvals"
-    );
-  });
-}
-
-/** The admin passed it on: the approvers now have something to do. */
-export function notifyAdminApproved(reservationId: string) {
-  quietly(async () => {
-    const d = await reservationDetails(reservationId);
-    if (!d) return;
-    await send(
-      await emailsOfRole("approver"),
-      `[จองห้อง] รอคุณอนุมัติ ${d.room_code}`,
-      [`${d.username} ขอใช้ห้อง ${d.room_code}`, when(d)],
+      [`${b.booker_name} ขอใช้ห้อง ${room_code}`, slot],
       "/approvals"
     );
   });
@@ -139,7 +125,7 @@ export function notifyApproved(reservationId: string) {
     const d = await reservationDetails(reservationId);
     if (!d) return;
     await send(
-      [d.email],
+      d.email ? [d.email] : [],
       `[จองห้อง] อนุมัติแล้ว ${d.room_code}`,
       [`ห้อง ${d.room_code} อนุมัติแล้ว`, when(d)],
       "/booking-status"
@@ -152,7 +138,7 @@ export function notifyRejected(reservationId: string) {
     const d = await reservationDetails(reservationId);
     if (!d) return;
     await send(
-      [d.email],
+      d.email ? [d.email] : [],
       `[จองห้อง] ไม่อนุมัติ ${d.room_code}`,
       [`ห้อง ${d.room_code} ไม่ได้รับอนุมัติ`, when(d), `เหตุผล: ${d.rejection_reason ?? "-"}`],
       "/booking-status"

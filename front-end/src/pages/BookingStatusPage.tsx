@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
 import {
   CalendarDays,
@@ -10,30 +10,21 @@ import {
   Trash2,
   Plus,
   AlertTriangle,
-  PencilLine,
+  Search,
   X,
 } from "lucide-react";
 import clsx from "clsx";
 import StatusBadge from "../components/booking/StatusBadge";
 import ApprovalStepper from "../components/booking/ApprovalStepper";
-import RescheduleModal from "../components/booking/RescheduleModal";
 import { getReservationTypeLabel } from "../constants/bookingStatus";
 import { useScrollLock } from "../hooks/useScrollLock";
 
 const api = import.meta.env.VITE_API;
 
-type User = {
-  user_id: string;
-  email: string;
-  username: string;
-  department?: string;
-  role?: string;
-};
-
 type Reservation = {
   reservation_id: string;
   room_id: string;
-  user_id: string;
+  booker_name: string | null;
   booking_date: string;
   start_time: string;
   end_time: string;
@@ -58,7 +49,7 @@ type Room = {
   status?: string;
 };
 
-type ApiBlock = { user?: User[]; reservation?: Reservation[]; rooms?: Room[] };
+type ApiBlock = { reservation?: Reservation[]; rooms?: Room[] };
 type ApiShape = ApiBlock | ApiBlock[];
 
 type TabKey = "upcoming" | "past";
@@ -89,51 +80,65 @@ function Item({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** The number used on the last booking, so a returning booker sees their bookings at once. */
+function lastBookerPhone(): string {
+  try {
+    return JSON.parse(localStorage.getItem("lastBooker") ?? "null")?.phone ?? "";
+  } catch {
+    return "";
+  }
+}
+
+/** A guest may cancel anything still ahead of them that was not turned down. */
+function canCancel(r: Reservation) {
+  return !isPast(r) && r.reservation_status !== "rejected";
+}
+
 /** A booking is "past" once its end time has gone by. */
 function isPast(r: Reservation) {
   return dayjs(`${r.booking_date}T${r.end_time}`).isBefore(dayjs());
 }
 
 export default function BookingStatusPage() {
-  const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  // Bookers have no accounts: the phone number given when booking finds them.
+  const [phoneInput, setPhoneInput] = useState(
+    () => searchParams.get("phone") ?? lastBookerPhone()
+  );
+  const [phone, setPhone] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [detail, setDetail] = useState<Reservation | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<Reservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [rescheduling, setRescheduling] = useState<Reservation | null>(null);
   const [tab, setTab] = useState<TabKey>("upcoming");
 
   // These two dialogs are rendered inline rather than as components, so the
-  // lock is driven by their own visibility. RescheduleModal locks itself.
+  // lock is driven by their own visibility.
   useScrollLock(Boolean(detail));
   useScrollLock(Boolean(confirmCancel));
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (forPhone: string) => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${api}/booking-list`, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      if (!res.ok)
-        throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
+      const res = await fetch(
+        `${api}/booking-list?phone=${encodeURIComponent(forPhone)}`,
+        { headers: { Accept: "application/json" } }
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message ?? `โหลดข้อมูลไม่สำเร็จ (${res.status})`);
+      }
       const data: ApiShape = await res.json();
 
-      let u: User | null = null;
       let r: Reservation[] = [];
       let rm: Room[] = [];
 
       const pushFromBlock = (block?: ApiBlock) => {
         if (!block) return;
-        if (block.user?.length) u = block.user[0];
         if (block.reservation?.length) r = r.concat(block.reservation);
         if (block.rooms?.length) rm = rm.concat(block.rooms);
       };
@@ -147,7 +152,7 @@ export default function BookingStatusPage() {
         }, {})
       );
 
-      setUser(u);
+      setPhone(forPhone);
       setReservations(r);
       setRooms(dedupRooms);
     } catch (err: any) {
@@ -158,16 +163,21 @@ export default function BookingStatusPage() {
     }
   };
 
+  // Arriving from a fresh booking (or with a remembered number): look up straight away.
   useEffect(() => {
-    fetchBookings();
+    if (phoneInput.length >= 9) fetchBookings(phoneInput);
+    // Only on first load; later lookups come from the form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fullName = useMemo(() => {
-    if (!user) return "";
-    return [user.username, user.department ? `(${user.department})` : ""]
-      .filter(Boolean)
-      .join(" ");
-  }, [user]);
+  const handleLookup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (phoneInput.length < 9) {
+      setError("กรุณากรอกเบอร์โทร 9-10 หลัก");
+      return;
+    }
+    fetchBookings(phoneInput);
+  };
 
   const roomById = useMemo(() => {
     const map = new Map<string, Room>();
@@ -195,13 +205,14 @@ export default function BookingStatusPage() {
   async function handleCancel(resv: Reservation) {
     setIsCancelling(true);
     try {
-      const token = localStorage.getItem("token");
+      // The phone number the booking was made with is the proof of ownership.
       const resp = await fetch(`${api}/booking/${resv.reservation_id}`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ phone }),
       });
 
       if (!resp.ok) {
@@ -215,7 +226,7 @@ export default function BookingStatusPage() {
         throw new Error(msg);
       }
 
-      await fetchBookings();
+      if (phone) await fetchBookings(phone);
       setConfirmCancel(null);
       setDetail(null);
     } catch (e: any) {
@@ -241,6 +252,32 @@ export default function BookingStatusPage() {
         </Link>
       </div>
 
+      {/* Lookup by the phone number given when booking: there are no accounts. */}
+      <form onSubmit={handleLookup} className="luxury-card flex flex-col gap-3 p-5 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <label htmlFor="lookup-phone" className="field-label">
+            เบอร์โทรที่ใช้จอง
+          </label>
+          <input
+            id="lookup-phone"
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
+            autoComplete="tel"
+            value={phoneInput}
+            onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ""))}
+            placeholder="0812345678"
+            className="input-luxury"
+          />
+        </div>
+        <button type="submit" className="btn-primary inline-flex items-center justify-center gap-2" disabled={loading}>
+          <Search className="h-5 w-5" aria-hidden="true" />
+          ดูการจอง
+        </button>
+      </form>
+
+      {phone && (
+      <>
       {/* Two plain tabs. "ที่กำลังจะถึง" is what almost everyone opens this page for. */}
       <div
         className="flex flex-wrap gap-3"
@@ -278,6 +315,9 @@ export default function BookingStatusPage() {
         ))}
       </div>
 
+      </>
+      )}
+
       {loading ? (
         <div className="luxury-card p-10 text-center text-lg text-slate-600">
           กำลังโหลดข้อมูล…
@@ -286,17 +326,17 @@ export default function BookingStatusPage() {
         <div className="luxury-card p-10 text-center">
           <AlertTriangle className="mx-auto mb-3 h-12 w-12 text-red-500" aria-hidden="true" />
           <p className="text-lg font-semibold text-red-700">เกิดข้อผิดพลาด: {error}</p>
-          <button onClick={fetchBookings} className="btn-secondary mt-5">
+          <button onClick={() => fetchBookings(phoneInput)} className="btn-secondary mt-5">
             ลองใหม่อีกครั้ง
           </button>
         </div>
-      ) : visible.length === 0 ? (
+      ) : !phone ? null : visible.length === 0 ? (
         <div className="luxury-card p-12 text-center">
           <CalendarDays className="mx-auto mb-4 h-14 w-14 text-slate-300" aria-hidden="true" />
           <p className="text-xl font-semibold text-slate-700">
             {tab === "upcoming"
-              ? "ยังไม่มีการจองที่กำลังจะถึง"
-              : "ยังไม่มีประวัติการจอง"}
+              ? "ไม่พบการจองที่กำลังจะถึงของเบอร์นี้"
+              : "ไม่พบประวัติการจองของเบอร์นี้"}
           </p>
           {tab === "upcoming" && (
             <>
@@ -358,25 +398,16 @@ export default function BookingStatusPage() {
                     <Info className="h-5 w-5" aria-hidden="true" />
                     ดูรายละเอียด
                   </button>
-                  {/* Only a request nobody has reviewed yet can still be moved. */}
-                  {r.reservation_status === "pending" && (
-                    <>
-                      <button
-                        onClick={() => setRescheduling(r)}
-                        className="btn-secondary inline-flex items-center gap-2"
-                      >
-                        <PencilLine className="h-5 w-5" aria-hidden="true" />
-                        เปลี่ยนวัน/เวลา
-                      </button>
-                      <button
-                        onClick={() => setConfirmCancel(r)}
-                        disabled={isCancelling}
-                        className="btn-danger inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <Trash2 className="h-5 w-5" aria-hidden="true" />
-                        ยกเลิกการจอง
-                      </button>
-                    </>
+                  {/* To change a time, cancel and book again: one less flow to learn. */}
+                  {canCancel(r) && (
+                    <button
+                      onClick={() => setConfirmCancel(r)}
+                      disabled={isCancelling}
+                      className="btn-danger inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Trash2 className="h-5 w-5" aria-hidden="true" />
+                      ยกเลิกการจอง
+                    </button>
                   )}
                 </div>
               </div>
@@ -452,7 +483,7 @@ export default function BookingStatusPage() {
               <section className="rounded-xl border-2 border-stone-200 p-5">
                 <h3 className="mb-3 text-lg font-bold text-slate-900">ผู้จอง</h3>
                 <div className="space-y-2.5 text-base">
-                  <Item label="ชื่อผู้จอง" value={fullName || "-"} />
+                  <Item label="ชื่อผู้จอง" value={detail.booker_name || "-"} />
                   <Item label="เบอร์โทรศัพท์" value={detail.phone ?? "-"} />
                 </div>
               </section>
@@ -487,17 +518,6 @@ export default function BookingStatusPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {rescheduling && (
-        <RescheduleModal
-          reservation={rescheduling}
-          onClose={() => setRescheduling(null)}
-          onSaved={async () => {
-            setRescheduling(null);
-            await fetchBookings();
-          }}
-        />
       )}
 
       {confirmCancel && (

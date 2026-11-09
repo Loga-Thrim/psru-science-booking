@@ -9,12 +9,12 @@ import ReservationDetailModal from "../components/approve/reservationDetailModal
 import ReservationApproveModal from "../components/approve/reservationApproveModal";
 import ReservationRejectModal from "../components/approve/reservationRejectModal";
 import ReservationCalendar from "../components/approve/ReservationCalendar";
-import { ClipboardCheck, Clock, CheckCircle, XCircle, Search, ShieldX, Ban, CalendarDays, List as ListIcon } from "lucide-react";
+import { ClipboardCheck, CheckCircle, XCircle, Search, ShieldX, Ban, CalendarDays, List as ListIcon } from "lucide-react";
 
 const api = import.meta.env.VITE_API;
 
 /** Which rows the four summary cards select. "todo" is whatever *this* role can act on. */
-type StatusFilter = "todo" | "pending" | "adminApproved" | "approverApproved" | "rejected";
+type StatusFilter = "todo" | "approverApproved" | "rejected";
 type DateFilter = "all" | "today" | "week" | "month";
 
 const DATE_FILTERS: { key: DateFilter; label: string }[] = [
@@ -132,20 +132,18 @@ function BookingApprovalPage() {
     }
   };
 
-  const pendingCount = rows.filter(r => r.reservation_status === 'pending').length;
-  const adminApprovedCount = rows.filter(r => r.reservation_status === 'adminApproved').length;
   const approvedCount = rows.filter(r => r.reservation_status === 'approverApproved').length;
   const rejectedCount = rows.filter(r => r.reservation_status === 'rejected').length;
 
-  /** The status this role is expected to act on, used by the "รอฉันดำเนินการ" card. */
-  const myTodoStatus = user?.role === "approver" ? "adminApproved" : "pending";
-  const myTodoCount = rows.filter(r => r.reservation_status === myTodoStatus).length;
+  /** Waiting for the admin. adminApproved is the old halfway state, still unfinished. */
+  const isWaiting = (status: string) => status === "pending" || status === "adminApproved";
+  const waitingCount = rows.filter(r => isWaiting(r.reservation_status)).length;
 
   const filteredRows = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     return rows
       .filter((row) => {
-        if (statusFilter === "todo") return row.reservation_status === myTodoStatus;
+        if (statusFilter === "todo") return isWaiting(row.reservation_status);
         return row.reservation_status === statusFilter;
       })
       .filter((row) => matchesDateFilter(row.booking_date, dateFilter))
@@ -159,30 +157,22 @@ function BookingApprovalPage() {
           row.department?.toLowerCase().includes(term)
         );
       })
-      // Soonest booking first: an approver works through the nearest dates.
+      // Soonest booking first: the admin works through the nearest dates.
       .sort((a, b) =>
         `${a.booking_date}T${a.start_time}`.localeCompare(
           `${b.booking_date}T${b.start_time}`
         )
       );
-  }, [rows, statusFilter, dateFilter, searchTerm, myTodoStatus]);
+  }, [rows, statusFilter, dateFilter, searchTerm]);
 
   const summaryCards = [
     {
       key: "todo" as StatusFilter,
-      label: "รอฉันดำเนินการ",
-      count: myTodoCount,
+      label: "รออนุมัติ",
+      count: waitingCount,
       icon: ClipboardCheck,
       tone: "bg-amber-100 text-amber-700",
       ring: "ring-amber-500",
-    },
-    {
-      key: (user?.role === "approver" ? "pending" : "adminApproved") as StatusFilter,
-      label: user?.role === "approver" ? "รอแอดมินตรวจสอบ" : "รอผู้อนุมัติ",
-      count: user?.role === "approver" ? pendingCount : adminApprovedCount,
-      icon: Clock,
-      tone: "bg-blue-100 text-blue-700",
-      ring: "ring-blue-500",
     },
     {
       key: "approverApproved" as StatusFilter,
@@ -213,7 +203,7 @@ function BookingApprovalPage() {
     );
   }
 
-  const canAccess = user.role === "admin" || user.role === "approver";
+  const canAccess = user.role === "admin";
 
   if (!canAccess) {
     return (
@@ -239,9 +229,9 @@ function BookingApprovalPage() {
         <p className="text-gray-500 mt-1">ตรวจสอบและอนุมัติคำขอจองห้อง มรพส.</p>
       </div>
 
-      {/* The cards double as the status filter, which is how an approver
+      {/* The cards double as the status filter, which is how the admin
           actually navigates: "show me the ones waiting on me". */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           const active = statusFilter === card.key;

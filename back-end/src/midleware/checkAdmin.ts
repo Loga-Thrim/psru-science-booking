@@ -11,7 +11,7 @@ export default async function checkAdmin(req: Request, res: Response, next: Next
     if (payload.role === "admin") {
       return next();
     } else {
-        return res.status(403).json({ message: "คุณไม่มีสิทธิ์ในการสร้างบัญชี" });
+        return res.status(403).json({ message: "คุณไม่มีสิทธิ์เข้าถึงส่วนนี้" });
     }
   } catch (err: any) {
     console.error(err);

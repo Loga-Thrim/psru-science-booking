@@ -12,7 +12,7 @@ export type ScheduleEntry = {
   reservation_status: string;
   reservation_type: string;
   number_of_users: number;
-  /** Only present for admins and approvers. */
+  /** Only present for admins. */
   username?: string;
   department?: string;
   reservation_reason?: string;
@@ -57,7 +57,8 @@ export function useRoomSchedule(params: {
       const qs = new URLSearchParams({ from, to });
       if (roomId) qs.set("room_id", roomId);
       const res = await fetch(`${api}/room-schedule?${qs}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        // Public: guests have no token. An admin's adds department and reason.
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!res.ok) throw new Error(`โหลดตารางห้องไม่สำเร็จ (${res.status})`);
       const data = await res.json();

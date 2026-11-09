@@ -6,10 +6,10 @@ import {
 } from "../../constants/bookingStatus";
 
 /**
- * Shows how far a request has travelled through the two-stage approval.
+ * Shows how far a request has got: sent, then approved by an admin.
  *
  * Without this the booking page only said "รอดำเนินการ", which gives no hint
- * that there are two separate approvers still to come.
+ * of what still has to happen.
  */
 export default function ApprovalStepper({
   status,

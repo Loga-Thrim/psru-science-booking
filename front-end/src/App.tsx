@@ -1,4 +1,3 @@
-import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,7 +6,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Layout from "./components/Layout";
-import ProtectedRoute, { RequireRole } from "./components/ProtectedRoute";
+import { RequireRole } from "./components/ProtectedRoute";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import BookRoomPage from "./pages/BookRoomPage";
@@ -22,30 +21,21 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Staff sign-in only; there is no self sign-up any more. */}
           <Route path="/authen" element={<AuthPage />} />
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
+          <Route element={<Layout />}>
             <Route path="/" element={<Navigate to="/book-room" replace />} />
 
+            {/* Open to everyone: booking needs only a name and phone number, and
+                the phone number is how a booker finds their bookings again. */}
+            <Route path="/book-room" element={<BookRoomPage />} />
+            <Route path="/booking-status" element={<BookingStatusPage />} />
+
+            <Route path="/approvals" element={<RequireRole roles={["admin"]}><BookingApprovalPage /></RequireRole>} />
             <Route path="/rooms" element={<RequireRole roles={["admin"]}><RoomManagementPage /></RequireRole>} />
             <Route path="/users" element={<RequireRole roles={["admin"]}><UserManagementPage /></RequireRole>} />
-
-            {/* The old /book-room/new -> /booking -> /book-room/new/form calendar flow
-                was removed: it never loaded existing reservations and skipped every
-                availability and conflict check that BookRoomPage performs. */}
-            <Route path="/book-room" element={<BookRoomPage />} />
-
-            <Route path="/booking-status" element={<BookingStatusPage />} />
-            <Route path="/approvals" element={<RequireRole roles={["admin", "approver"]}><BookingApprovalPage /></RequireRole>} />
-
-            {/* Both surface system-wide figures and other people's bookings. */}
-            <Route path="/dashboard" element={<RequireRole roles={["admin", "approver"]}><DashboardPage /></RequireRole>} />
-            <Route path="/reports" element={<RequireRole roles={["admin", "approver"]}><ReportsPage /></RequireRole>} />
+            <Route path="/dashboard" element={<RequireRole roles={["admin"]}><DashboardPage /></RequireRole>} />
+            <Route path="/reports" element={<RequireRole roles={["admin"]}><ReportsPage /></RequireRole>} />
           </Route>
         </Routes>
       </Router>

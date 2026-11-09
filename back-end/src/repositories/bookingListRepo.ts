@@ -1,17 +1,16 @@
 import dbConnect from "../configs/dbConnect";
 import { RowDataPacket } from "mysql2";
-export default async function bookingListRepo(id: string) {
+
+/**
+ * Every booking made with this phone number, newest first, plus the rooms they
+ * reference. Bookers have no accounts, so the phone number is their key.
+ */
+export default async function bookingListRepo(phone: string) {
   const connect = await dbConnect();
   try {
-    // Explicit columns: the password hash must never reach the client.
-    const [users] = await connect.execute<RowDataPacket[]>(
-      "SELECT user_id, email, username, department, role FROM users WHERE user_id = ?;",
-      [id]
-    );
-
     const [reservations] = await connect.execute<RowDataPacket[]>(
-      "SELECT * FROM reservations WHERE user_id = ? ORDER BY booking_date DESC, start_time DESC;",
-      [id]
+      "SELECT * FROM reservations WHERE phone = ? ORDER BY booking_date DESC, start_time DESC;",
+      [phone]
     );
 
     // One query for every room referenced, instead of one query per reservation.
@@ -26,9 +25,7 @@ export default async function bookingListRepo(id: string) {
       rooms = found;
     }
 
-    return [{ user: [...users] }, { reservation: [...reservations] }, { rooms: [...rooms] }];
-  } catch (err) {
-    console.error(err);
+    return [{ reservation: [...reservations] }, { rooms: [...rooms] }];
   } finally {
     connect.end();
   }

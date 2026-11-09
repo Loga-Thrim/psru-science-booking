@@ -67,8 +67,8 @@ export default function ReservationDetailModal({ row, onClose, onApprove, onReje
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-      pending: { bg: 'bg-slate-100', text: 'text-slate-800', label: 'รอดำเนินการ' },
-      adminApproved: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'แอดมินอนุมัติ' },
+      pending: { bg: 'bg-slate-100', text: 'text-slate-800', label: 'รออนุมัติ' },
+      adminApproved: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'รออนุมัติ' },
       approverApproved: { bg: 'bg-green-100', text: 'text-green-700', label: 'อนุมัติแล้ว' },
       rejected: { bg: 'bg-red-100', text: 'text-red-700', label: 'ไม่อนุมัติ' },
     };

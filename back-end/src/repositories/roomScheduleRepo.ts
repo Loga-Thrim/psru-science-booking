@@ -10,9 +10,9 @@ import { RowDataPacket } from "mysql2";
  *
  * Rejected bookings are left out: they never occupied the room.
  *
- * `includeBooker` is driven by the caller's role. A regular user browsing for a
- * free slot has no business seeing who else booked the room, so their copy
- * carries times and status only.
+ * The booker's name is public: the booking form tells people who already holds
+ * a slot. `includeDetails` (admins only) adds department and reason. Phone
+ * numbers are never returned here.
  */
 export interface ScheduleEntry {
   reservation_id: string;
@@ -33,7 +33,7 @@ export default async function roomScheduleRepo(
   from: string,
   to: string,
   roomId: string | null,
-  includeBooker: boolean
+  includeDetails: boolean
 ): Promise<ScheduleEntry[]> {
   const connect = await dbConnect();
   try {
@@ -47,9 +47,10 @@ export default async function roomScheduleRepo(
       "res.reservation_status",
       "res.reservation_type",
       "res.number_of_users",
+      "COALESCE(res.booker_name, u.username) AS username",
     ];
-    if (includeBooker) {
-      columns.push("u.username", "u.department", "res.reservation_reason");
+    if (includeDetails) {
+      columns.push("u.department", "res.reservation_reason");
     }
 
     let sql = `

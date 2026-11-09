@@ -17,10 +17,15 @@ export default async function loginControll(req: Request, res: Response) {
       case loginStatus.notPass:
         return res.status(500).json({ message: "Server error" });
 
-      case loginStatus.pass:
+      case loginStatus.pass: {
         const [{user_id, email, username, department, role}] = rows;
+        // Only staff sign in; everyone else books as a guest without an account.
+        if (role !== "admin") {
+          return res.status(403).json({ message: "บัญชีนี้ไม่มีสิทธิ์เข้าสู่ระบบผู้ดูแล" });
+        }
         const token = jwt.sign({user_id, email, username, department, role}, String(process.env.JWT_KEY), { expiresIn: '3d' })
         return res.status(200).json({ message: "OK", token: token, rows:rows});
+      }
 
       default:
         return res.status(500).json({ message: "Server error" });

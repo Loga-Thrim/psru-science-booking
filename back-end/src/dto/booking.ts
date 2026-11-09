@@ -8,7 +8,9 @@ export interface bookingRequest {
   reservation_type: string,
   reservation_reason: string,
   phone_number: string,
-  user_id: string,
+  booker_name: string,
+  /** Set only when a signed-in admin books; guests have no account. */
+  user_id: string | null,
   equipment_needs?: string,
   caretaker_name?: string
 }

@@ -11,7 +11,7 @@ export function AddUserModal({ onClose, onSubmit}: { onClose: () => void; onSubm
     email: "",
     username: "",
     department: "",
-    role: "user",
+    role: "admin",
     password: "",
   });
   const [submitting, setSubmitting] = useState(false);

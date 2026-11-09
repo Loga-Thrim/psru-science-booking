@@ -1,4 +1,3 @@
-import registerRoute from "./registerRoute";
 import loginRoute from "./loginRoutes";
 import verifyTokenRoute from "./verifyToken";
 import createUserRoute from "./manageUserRoutes";
@@ -9,4 +8,4 @@ import bookingRoute from "./bookingRoute";
 import approveRoutes from "./approveRoutes";
 import dashboardRoute from "./dashboardRoute";
 
-export {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute};
+export {loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute};

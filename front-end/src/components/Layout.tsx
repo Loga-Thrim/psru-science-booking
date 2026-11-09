@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   BarChart3,
   LogOut,
+  LogIn,
   Menu,
   X,
   Sparkles,
@@ -21,28 +22,25 @@ const api = import.meta.env.VITE_API as string;
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'ผู้ดูแลระบบ',
-  approver: 'ผู้อนุมัติ',
-  user: 'ผู้ใช้ทั่วไป',
 };
 
 /**
- * How many requests are waiting on this person right now.
+ * How many requests are waiting for an admin right now.
  *
- * Approvers had no way of knowing work had arrived without opening the page,
- * so the count goes straight onto the menu item.
+ * Nobody would know work had arrived without opening the page, so the count
+ * goes straight onto the menu item.
  */
 function usePendingApprovalCount(role: string | undefined) {
   const [count, setCount] = React.useState(0);
   const location = useLocation();
 
   React.useEffect(() => {
-    if (role !== 'admin' && role !== 'approver') {
+    if (role !== 'admin') {
       setCount(0);
       return;
     }
 
     let cancelled = false;
-    const waitingOn = role === 'approver' ? 'adminApproved' : 'pending';
 
     const load = async () => {
       try {
@@ -54,7 +52,7 @@ function usePendingApprovalCount(role: string | undefined) {
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled || !Array.isArray(data)) return;
-        setCount(data.filter((r: any) => r.reservation_status === waitingOn).length);
+        setCount(data.filter((r: any) => r.reservation_status === 'pending').length);
       } catch {
         /* the badge is a nicety; never break the shell over it */
       }
@@ -80,10 +78,11 @@ function Layout() {
   // content scroll underneath it is just as disorienting.
   useScrollLock(isMobileMenuOpen);
 
+  // Booking and checking a booking are open to everyone; the rest is staff work.
   const navigation = [
     { name: 'จองห้อง', href: '/book-room', icon: DoorOpen },
     { name: 'สถานะการจอง', href: '/booking-status', icon: FileText },
-    ...(user?.role === 'admin' || user?.role === 'approver'
+    ...(user?.role === 'admin'
       ? [
           {
             name: 'อนุมัติการจอง',
@@ -91,16 +90,8 @@ function Layout() {
             icon: ClipboardCheck,
             badge: pendingCount,
           },
-        ]
-      : []),
-    ...(user?.role === 'admin'
-      ? [
           { name: 'จัดการห้อง', href: '/rooms', icon: DoorOpen },
           { name: 'จัดการผู้ใช้', href: '/users', icon: Users },
-        ]
-      : []),
-    ...(user?.role === 'admin' || user?.role === 'approver'
-      ? [
           { name: 'ภาพรวมระบบ', href: '/dashboard', icon: LayoutDashboard },
           { name: 'รายงาน', href: '/reports', icon: BarChart3 },
         ]
@@ -191,27 +182,41 @@ function Layout() {
             })}
           </nav>
 
-          {/* User Section */}
-          <div className="mx-4 mb-4 rounded-2xl border border-slate-700/40 bg-white/5 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 text-lg font-bold text-white">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+          {/* Signed-in staff get their card and sign-out; guests get a quiet
+              link, since booking itself never needs an account. */}
+          {user ? (
+            <div className="mx-4 mb-4 rounded-2xl border border-slate-700/40 bg-white/5 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 text-lg font-bold text-white">
+                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-bold text-white">{user.name}</p>
+                  <p className="truncate text-sm text-slate-300">
+                    {ROLE_LABELS[user.role] ?? user.role}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-bold text-white">{user?.name}</p>
-                <p className="truncate text-sm text-slate-300">
-                  {ROLE_LABELS[user?.role ?? ''] ?? user?.role}
-                </p>
-              </div>
+              <button
+                onClick={logout}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-400/40 bg-red-500/15 px-4 py-3 text-base font-semibold text-red-200 transition-colors hover:bg-red-500/30 hover:text-white"
+              >
+                <LogOut className="h-5 w-5" aria-hidden="true" />
+                ออกจากระบบ
+              </button>
             </div>
-            <button
-              onClick={logout}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-400/40 bg-red-500/15 px-4 py-3 text-base font-semibold text-red-200 transition-colors hover:bg-red-500/30 hover:text-white"
-            >
-              <LogOut className="h-5 w-5" aria-hidden="true" />
-              ออกจากระบบ
-            </button>
-          </div>
+          ) : (
+            <div className="mx-4 mb-4">
+              <Link
+                to="/authen"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+                เข้าสู่ระบบเจ้าหน้าที่
+              </Link>
+            </div>
+          )}
         </div>
       </aside>
 

@@ -53,12 +53,12 @@ Wait until the backend logs `Server runing on port 3000`.
 docker-compose exec backend npm run migrate
 ```
 
-### 5. Create the first admin
-Registration always creates a regular `user`. Promote one account to admin directly:
+### 5. Create the admin and load the rooms
+Only admins sign in; bookers use the public form with a name and phone number.
 ```bash
-docker-compose exec db mysql -uroot -ppassword01admin psru_booking -e "UPDATE users SET role='admin' WHERE email='you@psru.ac.th';"
+BASE=http://localhost ADMIN_EMAIL=you@psru.ac.th ./seed/seed.sh
 ```
-Valid roles are `admin`, `approver`, and `user`. After that, admins can manage roles in the UI.
+It prints a generated admin password unless you set `ADMIN_PASSWORD`. See `seed/README.md` for where the room data comes from.
 
 ### 6. Access the application
 - http://localhost

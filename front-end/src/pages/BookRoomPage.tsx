@@ -15,6 +15,7 @@ import {
   ArrowRight,
   X,
   Phone,
+  User,
   FileText,
   CheckCircle,
   AlertCircle,
@@ -50,6 +51,7 @@ type BookingForm = {
   numberOfUsers: number;
   reservationType: string;
   reservationReason: string;
+  bookerName: string;
   phoneNumber: string;
   equipmentNeeds: string[];
   selectedApprover: string;
@@ -93,22 +95,27 @@ function formatTime(value: string): string {
   return value.substring(0, 5);
 }
 
-const LAST_PHONE_KEY = "lastBookingPhone";
+const LAST_BOOKER_KEY = "lastBooker";
 
-// Storage can be unavailable (private mode, blocked site data); the form then just starts empty.
-function readLastPhone(): string {
+type Booker = { name: string; phone: string };
+
+// Most people book under the same name and number every time, so offer the last
+// ones. Storage can be unavailable (private mode, blocked site data); the form
+// then just starts empty.
+function readLastBooker(): Booker {
   try {
-    return localStorage.getItem(LAST_PHONE_KEY) ?? "";
+    const saved = JSON.parse(localStorage.getItem(LAST_BOOKER_KEY) ?? "null");
+    return { name: saved?.name ?? "", phone: saved?.phone ?? "" };
   } catch {
-    return "";
+    return { name: "", phone: "" };
   }
 }
 
-function saveLastPhone(phone: string) {
+function saveLastBooker(booker: Booker) {
   try {
-    localStorage.setItem(LAST_PHONE_KEY, phone);
+    localStorage.setItem(LAST_BOOKER_KEY, JSON.stringify(booker));
   } catch {
-    // Remembering the number is a convenience only.
+    // Remembering the booker is a convenience only.
   }
 }
 
@@ -621,6 +628,7 @@ function BookingModal({
     .split(",")
     .map((c) => c.trim())
     .filter(Boolean);
+  const [lastBooker] = useState(readLastBooker);
   const [form, setForm] = useState<BookingForm>({
     room,
     date: "",
@@ -629,8 +637,8 @@ function BookingModal({
     numberOfUsers: 1,
     reservationType: "",
     reservationReason: "",
-    // Most people book with the same number every time, so offer the last one.
-    phoneNumber: readLastPhone(),
+    bookerName: lastBooker.name,
+    phoneNumber: lastBooker.phone,
     equipmentNeeds: [],
     // With a single caretaker there is nothing to choose, so the field stays hidden.
     selectedApprover: roomCaretakers.length === 1 ? roomCaretakers[0] : "",
@@ -678,7 +686,8 @@ function BookingModal({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            // Guests have no token; an admin's lets the API record who booked.
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             room_id: room.room_id,
@@ -821,7 +830,7 @@ function BookingModal({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           room_id: room.room_id,
@@ -831,6 +840,7 @@ function BookingModal({
           number_of_users: form.numberOfUsers,
           reservation_type: form.reservationType,
           reservation_reason: form.reservationReason,
+          booker_name: form.bookerName.trim(),
           phone_number: form.phoneNumber,
           equipment_needs: form.equipmentNeeds.join(", "),
           caretaker_name: form.selectedApprover,
@@ -843,7 +853,7 @@ function BookingModal({
         throw new Error(body?.message || "ไม่สามารถจองห้องได้ กรุณาลองใหม่อีกครั้ง");
       }
 
-      saveLastPhone(form.phoneNumber);
+      saveLastBooker({ name: form.bookerName.trim(), phone: form.phoneNumber });
       // The day just filled up a little more; keep the month grid honest in
       // case the user goes back to book another slot.
       reloadMonth();
@@ -863,7 +873,8 @@ function BookingModal({
   const canSubmit =
     canProceedToForm &&
     form.reservationType &&
-    form.phoneNumber &&
+    form.bookerName.trim() &&
+    form.phoneNumber.length >= 9 &&
     form.numberOfUsers >= 1 &&
     !overCapacity;
 
@@ -901,7 +912,7 @@ function BookingModal({
               <p className="text-gray-600 mb-6">
                 ห้องยังไม่ถูกจองจนกว่าจะได้รับอนุมัติ
                 <br />
-                ติดตามผลได้ที่หน้าสถานะการจอง
+                ดูสถานะได้ด้วยเบอร์โทรที่หน้าสถานะการจอง
               </p>
               <div className="bg-gray-50 rounded-xl p-4 text-left mb-6">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -944,7 +955,8 @@ function BookingModal({
                   onClick={() => {
                     onSuccess();
                     onClose();
-                    navigate("/booking-status");
+                    // Opens the lookup already filled in, so their bookings show at once.
+                    navigate(`/booking-status?phone=${encodeURIComponent(form.phoneNumber)}`);
                   }}
                   className="px-6 py-2.5 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-600"
                 >
@@ -1160,7 +1172,7 @@ function BookingModal({
                                     <span className="text-slate-700">
                                       {getReservationTypeLabel(e.reservation_type)}
                                     </span>
-                                    {/* username only arrives for admins/approvers */}
+                                    {/* The booker's name is public: whoever holds a slot is shown. */}
                                     {e.username && (
                                       <span className="text-slate-500">โดย {e.username}</span>
                                     )}
@@ -1326,15 +1338,37 @@ function BookingModal({
                     )}
                   </div>
 
+                  {/* Booker: there are no accounts, so name and phone are who booked. */}
+                  <div>
+                    <label htmlFor="booker-name" className="block text-sm font-medium text-gray-700 mb-2">
+                      <User className="w-4 h-4 inline mr-1" />
+                      ชื่อ-นามสกุล <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="booker-name"
+                      type="text"
+                      maxLength={100}
+                      autoComplete="name"
+                      value={form.bookerName}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, bookerName: e.target.value }))
+                      }
+                      placeholder="เช่น อ.ชื่อ นามสกุล"
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                    />
+                  </div>
+
                   {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="booker-phone" className="block text-sm font-medium text-gray-700 mb-2">
                       <Phone className="w-4 h-4 inline mr-1" />
                       เบอร์โทรติดต่อ <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="booker-phone"
                       type="tel"
                       maxLength={10}
+                      autoComplete="tel"
                       value={form.phoneNumber}
                       onChange={(e) =>
                         setForm((f) => ({
@@ -1343,8 +1377,12 @@ function BookingModal({
                         }))
                       }
                       placeholder="0812345678"
+                      aria-describedby="booker-phone-hint"
                       className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
                     />
+                    <p id="booker-phone-hint" className="mt-1 text-xs text-gray-500">
+                      ใช้เบอร์นี้ดูสถานะหรือยกเลิกการจอง
+                    </p>
                   </div>
 
                   {/* Equipment Needs: visible, since the caretaker prepares it, but marked optional. */}
@@ -1489,7 +1527,7 @@ export default function BookRoomPage() {
       const res = await fetch(`${api}/book-rooms`, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
       if (!res.ok) throw new Error("ไม่สามารถโหลดข้อมูลห้องได้");
@@ -1541,7 +1579,7 @@ export default function BookRoomPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="ค้นหา เช่น SC2-101, ประชุม"
+              placeholder="ค้นหา เช่น SC2401, ประชุม"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 text-sm"

@@ -5,7 +5,7 @@ import { UserTable } from "../components/users/UserTable";
 import { AddUserModal } from "../components/users/AddUserModal";
 import { EditUserModal } from "../components/users/EditUserModal";
 import { DeleteUserModal } from "../components/users/DeleteUserModal";
-import { Users, Plus, Search, Shield, UserCheck, UserX } from "lucide-react";
+import { Users, Plus, Search, Shield, UserX } from "lucide-react";
 
 const api = import.meta.env.VITE_API as string;
 
@@ -117,8 +117,6 @@ function UserManagementPage() {
   );
 
   const adminCount = users.filter(u => u.role === 'admin').length;
-  const approverCount = users.filter(u => u.role === 'approver').length;
-  const userCount = users.filter(u => u.role === 'user').length;
 
   if (!user) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -161,7 +159,7 @@ function UserManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="luxury-card p-5">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
@@ -181,28 +179,6 @@ function UserManagementPage() {
             <div>
               <p className="text-2xl font-bold text-gray-900">{adminCount}</p>
               <p className="text-sm text-gray-500">ผู้ดูแลระบบ</p>
-            </div>
-          </div>
-        </div>
-        <div className="luxury-card p-5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-              <UserCheck className="w-6 h-6 text-slate-700" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{approverCount}</p>
-              <p className="text-sm text-gray-500">ผู้อนุมัติ</p>
-            </div>
-          </div>
-        </div>
-        <div className="luxury-card p-5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl gradient-info flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{userCount}</p>
-              <p className="text-sm text-gray-500">ผู้ใช้ทั่วไป</p>
             </div>
           </div>
         </div>

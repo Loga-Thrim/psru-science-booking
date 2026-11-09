@@ -61,7 +61,7 @@ export default async function dashboardRepo(): Promise<DashboardStats> {
     }));
 
     const [recentResult] = await connect.execute<RowDataPacket[]>(`
-      SELECT res.*, r.room_code, u.username 
+      SELECT res.*, r.room_code, COALESCE(res.booker_name, u.username) AS username
       FROM reservations res 
       LEFT JOIN rooms r ON res.room_id = r.room_id 
       LEFT JOIN users u ON res.user_id = u.user_id 

@@ -18,7 +18,8 @@ async function runMigration() {
       '001_create_tables.sql',
       '002_add_room_fields.sql',
       '003_add_room_images.sql',
-      '004_add_reservation_fields.sql'
+      '004_add_reservation_fields.sql',
+      '005_guest_bookings.sql'
     ];
 
     console.log('Running migrations...');

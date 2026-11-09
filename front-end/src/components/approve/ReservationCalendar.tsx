@@ -18,7 +18,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 /**
- * Month/week view of every reservation, so an approver can see what a room
+ * Month/week view of every reservation, so the admin can see what a room
  * already has on it instead of reading a flat list of dates.
  */
 export default function ReservationCalendar({
@@ -51,7 +51,7 @@ export default function ReservationCalendar({
         return {
           id: r.reservation_id,
           // Room code first: on a month grid the title is clipped, and the room
-          // is what an approver scans for.
+          // is what the admin scans for.
           title: `${r.room_code || r.room_id} · ${r.username || "ไม่ทราบผู้จอง"}`,
           start: `${date}T${String(r.start_time).slice(0, 8)}`,
           end: `${date}T${String(r.end_time).slice(0, 8)}`,
@@ -92,7 +92,7 @@ export default function ReservationCalendar({
       </div>
 
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-base">
-        {(["pending", "adminApproved", "approverApproved", "rejected"] as const).map((s) => (
+        {(["pending", "approverApproved", "rejected"] as const).map((s) => (
           <span key={s} className="inline-flex items-center gap-2">
             <span
               className="h-4 w-4 rounded"

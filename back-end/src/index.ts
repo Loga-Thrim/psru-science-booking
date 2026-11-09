@@ -1,6 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
-import {registerRoute, loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute} from "./routes/routes"
+import {loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute} from "./routes/routes"
 import "dotenv/config";
 import { UPLOAD_DIR } from "./midleware/uploadImage";
 
@@ -22,6 +22,10 @@ const corsOptions: cors.CorsOptions = {
 };
 
 const app:Express = express();
+// Requests arrive through Caddy and nginx (and Vercel/Netlify for the backup
+// front doors), so the client address is in X-Forwarded-For. The rate limiter
+// on the public booking endpoints keys on it.
+app.set("trust proxy", true);
 app
   .use(cors(corsOptions))
   .use(express.json({ limit: "1mb" }))
@@ -30,7 +34,6 @@ app
 app.use("/uploads", express.static(UPLOAD_DIR));
 
 try {
-  registerRoute(app);
   loginRoute(app);
   verifyTokenRoute(app);
   manageUserRoutes(app);

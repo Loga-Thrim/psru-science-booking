@@ -2,24 +2,30 @@ import dbConnect from "../configs/dbConnect";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { reservationState } from "../enum/booking";
 
-export type CancelResult = "ok" | "notFound" | "forbidden" | "alreadyApproved";
+export type CancelResult = "ok" | "notFound" | "pastOrClosed";
 
-export default async function bookingDeleteRepo(userId: string, reservationId: string, isPrivileged: boolean): Promise<CancelResult> {
+/** Who is cancelling: a signed-in admin, or a guest proving ownership by phone. */
+export type Canceller = { admin: true } | { admin: false; phone: string };
+
+export default async function bookingDeleteRepo(reservationId: string, who: Canceller): Promise<CancelResult> {
   const connect = await dbConnect();
   try {
     const [rows] = await connect.execute<RowDataPacket[]>(
-      "SELECT user_id, reservation_status FROM reservations WHERE reservation_id = ?",
+      "SELECT phone, reservation_status, booking_date < CURDATE() AS is_past FROM reservations WHERE reservation_id = ?",
       [reservationId]
     );
     if (rows.length === 0) return "notFound";
 
     const reservation = rows[0];
-    if (!isPrivileged && reservation.user_id !== userId) return "forbidden";
-
-    // Matches what the UI offers: once fully approved the slot is committed and
-    // has to be turned down by an approver rather than silently removed.
-    if (!isPrivileged && reservation.reservation_status === reservationState.approverApproved) {
-      return "alreadyApproved";
+    if (!who.admin) {
+      // The phone number given at booking is the only proof of ownership.
+      // Report a mismatch as not found, so the endpoint can't be used to probe
+      // which booking IDs exist.
+      if (reservation.phone !== who.phone) return "notFound";
+      // Past bookings are history, and rejected ones never held the room.
+      if (reservation.is_past || reservation.reservation_status === reservationState.rejected) {
+        return "pastOrClosed";
+      }
     }
 
     const [result] = await connect.execute<ResultSetHeader>(
@@ -27,9 +33,6 @@ export default async function bookingDeleteRepo(userId: string, reservationId: s
       [reservationId]
     );
     return result.affectedRows > 0 ? "ok" : "notFound";
-  } catch (err) {
-    console.error(err);
-    throw err;
   } finally {
     connect.end();
   }

@@ -87,24 +87,26 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 docker compose exec -T backend npm run migrate
 ```
 
-### Create the first admin
+### Create the first admin and load the rooms
 
-Register through the API so the password is hashed by the app, then promote the
-row. Passwords must be at least 8 characters.
+Bookers need no account (they book with a name and phone number), so there is
+no sign-up page: only admins sign in. `seed/seed.sh` creates the admin with a
+bcrypt-hashed password, loads the faculty's rooms and adds one sample booking.
+Without `ADMIN_PASSWORD` it generates one and prints it once.
 
 ```bash
-set -a; . ./.env; set +a
-ADMIN_PW=$(openssl rand -base64 18 | tr -d '/+=' | head -c 16)
-
-curl -s -X POST https://$SITE_ADDRESS/api/register \
-  -H 'Content-Type: application/json' \
-  --data-binary "{\"username\":\"ผู้ดูแลระบบ\",\"email\":\"admin@example.ac.th\",\"password\":\"$ADMIN_PW\",\"department\":\"คณะวิทยาศาสตร์และเทคโนโลยี\"}"
-
-docker compose exec -T db mysql -uroot -p"$DB_PASSWORD" psru_booking \
-  -e "UPDATE users SET role='admin' WHERE email='admin@example.ac.th';"
-
-echo "password: $ADMIN_PW"
+ADMIN_EMAIL=admin@example.ac.th ./seed/seed.sh
 ```
+
+To change an admin's password later, run only the admin step:
+
+```bash
+docker compose cp seed/create-admin.js backend:/app/create-admin.js
+docker compose exec -T -e ADMIN_EMAIL=admin@example.ac.th -e ADMIN_PASSWORD='new-password' backend node /app/create-admin.js
+docker compose exec -T backend rm -f /app/create-admin.js
+```
+
+Further admins can be added from the "จัดการผู้ใช้" page.
 
 ## Moving to a real domain
 

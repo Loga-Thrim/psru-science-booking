@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import clsx from "clsx";
 import { Clock, Check, Ban, RotateCcw } from "lucide-react";
 
-export type BookedSlot = { start_time: string; end_time: string };
+/** `username` is the booker's name, shown on the slot they hold (pending ones included). */
+export type BookedSlot = { start_time: string; end_time: string; username?: string };
 
 type Props = {
   /** Clock times the room is open, e.g. ["08:00","08:30",...,"17:00"]. */
@@ -51,6 +52,12 @@ export default function TimeSlotPicker({
       const be = hhmm(b.end_time);
       return cell < be && cellEnd > bs;
     });
+  };
+
+  /** Who holds this block, so a taken slot can say "จองโดย ..." instead of just "taken". */
+  const bookerOf = (cell: string) => {
+    const cellEnd = nextOf(cell);
+    return booked.find((b) => cell < hhmm(b.end_time) && cellEnd > hhmm(b.start_time))?.username;
   };
 
   const bookedCells = useMemo(() => {
@@ -127,6 +134,7 @@ export default function TimeSlotPicker({
       >
         {cells.map((cell) => {
           const isBooked = bookedCells.has(cell);
+          const booker = isBooked ? bookerOf(cell) : undefined;
           const selected = inSelection(cell);
           const blocked = !isBooked && !selected && !canExtendTo(cell);
           const isStart = cell === startTime;
@@ -138,7 +146,8 @@ export default function TimeSlotPicker({
               type="button"
               disabled={isBooked || blocked}
               aria-pressed={selected}
-              aria-label={`${cell} ถึง ${nextOf(cell)}${isBooked ? " มีคนจองแล้ว" : ""}`}
+              aria-label={`${cell} ถึง ${nextOf(cell)}${isBooked ? ` จองแล้ว${booker ? `โดย ${booker}` : ""}` : ""}`}
+              title={isBooked && booker ? `จองโดย ${booker}` : undefined}
               onClick={() => handleTap(cell)}
               className={clsx(
                 "flex flex-col items-center justify-center rounded-xl border-2 px-2 py-3 text-base font-bold transition-all",
@@ -156,10 +165,17 @@ export default function TimeSlotPicker({
             >
               <span>{isStart ? `เริ่ม ${cell}` : showsEnd ? `ถึง ${nextOf(cell)}` : cell}</span>
               {isBooked && (
-                <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold">
-                  <Ban className="h-3.5 w-3.5" aria-hidden="true" />
-                  จองแล้ว
-                </span>
+                <>
+                  <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold">
+                    <Ban className="h-3.5 w-3.5" aria-hidden="true" />
+                    จองแล้ว
+                  </span>
+                  {booker && (
+                    <span className="mt-0.5 block w-full truncate text-[11px] font-medium leading-tight">
+                      {booker}
+                    </span>
+                  )}
+                </>
               )}
               {selected && (
                 <Check className="mt-0.5 h-4 w-4" aria-hidden="true" />

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import verifyTokenService from "../services/verifyTokenService";
+import optionalAuth from "../services/optionalAuth";
 import roomScheduleRepo from "../repositories/roomScheduleRepo";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -9,9 +9,6 @@ const MAX_SPAN_DAYS = 92;
 
 export default async function roomScheduleControll(req: Request, res: Response) {
   try {
-    const tokenHeader = req.headers["authorization"] as string;
-    const payload = verifyTokenService({ tokenHeader });
-
     const from = String(req.query.from ?? "");
     const to = String(req.query.to ?? "");
     const roomId = req.query.room_id ? String(req.query.room_id) : null;
@@ -31,11 +28,9 @@ export default async function roomScheduleControll(req: Request, res: Response) 
         .json({ message: `ช่วงวันที่ต้องไม่เกิน ${MAX_SPAN_DAYS} วัน` });
     }
 
-    // Who booked a room is only shown to the people who have to act on it.
-    const includeBooker =
-      payload.role === "admin" || payload.role === "approver";
-
-    const rows = await roomScheduleRepo(from, to, roomId, includeBooker);
+    // Everyone sees who holds a slot (the booking form says "จองโดย ..."); the
+    // booker's department and reason are left to the admin who acts on it.
+    const rows = await roomScheduleRepo(from, to, roomId, optionalAuth(req) !== null);
     return res.status(200).json(rows);
   } catch (err) {
     console.error(err);
