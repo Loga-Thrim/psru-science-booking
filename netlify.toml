@@ -1,0 +1,31 @@
+# Backup front door for networks that block *.sslip.io (the university's
+# Fortinet does). Netlify serves the built frontend and proxies /api and
+# /uploads to the droplet server-side, so the browser only ever talks to
+# *.netlify.app. Data and logins are the droplet's; nothing is stored here.
+
+[build]
+  base = "front-end"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Same-origin API path; the proxy rules below forward it.
+  VITE_API = "/api"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://143-198-81-130.sslip.io/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://143-198-81-130.sslip.io/uploads/:splat"
+  status = 200
+  force = true
+
+# SPA fallback: client-side routes such as /approvals load index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
