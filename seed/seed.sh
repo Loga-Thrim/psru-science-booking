@@ -5,7 +5,7 @@
 #   Wipe first:     RESET=1 ./seed/seed.sh      (deletes ALL rooms, bookings and users)
 #
 # Settings (environment variables):
-#   ADMIN_EMAIL     admin sign-in             (default admin@booking.local)
+#   ADMIN_EMAIL     admin sign-in             (default admin@psru.ac.th)
 #   ADMIN_PASSWORD  admin password, 8+ chars  (default: a random one, printed at the end)
 #   BASE            site URL                  (default https://$SITE_ADDRESS from .env)
 #   COMPOSE         compose command           (default "docker compose"; locally add
@@ -20,7 +20,7 @@ cd "$(dirname "$0")/.."
 if [ -f .env ]; then set -a; . ./.env; set +a; fi
 BASE="${BASE:-https://${SITE_ADDRESS:?set BASE or SITE_ADDRESS}}"
 COMPOSE="${COMPOSE:-docker compose}"
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@booking.local}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@psru.ac.th}"
 GENERATED_PASSWORD=""
 if [ -z "${ADMIN_PASSWORD:-}" ]; then
   ADMIN_PASSWORD="$(openssl rand -base64 18 | tr -d '/+=' | head -c 16)"
