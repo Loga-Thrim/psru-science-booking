@@ -74,6 +74,14 @@ export default function TimeSlotPicker({
   const handleTap = (cell: string) => {
     if (bookedCells.has(cell)) return;
 
+    // Tapping the start again undoes it. Every later slot now means "end at",
+    // so without this a start of 08:00 (nothing earlier to tap) could only be
+    // moved via the "เลือกใหม่" button below the grid.
+    if (cell === startTime) {
+      onChange("", "");
+      return;
+    }
+
     // No start yet, or the tap is before the current start: begin fresh.
     if (!startTime || cell < startTime) {
       onChange(cell, nextOf(cell));
