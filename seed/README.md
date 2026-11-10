@@ -10,6 +10,9 @@ The faculty does not publish a room list, so `rooms.json` mixes what could be
 confirmed with sample values. Replace the samples with the faculty office's
 real list (0 5526 7054, scitech@psru.ac.th) when it is available.
 
+The building list in the room forms (`BUILDINGS` in front-end/src/types/types.ts)
+is the faculty office's own list of its 9 buildings (received 2026-11-10).
+
 Confirmed from public sources (checked 2026-11-09):
 
 | Item | Source |

@@ -135,14 +135,17 @@ export const ROOM_TYPE = [
 export const ROOM_STATUS = ["available", "unavailable"];
 export const BOOKING_STATUA = ["pending", "adminApproved", "approverApproved"];
 
-// The faculty's buildings on the ทะเลแก้ว campus (see seed/README.md for sources).
+// The faculty's 9 buildings, as listed by the faculty office (2026-11-10).
 export const BUILDINGS = [
-  "อาคารวิทยาศาสตร์ 2",
-  "อาคารคหกรรมศาสตร์",
-  "อาคารปฏิบัติการสาธารณสุขศาสตร์",
-  "อาคารศูนย์วิทยาศาสตร์",
+  "อาคารปฏิบัติการกลางด้านวิทยาศาสตร์และเทคโนโลยี",
   "อาคารวิทยสโมสร",
-  "อื่นๆ"
+  "อาคารวิทยาศาสตร์ 1",
+  "อาคารวิทยาศาสตร์ 2",
+  "อาคารปฏิบัติการอาหาร",
+  "อาคารคหกรรมศาสตร์",
+  "อาคารสารภี",
+  "อาคารปฏิบัติการสาธารณสุขศาสตร์",
+  "อาคารปฏิบัติการเพาะเลี้ยงเนื้อเยื่อ",
 ];
 
 export const FLOORS = ["1", "2", "3", "4", "5", "6", "7", "8", "ชั้นใต้ดิน", "ดาดฟ้า"];
