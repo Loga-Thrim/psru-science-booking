@@ -25,6 +25,25 @@ mkdir -p "$OUT"
 
 cp "$HERE/api.php" "$HERE/check.php" "$OUT/"
 
+# The real page becomes index.php so it can send "Cache-Control: no-cache":
+# Apache here sends no caching header for .html, and browsers then keep the
+# previous build for hours after an upload. index.html stays as a stub that
+# never changes and only forwards to index.php (keeping the #/route), so even a
+# cached copy of it always leads to the current page.
+{ printf '<?php header("Cache-Control: no-cache"); ?>'; cat "$OUT/index.html"; } > "$OUT/index.php"
+cat > "$OUT/index.html" <<'HTML'
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=index.php">
+<title>PSRU Booking</title>
+<script>location.replace("index.php" + location.hash);</script>
+</head>
+<body><a href="index.php">เปิดระบบจองห้อง</a></body>
+</html>
+HTML
+
 (cd "$HERE/out" && zip -qr "$HERE/csstu-upload.zip" public_html)
 echo "Built $OUT"
 echo "Zip:  $HERE/csstu-upload.zip"
