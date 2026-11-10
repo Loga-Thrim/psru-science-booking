@@ -26,6 +26,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/th";
 import clsx from "clsx";
 import TimeSlotPicker from "../components/booking/TimeSlotPicker";
+import { assetUrl } from "../constants/assets";
 import { thaiFullDate, thaiShortDate, thaiMonthYear } from "../constants/dates";
 import { useRoomSchedule, dayOccupancy } from "../hooks/useRoomSchedule";
 import { useScrollLock } from "../hooks/useScrollLock";
@@ -1532,7 +1533,11 @@ export default function BookRoomPage() {
       });
       if (!res.ok) throw new Error("ไม่สามารถโหลดข้อมูลห้องได้");
       const data = await res.json();
-      setRooms(Array.isArray(data) ? data : []);
+      setRooms(
+        Array.isArray(data)
+          ? data.map((r: Room) => ({ ...r, images: (r.images ?? []).map(assetUrl) }))
+          : []
+      );
     } catch (e: any) {
       setError(e.message);
     } finally {

@@ -120,6 +120,7 @@ export type reservationRow = {
 }
 
 export const ROOM_TYPE = [
+  "ห้องประชุม",
   "ห้องประชุมใหญ่",
   "ห้องประชุมย่อย", 
   "ห้องเรียน",
@@ -134,18 +135,19 @@ export const ROOM_TYPE = [
 export const ROOM_STATUS = ["available", "unavailable"];
 export const BOOKING_STATUA = ["pending", "adminApproved", "approverApproved"];
 
+// The faculty's buildings on the ทะเลแก้ว campus (see seed/README.md for sources).
 export const BUILDINGS = [
-  "อาคาร 1 (อาคารเรียนรวม)",
-  "อาคาร 2 (อาคารปฏิบัติการ)",
-  "อาคาร 3 (อาคารบริหาร)",
-  "อาคาร 4 (อาคารวิทยาศาสตร์)",
-  "อาคาร 5 (อาคารเทคโนโลยี)",
-  "อาคารหอประชุม",
-  "อาคารกิจกรรมนักศึกษา",
+  "อาคารวิทยาศาสตร์ 2",
+  "อาคารคหกรรมศาสตร์",
+  "อาคารปฏิบัติการสาธารณสุขศาสตร์",
+  "อาคารศูนย์วิทยาศาสตร์",
   "อื่นๆ"
 ];
 
 export const FLOORS = ["1", "2", "3", "4", "5", "6", "7", "8", "ชั้นใต้ดิน", "ดาดฟ้า"];
+
+/** "ชั้น 2" for numbered floors; named ones ("ชั้นใต้ดิน", "ดาดฟ้า") read as they are. */
+export const floorLabel = (f: string) => (/^\d+$/.test(f) ? `ชั้น ${f}` : f);
 
 export const EQUIPMENT_OPTIONS = [
   "โปรเจคเตอร์",

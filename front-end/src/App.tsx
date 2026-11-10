@@ -1,5 +1,6 @@
 import {
-  BrowserRouter as Router,
+  BrowserRouter,
+  HashRouter,
   Routes,
   Route,
   Navigate,
@@ -15,6 +16,10 @@ import UserManagementPage from "./pages/UserManagementPage";
 import BookingApprovalPage from "./pages/BookingApprovalPage";
 import ReportsPage from "./pages/ReportsPage";
 import BookingStatusPage from "./pages/BookingStatusPage";
+
+// The csstu build sits in a university userdir where the server cannot be told
+// to send every path to index.html, so it keeps the route after "#" instead.
+const Router = import.meta.env.VITE_HASH_ROUTER === "1" ? HashRouter : BrowserRouter;
 
 function App() {
   return (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
-import { ROOM_TYPE as ROOM_TYPES, ROOM_STATUS, BUILDINGS, FLOORS, EQUIPMENT_OPTIONS, WEEKDAYS } from "../../types/types";
+import { ROOM_TYPE as ROOM_TYPES, ROOM_STATUS, BUILDINGS, FLOORS, floorLabel, EQUIPMENT_OPTIONS, WEEKDAYS } from "../../types/types";
 import { DoorOpen, Users, User, ImagePlus, X, Building, Phone, Clock, Calendar, Plus, AlertCircle } from "lucide-react";
 
 const api = import.meta.env.VITE_API;
@@ -210,7 +210,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
             >
               <option value="" disabled>-- เลือกชั้น --</option>
               {FLOORS.map((f) => (
-                <option key={f} value={f}>ชั้น {f}</option>
+                <option key={f} value={f}>{floorLabel(f)}</option>
               ))}
             </select>
           </div>

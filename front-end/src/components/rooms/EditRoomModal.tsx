@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
-import { Room, ROOM_TYPE as ROOM_TYPES, ROOM_STATUS, BUILDINGS, FLOORS, EQUIPMENT_OPTIONS, WEEKDAYS } from "../../types/types";
+import { Room, ROOM_TYPE as ROOM_TYPES, ROOM_STATUS, BUILDINGS, FLOORS, floorLabel, EQUIPMENT_OPTIONS, WEEKDAYS } from "../../types/types";
 import { Edit3, Users, User, Camera, X, Building, Phone, Clock, Calendar, Plus, AlertCircle, DoorOpen } from "lucide-react";
+import { assetUrl } from "../../constants/assets";
 
 const api = import.meta.env.VITE_API;
 
@@ -154,7 +155,9 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
       if (!res.ok) throw new Error(`โหลดรูปไม่สำเร็จ (HTTP ${res.status})`);
       const data = (await res.json()) as any[];
       const cleaned: RoomImage[] = Array.isArray(data)
-        ? data.filter((x) => typeof x?.image_url === "string" && x.image_url.length > 0)
+        ? data
+            .filter((x) => typeof x?.image_url === "string" && x.image_url.length > 0)
+            .map((x) => ({ ...x, image_url: assetUrl(x.image_url) }))
         : [];
       setImages(cleaned);
     } catch (e: any) {
@@ -323,6 +326,8 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
             <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={building} onChange={(e) => setBuilding(e.target.value)}>
               <option value="">-- เลือกอาคาร --</option>
+              {/* A stored value outside the list still shows, rather than reading as "not chosen". */}
+              {building && !BUILDINGS.includes(building) && <option value={building}>{building}</option>}
               {BUILDINGS.map((b) => (<option key={b} value={b}>{b}</option>))}
             </select>
           </div>
@@ -331,7 +336,8 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
             <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={floor} onChange={(e) => setFloor(e.target.value)}>
               <option value="">-- เลือกชั้น --</option>
-              {FLOORS.map((f) => (<option key={f} value={f}>ชั้น {f}</option>))}
+              {floor && !FLOORS.includes(floor) && <option value={floor}>{floorLabel(floor)}</option>}
+              {FLOORS.map((f) => (<option key={f} value={f}>{floorLabel(f)}</option>))}
             </select>
           </div>
           <div className="space-y-2">
@@ -339,6 +345,7 @@ export default function EditRoomModal({ room, onClose, onSubmit }: Props) {
             <select className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
               value={room_type} onChange={(e) => setRoomType(e.target.value)}>
               <option value="" disabled>-- เลือกประเภทห้อง --</option>
+              {room_type && !ROOM_TYPES.includes(room_type) && <option value={room_type}>{room_type}</option>}
               {ROOM_TYPES.map((rt) => (<option key={rt} value={rt}>{rt}</option>))}
             </select>
           </div>
