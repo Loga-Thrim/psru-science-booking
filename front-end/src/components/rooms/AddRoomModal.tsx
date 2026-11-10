@@ -3,6 +3,7 @@ import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { ROOM_TYPE as ROOM_TYPES, ROOM_STATUS, BUILDINGS, FLOORS, floorLabel, EQUIPMENT_OPTIONS, WEEKDAYS } from "../../types/types";
 import { DoorOpen, Users, User, ImagePlus, X, Building, Phone, Clock, Calendar, Plus, AlertCircle } from "lucide-react";
+import AdvanceDaysField from "./AdvanceDaysField";
 
 const api = import.meta.env.VITE_API;
 
@@ -428,19 +429,7 @@ export default function AddRoomModal({ onClose, onSubmit }: Props) {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              ต้องจองล่วงหน้า (วัน)
-            </label>
-            <input
-              type="number"
-              min="0"
-              max="30"
-              value={advanceBookingDays}
-              onChange={(e) => setAdvanceBookingDays(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 text-sm focus:border-slate-600 focus:ring-1 focus:ring-slate-600 focus:outline-none"
-            />
-          </div>
+          <AdvanceDaysField value={advanceBookingDays} onChange={setAdvanceBookingDays} />
         </div>
 
         <div className="mt-4 space-y-2">

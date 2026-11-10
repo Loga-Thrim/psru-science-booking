@@ -428,7 +428,7 @@ function RoomDetailModal({
                 </div>
                 {room.advance_booking_days && (
                   <div className="text-sm text-gray-600">
-                    <span className="text-gray-500">จองล่วงหน้าได้:</span>{" "}
+                    <span className="text-gray-500">จองล่วงหน้าได้สูงสุด:</span>{" "}
                     <span className="font-medium">{room.advance_booking_days} วัน</span>
                   </div>
                 )}
