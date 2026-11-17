@@ -7,5 +7,6 @@ import uploadImageRoute from "./uploadImageRoute";
 import bookingRoute from "./bookingRoute";
 import approveRoutes from "./approveRoutes";
 import dashboardRoute from "./dashboardRoute";
+import feedbackRoute from "./feedbackRoute";
 
-export {loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute};
+export {loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute, feedbackRoute};

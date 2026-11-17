@@ -19,8 +19,10 @@ export default function bookingRoute(app: Express){
   app.get("/room-schedule", roomScheduleControll);
   app.get("/room-image/:id", getRoomImageControll);
   app.get("/book-room/:id", getNewBookingRoomControll);
-  app.post("/booking", rateLimit(30, TEN_MINUTES, TOO_MANY), bookingController);
-  app.get("/booking-list", rateLimit(120, TEN_MINUTES, TOO_MANY), bookingListControll);
-  app.delete("/booking/:id", rateLimit(30, TEN_MINUTES, TOO_MANY), bookingDeleteControll);
+  // Per visitor address. Sized for a whole classroom sharing one campus
+  // address (e.g. a demo session), not for one person.
+  app.post("/booking", rateLimit(200, TEN_MINUTES, TOO_MANY), bookingController);
+  app.get("/booking-list", rateLimit(600, TEN_MINUTES, TOO_MANY), bookingListControll);
+  app.delete("/booking/:id", rateLimit(200, TEN_MINUTES, TOO_MANY), bookingDeleteControll);
   // There is no "move my booking": a guest cancels and books again.
 }
