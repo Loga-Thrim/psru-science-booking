@@ -10,7 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   /* Printable kit: one presenter sheet, one projector sheet with QR codes,
-     one task sheet, then cut-out test cards. Each section prints on its own page. */
+     one task sheet. Each section prints on its own page. */
   :root {
     --ink: #1e293b; --muted: #64748b; --line: #cbd5e1; --paper: #ffffff;
     --ground: #f1f5f9; --accent: #334155;
@@ -38,12 +38,10 @@
   .task b { font-size: 18px; }
   .controls { max-width: 820px; margin: 24px auto 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 0 16px; }
   .controls input { width: 80px; font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
-  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; }
-  .card { border: 1px dashed var(--muted); padding: 14px 18px; break-inside: avoid; min-height: 150px; }
-  .card .no { font-size: 13px; color: var(--muted); }
-  .card .row { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; }
-  .card .val { font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
-  .card .foot { margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .rule { border: 2px solid var(--accent); border-radius: 12px; padding: 14px 18px; margin: 16px 0; }
+  .rule div { display: flex; gap: 12px; align-items: baseline; font-size: 20px; margin: 2px 0; }
+  .rule div span { color: var(--muted); min-width: 48px; font-size: 16px; }
+  .rule p { margin: 8px 0 0; color: var(--muted); }
   .note { background: var(--ground); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
   @media print {
     body { background: #fff; }
@@ -52,16 +50,15 @@
   }
   @media (max-width: 640px) {
     .sheet { padding: 24px 16px; margin: 12px; }
-    .qr-row, .cards { grid-template-columns: 1fr; }
+    .qr-row { grid-template-columns: 1fr; }
+    .rule div { flex-direction: column; gap: 0; }
   }
 </style>
 </head>
 <body>
 
 <div class="controls">
-  <label for="count">จำนวนบัตรผู้ทดสอบ</label>
-  <input id="count" type="number" min="1" max="200" value="40">
-  <span class="sub" style="margin:0">พิมพ์ทั้งหน้าด้วย Cmd+P (Windows: Ctrl+P)</span>
+  <span class="sub" style="margin:0">พิมพ์ด้วย Cmd+P (Windows: Ctrl+P)</span>
 </div>
 
 <!-- 1. Presenter checklist -->
@@ -72,14 +69,14 @@
   <h2>ก่อนวันสาธิต</h2>
   <ul class="box">
     <li>เปิด <span class="url">csstu.psru.ac.th/~6212231018/check.php</span> จากคอมในมหาวิทยาลัย ต้องขึ้น "ใช้งานได้ ✓"</li>
-    <li>พิมพ์ใบภารกิจ และบัตรผู้ทดสอบ (หน้าท้ายๆ) ตัดแจกคนละใบ</li>
-    <li>ใส่ QR ทั้ง 2 อัน (หน้าถัดไป) ในสไลด์</li>
+    <li>พิมพ์ใบภารกิจ (หน้าสุดท้าย) แจกคนละใบ หรือขึ้นจอแทนก็ได้</li>
+    <li>ใส่หน้า QR (หน้าถัดไป) ในสไลด์ ซึ่งมีกติกาชื่อและเบอร์อยู่ด้วย</li>
   </ul>
 
   <h2>วันสาธิต</h2>
   <ol>
-    <li><span class="time">5 นาที</span> บอกสั้นๆ ว่าระบบใช้จองห้องของคณะ <b>ไม่ต้องสอนวิธีใช้</b> แจกบัตรกับใบภารกิจ</li>
-    <li>จองตัวอย่างไว้ 1 รายการ: ห้อง <b>SC2401</b> วันทำการถัดไป 13:00–15:00 ด้วย <b>บัตร #00</b></li>
+    <li><span class="time">5 นาที</span> บอกสั้นๆ ว่าระบบใช้จองห้องของคณะ <b>ไม่ต้องสอนวิธีใช้</b> ขึ้นหน้า QR ชี้กติกาเบอร์โทรให้ชัด</li>
+    <li>จองตัวอย่างไว้ 1 รายการ: ห้อง <b>SC2401</b> วันทำการถัดไป 13:00–15:00 ชื่อ "อาจารย์ผู้สาธิต" เบอร์ <b>0000000000</b></li>
     <li><span class="time">15 นาที</span> ให้นักศึกษาสแกน QR "เริ่มทดสอบ" แล้วทำภารกิจ 1–3 เดินดูว่าใครติดตรงไหน</li>
     <li><span class="time">5 นาที</span> login แอดมินบนจอ อนุมัติการจองของนักศึกษา 2–3 รายการ ให้เขากดดูสถานะอีกครั้ง</li>
     <li><span class="time">3 นาที</span> ภารกิจ 4: ยกเลิกการจองของตัวเอง</li>
@@ -89,7 +86,7 @@
   <h2>หลังสาธิต</h2>
   <ul class="box">
     <li>ดูคำตอบใน Google Form แท็บ <b>คำตอบ</b> (ส่งออกเป็น Google Sheets ได้)</li>
-    <li>ลบการจองทดสอบ: บอก Claude ว่า "ล้างการจองทดสอบ" (ลบเฉพาะการจองจากบัตรทดสอบ)</li>
+    <li>ลบการจองทดสอบ: บอก Claude ว่า "ล้างการจองทดสอบ" (ลบเฉพาะการจองที่เบอร์ขึ้นต้นด้วย 0000000)</li>
   </ul>
 
   <h2>ถ้าลิงก์หลักเปิดไม่ได้</h2>
@@ -100,7 +97,12 @@
 <!-- 2. Projector sheet -->
 <section class="sheet">
   <h1>ทดลองใช้ระบบจองห้อง</h1>
-  <p class="sub">คณะวิทยาศาสตร์และเทคโนโลยี · ใช้ชื่อและเบอร์ในบัตรที่ได้รับ</p>
+  <p class="sub">คณะวิทยาศาสตร์และเทคโนโลยี</p>
+  <div class="rule">
+    <div><span>ชื่อ</span><b>ชื่อเล่นอะไรก็ได้</b></div>
+    <div><span>เบอร์</span><b>0000000 + เลข 3 ตัวท้ายรหัสนักศึกษา</b></div>
+    <p>เช่น รหัสลงท้าย 245 → ใช้เบอร์ <b>0000000245</b> · ห้ามใช้เบอร์จริง</p>
+  </div>
   <div class="qr-row">
     <div class="qr">
       <div class="code" id="qr-app"></div>
@@ -118,24 +120,22 @@
 <!-- 3. Task sheet -->
 <section class="sheet">
   <h1>ภารกิจ</h1>
-  <p class="sub">ใช้ชื่อและเบอร์ในบัตรผู้ทดสอบเท่านั้น ไม่ต้องใช้ข้อมูลจริง</p>
+  <div class="rule">
+    <div><span>ชื่อ</span><b>ชื่อเล่นอะไรก็ได้</b></div>
+    <div><span>เบอร์</span><b>0000000 + เลข 3 ตัวท้ายรหัสนักศึกษา</b></div>
+    <p>เช่น รหัสลงท้าย 245 → ใช้เบอร์ <b>0000000245</b> · ห้ามใช้เบอร์จริง</p>
+  </div>
   <div class="task"><b>1. จองห้อง</b><br>จองห้องใดก็ได้ 1 ห้อง ในวันทำการถัดไป ช่วงเวลาใดก็ได้</div>
   <div class="task"><b>2. ดูว่าใครจองไว้แล้ว</b><br>เปิดห้อง SC2401 วันทำการถัดไป แล้วหาว่าช่วงไหนมีคนจองแล้ว และใครจอง</div>
-  <div class="task"><b>3. ดูสถานะการจองของตัวเอง</b><br>ใช้เบอร์ในบัตร</div>
+  <div class="task"><b>3. ดูสถานะการจองของตัวเอง</b><br>ใช้เบอร์ที่จองไว้</div>
   <div class="task"><b>4. ยกเลิกการจองของตัวเอง</b><br>(รอผู้สาธิตบอกก่อน)</div>
   <div class="task"><b>5. ประเมินระบบ</b><br>สแกน QR "ประเมินระบบ" แล้วตอบแบบประเมิน</div>
 </section>
 
-<!-- 4. Test cards -->
-<section class="sheet">
-  <h1>บัตรผู้ทดสอบ</h1>
-  <p class="sub">ตัดตามเส้นประ แจกคนละใบ · บัตร #00 สำหรับผู้สาธิต</p>
-  <div class="cards" id="cards"></div>
-</section>
 
 <script>
-  // Test cards: name "นศ.ทดสอบ N" and phone 0000000NNN. No real Thai number starts
-  // with 0000000, so seed/cleanup-demo.sh can delete exactly these bookings later.
+  // Testers book with phone 0000000 + the last 3 digits of their student ID: no real
+  // Thai number starts with 0000000, so seed/cleanup-demo.sh removes exactly these.
   const APP = "https://csstu.psru.ac.th/~6212231018/";
   const FEEDBACK = "https://docs.google.com/forms/d/e/1FAIpQLSfXOh78GCa7sSrahghGo0mFbeJYzUWpkVRccyniULGGzSDMww/viewform";
 
@@ -148,29 +148,8 @@
     new QRCode(el, { text, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M });
   }
 
-  function card(n) {
-    const no = String(n).padStart(2, "0");
-    const digits = String(n).padStart(3, "0");
-    const name = n === 0 ? "อาจารย์ผู้สาธิต" : `นศ.ทดสอบ ${no}`;
-    return `<div class="card">
-      <div class="no">บัตรผู้ทดสอบ #${no}</div>
-      <div class="row"><span>ชื่อที่ใช้จอง</span><span class="val">${name}</span></div>
-      <div class="row"><span>เบอร์ที่ใช้จอง</span><span class="val">000 000 0${digits}</span></div>
-    </div>`;
-  }
-
-  function renderCards() {
-    const input = document.getElementById("count");
-    const count = Math.min(200, Math.max(1, Number(input.value) || 40));
-    let html = card(0);
-    for (let n = 1; n <= count; n++) html += card(n);
-    document.getElementById("cards").innerHTML = html;
-  }
-
   drawQr("qr-app", APP);
   drawQr("qr-feedback", FEEDBACK);
-  document.getElementById("count").addEventListener("input", renderCards);
-  renderCards();
 </script>
 </body>
 </html>

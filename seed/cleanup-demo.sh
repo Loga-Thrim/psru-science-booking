@@ -3,9 +3,9 @@
 #
 #   On the server:  cd /opt/psru-booking && ./seed/cleanup-demo.sh
 #
-# Demo test cards use phone numbers 0000000001-0000000999, which no real Thai
-# number starts with, so only those bookings match. Rooms, admins, real
-# bookings are left alone.
+# Demo testers book with 0000000 + the last 3 digits of their student ID, and
+# no real Thai number starts with 0000000, so only those bookings match.
+# Rooms, admins and real bookings are left alone.
 #
 # COMPOSE: compose command (default "docker compose"; add -p/-f flags locally).
 set -euo pipefail
