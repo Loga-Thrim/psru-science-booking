@@ -7,6 +7,10 @@
   base = "front-end"
   command = "npm run build"
   publish = "dist"
+  # Each production deploy costs 15 of the free plan's 300 monthly credits,
+  # so skip the build when a push leaves the frontend and this file alone.
+  # Runs in front-end/ (the base); exit 0 means "nothing changed, skip".
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ../netlify.toml"
 
 [build.environment]
   # Same-origin API path; the proxy rules below forward it.
