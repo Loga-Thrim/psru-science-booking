@@ -9,8 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  /* Printable kit: one presenter sheet, one projector sheet with QR codes,
-     one task sheet. Each section prints on its own page. */
+  /* Printable kit: presenter sheet, start QR, task sheet, evaluation QR. Each section prints on its own page. */
   :root {
     --ink: #1e293b; --muted: #64748b; --line: #cbd5e1; --paper: #ffffff;
     --ground: #f1f5f9; --accent: #334155;
@@ -28,10 +27,10 @@
   .box li::before { content: "☐ "; }
   .time { color: var(--muted); font-variant-numeric: tabular-nums; }
   code, .url { font-family: ui-monospace, Menlo, monospace; font-size: 14px; word-break: break-all; }
-  .qr-row { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 24px; }
+  .qr { margin-top: 24px; }
   .qr { text-align: center; }
   .qr .code { display: inline-block; padding: 12px; border: 2px solid var(--line); border-radius: 12px; }
-  .qr .code img, .qr .code canvas { width: 240px; height: 240px; }
+  .qr .code img, .qr .code canvas { width: 300px; height: 300px; max-width: 100%; }
   .qr h2 { margin-top: 12px; font-size: 26px; }
   .qr .url { color: var(--muted); }
   .task { border: 2px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 10px 0; }
@@ -50,7 +49,6 @@
   }
   @media (max-width: 640px) {
     .sheet { padding: 24px 16px; margin: 12px; }
-    .qr-row { grid-template-columns: 1fr; }
     .rule div { flex-direction: column; gap: 0; }
   }
 </style>
@@ -69,18 +67,18 @@
   <h2>ก่อนวันสาธิต</h2>
   <ul class="box">
     <li>เปิด <span class="url">csstu.psru.ac.th/~6212231018/check.php</span> จากคอมในมหาวิทยาลัย ต้องขึ้น "ใช้งานได้ ✓"</li>
-    <li>พิมพ์ใบภารกิจ (หน้าสุดท้าย) แจกคนละใบ หรือขึ้นจอแทนก็ได้</li>
-    <li>ใส่หน้า QR (หน้าถัดไป) ในสไลด์ ซึ่งมีกติกาชื่อและเบอร์อยู่ด้วย</li>
+    <li>พิมพ์ใบภารกิจ (หน้า 3) แจกคนละใบ หรือขึ้นจอแทนก็ได้</li>
+    <li>ใส่หน้า QR เริ่มทดสอบ (หน้า 2) และหน้า QR ประเมินระบบ (หน้าสุดท้าย) ในสไลด์</li>
   </ul>
 
   <h2>วันสาธิต</h2>
   <ol>
     <li><span class="time">5 นาที</span> บอกสั้นๆ ว่าระบบใช้จองห้องของคณะ <b>ไม่ต้องสอนวิธีใช้</b> ขึ้นหน้า QR ชี้กติกาเบอร์โทรให้ชัด</li>
     <li>จองตัวอย่างไว้ 1 รายการ: ห้อง <b>SC2401</b> วันทำการถัดไป 13:00–15:00 ชื่อ "อาจารย์ผู้สาธิต" เบอร์ <b>0000000000</b></li>
-    <li><span class="time">15 นาที</span> ให้นักศึกษาสแกน QR "เริ่มทดสอบ" แล้วทำภารกิจ 1–3 เดินดูว่าใครติดตรงไหน</li>
+    <li><span class="time">15 นาที</span> ให้นักศึกษาสแกน QR เริ่มทดสอบ แล้วทำภารกิจ 1–3 เดินดูว่าใครติดตรงไหน</li>
     <li><span class="time">5 นาที</span> login แอดมินบนจอ อนุมัติการจองของนักศึกษา 2–3 รายการ ให้เขากดดูสถานะอีกครั้ง</li>
     <li><span class="time">3 นาที</span> ภารกิจ 4: ยกเลิกการจองของตัวเอง</li>
-    <li><span class="time">5 นาที</span> สแกน QR "ประเมินระบบ" แล้วกรอกแบบประเมิน (Google Form ประมาณ 3 นาที)</li>
+    <li><span class="time">5 นาที</span> ขึ้นหน้า QR ประเมินระบบ ให้สแกนแล้วกรอกแบบประเมิน (Google Form ประมาณ 3 นาที)</li>
   </ol>
 
   <h2>หลังสาธิต</h2>
@@ -94,7 +92,7 @@
   <p class="note">อย่าแจกบัญชีแอดมินให้นักศึกษา: แอดมินลบห้องและเห็นเบอร์โทรของทุกคนได้</p>
 </section>
 
-<!-- 2. Projector sheet -->
+<!-- 2. Start QR -->
 <section class="sheet">
   <h1>ทดลองใช้ระบบจองห้อง</h1>
   <p class="sub">คณะวิทยาศาสตร์และเทคโนโลยี</p>
@@ -103,17 +101,10 @@
     <div><span>เบอร์</span><b>0000000 + เลข 3 ตัวท้ายรหัสนักศึกษา</b></div>
     <p>เช่น รหัสลงท้าย 245 → ใช้เบอร์ <b>0000000245</b> · ห้ามใช้เบอร์จริง</p>
   </div>
-  <div class="qr-row">
-    <div class="qr">
-      <div class="code" id="qr-app"></div>
-      <h2>① เริ่มทดสอบ</h2>
-      <div class="url">csstu.psru.ac.th/~6212231018/</div>
-    </div>
-    <div class="qr">
-      <div class="code" id="qr-feedback"></div>
-      <h2>② ประเมินระบบ</h2>
-      <div class="url">แบบประเมินความพึงพอใจ (Google Form)</div>
-    </div>
+  <div class="qr">
+    <div class="code" id="qr-app"></div>
+    <h2>สแกนเพื่อเริ่มทดสอบ</h2>
+    <div class="url">csstu.psru.ac.th/~6212231018/</div>
   </div>
 </section>
 
@@ -129,7 +120,18 @@
   <div class="task"><b>2. ดูว่าใครจองไว้แล้ว</b><br>เปิดห้อง SC2401 วันทำการถัดไป แล้วหาว่าช่วงไหนมีคนจองแล้ว และใครจอง</div>
   <div class="task"><b>3. ดูสถานะการจองของตัวเอง</b><br>ใช้เบอร์ที่จองไว้</div>
   <div class="task"><b>4. ยกเลิกการจองของตัวเอง</b><br>(รอผู้สาธิตบอกก่อน)</div>
-  <div class="task"><b>5. ประเมินระบบ</b><br>สแกน QR "ประเมินระบบ" แล้วตอบแบบประเมิน</div>
+  <div class="task"><b>5. ประเมินระบบ</b><br>สแกน QR ประเมินระบบบนจอ แล้วตอบแบบประเมิน</div>
+</section>
+
+<!-- 4. Evaluation QR, shown after the tasks -->
+<section class="sheet">
+  <h1>ประเมินระบบ</h1>
+  <p class="sub">ขอบคุณที่ช่วยทดสอบ · ใช้เวลาประมาณ 3 นาที</p>
+  <div class="qr">
+    <div class="code" id="qr-feedback"></div>
+    <h2>สแกนเพื่อประเมินระบบ</h2>
+    <div class="url">แบบประเมินความพึงพอใจ (Google Form)</div>
+  </div>
 </section>
 
 
@@ -145,7 +147,7 @@
       el.textContent = "ต่ออินเทอร์เน็ตแล้วเปิดไฟล์ใหม่ เพื่อสร้าง QR";
       return;
     }
-    new QRCode(el, { text, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(el, { text, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.M });
   }
 
   drawQr("qr-app", APP);
