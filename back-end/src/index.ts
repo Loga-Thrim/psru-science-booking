@@ -1,6 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
-import {loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute, feedbackRoute} from "./routes/routes"
+import {loginRoute, verifyTokenRoute, manageUserRoutes, createUserRoute, manageRoomRoute, uploadImageRoute, bookingRoute, approveRoutes, dashboardRoute} from "./routes/routes"
 import "dotenv/config";
 import { UPLOAD_DIR } from "./midleware/uploadImage";
 
@@ -43,7 +43,6 @@ try {
   bookingRoute(app);
   approveRoutes(app);
   dashboardRoute(app);
-  feedbackRoute(app);
 }catch(err){
   console.error(err);
 }

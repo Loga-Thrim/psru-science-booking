@@ -5,7 +5,7 @@
 #
 # Demo test cards use phone numbers 0000000001-0000000999, which no real Thai
 # number starts with, so only those bookings match. Rooms, admins, real
-# bookings and the collected feedback are left alone.
+# bookings are left alone.
 #
 # COMPOSE: compose command (default "docker compose"; add -p/-f flags locally).
 set -euo pipefail

@@ -7,7 +7,6 @@ import {
   Users,
   DoorOpen,
   ClipboardCheck,
-  ClipboardList,
   BarChart3,
   LogOut,
   LogIn,
@@ -95,7 +94,6 @@ function Layout() {
           { name: 'จัดการผู้ใช้', href: '/users', icon: Users },
           { name: 'ภาพรวมระบบ', href: '/dashboard', icon: LayoutDashboard },
           { name: 'รายงาน', href: '/reports', icon: BarChart3 },
-          { name: 'ผลประเมิน', href: '/feedback-results', icon: ClipboardList },
         ]
       : []),
   ];

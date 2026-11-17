@@ -16,8 +16,6 @@ import UserManagementPage from "./pages/UserManagementPage";
 import BookingApprovalPage from "./pages/BookingApprovalPage";
 import ReportsPage from "./pages/ReportsPage";
 import BookingStatusPage from "./pages/BookingStatusPage";
-import FeedbackPage from "./pages/FeedbackPage";
-import FeedbackResultsPage from "./pages/FeedbackResultsPage";
 
 // The csstu build sits in a university userdir where the server cannot be told
 // to send every path to index.html, so it keeps the route after "#" instead.
@@ -37,15 +35,12 @@ function App() {
                 the phone number is how a booker finds their bookings again. */}
             <Route path="/book-room" element={<BookRoomPage />} />
             <Route path="/booking-status" element={<BookingStatusPage />} />
-            {/* Usability questionnaire for demo sessions; reached by link or QR code, not the menu. */}
-            <Route path="/feedback" element={<FeedbackPage />} />
 
             <Route path="/approvals" element={<RequireRole roles={["admin"]}><BookingApprovalPage /></RequireRole>} />
             <Route path="/rooms" element={<RequireRole roles={["admin"]}><RoomManagementPage /></RequireRole>} />
             <Route path="/users" element={<RequireRole roles={["admin"]}><UserManagementPage /></RequireRole>} />
             <Route path="/dashboard" element={<RequireRole roles={["admin"]}><DashboardPage /></RequireRole>} />
             <Route path="/reports" element={<RequireRole roles={["admin"]}><ReportsPage /></RequireRole>} />
-            <Route path="/feedback-results" element={<RequireRole roles={["admin"]}><FeedbackResultsPage /></RequireRole>} />
           </Route>
         </Routes>
       </Router>
